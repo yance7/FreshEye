@@ -37,7 +37,7 @@ class FishFreshNetClient:
 
     def _request(self, method: str, path: str, **kwargs: Any) -> requests.Response:
         if not self._is_configured():
-            raise RuntimeError("FISHFRESHNET_API_URL is not configured")
+            raise RuntimeError("FishFreshNet model service URL is not configured (set FISHFRESHNET_API_URL or MODEL_SERVICE_URL)")
 
         url = f"{self.base_url}{path}"
         last_error: Exception | None = None
