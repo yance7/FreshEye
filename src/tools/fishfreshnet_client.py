@@ -18,11 +18,17 @@ class FishFreshNetClient:
     def __init__(self, base_url: Optional[str] = None):
         """
         初始化客户端
-        
+
         Args:
-            base_url: API服务地址。未配置时客户端会返回降级结果。
+            base_url: API服务地址。优先使用传入参数，其次 FISHFRESHNET_API_URL，
+                      再次 MODEL_SERVICE_URL（兼容旧配置）。未配置时客户端会返回降级结果。
         """
-        self.base_url = (base_url or os.getenv("FISHFRESHNET_API_URL") or "").rstrip("/")
+        self.base_url = (
+            base_url
+            or os.getenv("FISHFRESHNET_API_URL")
+            or os.getenv("MODEL_SERVICE_URL")
+            or ""
+        ).rstrip("/")
         self.timeout = 30
         self.max_retries = 3
 
@@ -120,7 +126,9 @@ class FishFreshNetClient:
         except RuntimeError as e:
             logger.error(str(e))
             return self._fallback_result(str(e))
-        
+        except requests.exceptions.Timeout:
+            logger.error("API请求超时")
+            return self._fallback_result("API请求超时")
         except requests.exceptions.RequestException as e:
             logger.error(f"API请求失败: {e}")
             return self._fallback_result(f"API请求失败: {str(e)}")
@@ -133,6 +141,9 @@ class FishFreshNetClient:
         except RuntimeError as e:
             logger.error(str(e))
             return self._fallback_result(str(e))
+        except requests.exceptions.Timeout:
+            logger.error("API请求超时")
+            return self._fallback_result("API请求超时")
         except requests.exceptions.RequestException as e:
             logger.error(f"API请求失败: {e}")
             return self._fallback_result(f"API请求失败: {str(e)}")

@@ -116,16 +116,17 @@ def load_model(model_path: str, device: str = 'cpu'):
     # 创建模型实例
     model = FishFreshNetV1(num_classes=3, pretrained=False)
     
-    # 加载权重（安全模式优先）
+    # 安全加载权重：仅允许 weights_only=True，拒绝执行任意 pickle 字节码。
+    # 若权重文件包含非张量对象，加载会失败并抛出明确错误，而非回退到不安全模式。
     try:
-        # 优先使用安全模式加载（PyTorch 2.0+ 推荐）
         checkpoint = torch.load(model_path, map_location=device, weights_only=True)
-    except Exception:
-        # 如果权重文件包含非张量对象，回退到兼容模式并记录警告
-        import logging
-        logging.warning(f"模型文件 {model_path} 需要 weights_only=False 加载，请确保文件来源可信")
-        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-    
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to load model weights from {model_path} with weights_only=True. "
+            "Only pure state_dict files are supported. If this is a legacy full-object "
+            "checkpoint, re-export it as a state_dict before loading. Original error: {exc}"
+        ) from exc
+
     # 检查 checkpoint 类型并加载
     if isinstance(checkpoint, dict):
         # 可能是包含额外信息的 checkpoint
@@ -138,9 +139,6 @@ def load_model(model_path: str, device: str = 'cpu'):
         else:
             # 尝试直接作为 state_dict 加载
             model.load_state_dict(checkpoint)
-    elif isinstance(checkpoint, nn.Module):
-        # 如果保存的是完整模型对象
-        model = checkpoint
     else:
         # 尝试作为 state_dict 加载
         model.load_state_dict(checkpoint)
@@ -153,9 +151,16 @@ def load_model(model_path: str, device: str = 'cpu'):
 
 if __name__ == "__main__":
     import os
-    
-    # 测试模型加载
-    model_path = "src/storage/fishfreshnet_v1.pth"
+    from pathlib import Path
+
+    # 通过与模型服务相同的查找逻辑定位权重文件，不硬编码相对路径
+    _root = Path(__file__).resolve().parents[2]
+    candidates = [
+        Path(os.getenv("FISHFRESHNET_MODEL_PATH", "")) if os.getenv("FISHFRESHNET_MODEL_PATH") else None,
+        _root / "src" / "storage" / "fishfreshnet_v1.pth",
+        _root.parent / "fishfreshnet_v1.pth",
+    ]
+    model_path = next((c for c in candidates if c and c.exists()), candidates[1])
     if os.path.exists(model_path):
         print(f"✅ 找到模型文件: {model_path}")
         print("🔄 正在加载模型...")

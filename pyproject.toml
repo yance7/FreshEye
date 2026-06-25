@@ -15,14 +15,7 @@ dependencies = [
     "Jinja2>=3.1,<4",
     "Pillow>=10.3,<12",
     "requests>=2.31,<3",
-    "python-multipart>=0.0.9",
     "python-dotenv>=1.0,<2",
-    "chardet>=5.2,<6",
-    "pypdf>=6.4,<7",
-    "docx2python>=3.5,<4",
-    "openpyxl>=3.1,<4",
-    "pandas>=2.2,<3",
-    "python-pptx>=1.0,<2",
 ]
 
 [project.optional-dependencies]
@@ -31,17 +24,30 @@ model = [
     "torchvision>=0.18",
     "numpy>=1.26,<3",
     "matplotlib>=3.8,<4",
-    "opencv-python>=4.9,<5",
+    "opencv-python-headless>=4.9,<5",
+    "python-multipart>=0.0.9",
+]
+docs = [
+    "chardet>=5.2,<6",
+    "pypdf>=6.4,<7",
+    "docx2python>=3.5,<4",
+    "openpyxl>=3.1,<4",
+    "pandas>=2.2,<3",
+    "python-pptx>=1.0,<2",
 ]
 dev = [
     "pytest>=8",
     "pytest-asyncio>=0.23,<1",
+    "ruff>=0.8,<1",
 ]
-
-[tool.uv]
-[[tool.uv.index]]
-url = "https://mirrors.aliyun.com/pypi/simple/"
-default = true
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]

@@ -12,7 +12,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.runtime import Runtime
 from tools.llm_client import LLMClient
 from graphs.state import ReportGenerationInput, ReportGenerationOutput
-from graphs.utils import config_path
+from graphs.utils import config_path, get_default_model
 
 
 def report_generation_node(
@@ -85,9 +85,10 @@ def report_generation_node(
     }
 
     model_config: Dict[str, Any] = llm_config.get("config", {})
-    model_id: str = model_config.get("model", "doubao-seed-1-8-251228")
+    model_id: str = model_config.get("model", get_default_model())
     temperature: float = model_config.get("temperature", 0.4)
     max_tokens: int = model_config.get("max_completion_tokens", 800)
+    top_p: float | None = model_config.get("top_p")
     timeout: float = float(model_config.get("timeout", 60))
 
     report_system_prompt: str = llm_config.get("sp", "")
@@ -112,6 +113,7 @@ def report_generation_node(
                 model=model_id,
                 temperature=temperature,
                 max_completion_tokens=max_tokens,
+                top_p=top_p,
                 timeout=timeout
             )
             response_str = response.content if isinstance(response.content, str) else str(response.content)
@@ -139,6 +141,8 @@ def report_generation_node(
 {
   "fish_type": "鱼种名称",
   "key_indicators": ["关键指标1", "关键指标2", "关键指标3"],
+  "typical_fresh_signs": ["该鱼种新鲜时的典型特征1", "特征2"],
+  "warning_signs": ["变质预警信号1", "信号2"],
   "risk_level": "低|中|高",
   "recommended_handling": "推荐处理方式",
   "recommended_cooking": ["推荐烹饪方式1", "推荐烹饪方式2"],
@@ -171,9 +175,10 @@ def report_generation_node(
             model=model_id,
             temperature=temperature,
             max_completion_tokens=max_tokens,
+            top_p=top_p,
             timeout=timeout
         )
-        
+
         # 解析LLM响应
         response_content: Any = response.content
         

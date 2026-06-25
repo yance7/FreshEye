@@ -182,8 +182,21 @@ async def http_stream_run(request: Request) -> StreamingResponse:
 
     async def events():
         try:
-            for chunk in main_graph.stream(payload):
-                yield f"data: {json.dumps(to_jsonable(chunk), ensure_ascii=False)}\n\n"
+            chunks: list[str] = []
+            done = asyncio.Event()
+
+            def run_stream():
+                try:
+                    for chunk in main_graph.stream(payload):
+                        chunks.append(json.dumps(to_jsonable(chunk), ensure_ascii=False))
+                    done.set()
+                except Exception as exc:
+                    chunks.append(json.dumps({"error": str(exc)}, ensure_ascii=False))
+                    done.set()
+
+            await asyncio.to_thread(run_stream)
+            for chunk in chunks:
+                yield f"data: {chunk}\n\n"
             yield 'data: {"status":"done"}\n\n'
         except Exception as exc:
             logger.exception("Streaming run failed")
@@ -198,7 +211,7 @@ async def http_node_run(node_id: str, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=f"Unknown node: {node_id}")
     try:
         payload = await request.json()
-        return run_node(node_id, payload)
+        return await asyncio.to_thread(run_node, node_id, payload)
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail=f"Invalid JSON: {exc}") from exc
     except Exception as exc:
@@ -237,7 +250,8 @@ def parse_input(input_str: str) -> dict[str, Any]:
 
 
 def start_http_server(port: int) -> None:
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False, workers=1)
+    host = os.getenv("HOST", "127.0.0.1")
+    uvicorn.run("main:app", host=host, port=port, reload=False, workers=1)
 
 
 def parse_args() -> argparse.Namespace:

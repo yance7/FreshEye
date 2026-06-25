@@ -105,7 +105,9 @@ def image_preprocess_node(
 
     try:
         if image_url.startswith(("http://", "https://")):
-            response = requests.get(image_url, timeout=10)
+            from utils.net import validate_url
+            validate_url(image_url)
+            response = requests.get(image_url, timeout=10, allow_redirects=False)
             response.raise_for_status()
             image = Image.open(io.BytesIO(response.content)).convert("RGB")
         else:
@@ -129,7 +131,7 @@ def image_preprocess_node(
 
         tmp_dir = tempfile.gettempdir()
         os.makedirs(tmp_dir, exist_ok=True)
-        local_path = f"{tmp_dir}/fish_processed_{uuid.uuid4().hex[:8]}.jpg"
+        local_path = os.path.join(tmp_dir, f"fish_processed_{uuid.uuid4().hex[:8]}.jpg")
         image.save(local_path, format="JPEG", quality=95)
 
         processed_file = File(url=local_path, file_type="image")

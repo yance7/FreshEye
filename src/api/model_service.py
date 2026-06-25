@@ -22,27 +22,43 @@ import requests
 import matplotlib.pyplot as plt
 import cv2
 
-os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+# src/ 需在 sys.path 中以支持无前缀导入（from models... import）。
+# 通过 uvicorn src.api.model_service:app 启动时，CWD 在 projects/，src/ 不自动入 path。
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_SRC_ROOT = str(_PROJECT_ROOT / "src")
+if _SRC_ROOT not in sys.path:
+    sys.path.append(_SRC_ROOT)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT / "src") not in sys.path:
-    sys.path.append(str(PROJECT_ROOT / "src"))
-from models.fishfreshnet_model import load_model
+from models.fishfreshnet_model import load_model  # noqa: E402
+
+from utils.net import validate_url  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
-MAX_IMAGE_BYTES = int(os.getenv("FISHFRESHNET_MAX_IMAGE_MB", "25")) * 1024 * 1024
+
+def _parse_max_image_bytes() -> int:
+    """解析最大图片字节数，对非法环境变量值容错。"""
+    raw = os.getenv("FISHFRESHNET_MAX_IMAGE_MB", "25")
+    try:
+        return int(raw) * 1024 * 1024
+    except (TypeError, ValueError):
+        logger.warning("Invalid FISHFRESHNET_MAX_IMAGE_MB value '%s', falling back to 25", raw)
+        return 25 * 1024 * 1024
+
+
+MAX_IMAGE_BYTES = _parse_max_image_bytes()
 
 model = None
 device = None
 
 
 def parse_cors_origins() -> list[str]:
+    """解析 CORS 允许的来源。未配置时返回空列表（同源策略，安全默认）。"""
     cors_env = os.getenv("CORS_ORIGINS")
     if cors_env is None:
-        return ["*"]
+        return []
     origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
-    return origins or ["*"]
+    return origins
 
 
 @asynccontextmanager
@@ -61,7 +77,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=parse_cors_origins(),
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
@@ -108,13 +124,13 @@ def resolve_model_path() -> Path:
     env_path = os.getenv("FISHFRESHNET_MODEL_PATH")
     candidates = [
         Path(env_path) if env_path else None,
-        PROJECT_ROOT / "src" / "storage" / "fishfreshnet_v1.pth",
-        PROJECT_ROOT.parent / "fishfreshnet_v1.pth",
+        _PROJECT_ROOT / "src" / "storage" / "fishfreshnet_v1.pth",
+        _PROJECT_ROOT.parent / "fishfreshnet_v1.pth",
     ]
     for candidate in candidates:
         if candidate and candidate.exists():
             return candidate
-    return PROJECT_ROOT / "src" / "storage" / "fishfreshnet_v1.pth"
+    return _PROJECT_ROOT / "src" / "storage" / "fishfreshnet_v1.pth"
 
 
 def load_model_on_startup() -> None:
@@ -182,7 +198,8 @@ def predict_image(image: Image.Image) -> PredictionResult:
 
 def download_image(image_url: str) -> Image.Image:
     try:
-        response = requests.get(image_url, timeout=10, stream=True)
+        validate_url(image_url)
+        response = requests.get(image_url, timeout=10, stream=True, allow_redirects=False)
         response.raise_for_status()
         content_length = response.headers.get("content-length")
         if content_length and int(content_length) > MAX_IMAGE_BYTES:
@@ -193,6 +210,8 @@ def download_image(image_url: str) -> Image.Image:
         return load_image_from_bytes(data)
     except HTTPException:
         raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid image URL: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to fetch image: {exc}") from exc
 
@@ -285,6 +304,8 @@ def generate_gradcam(model, input_tensor, target_class):
     """
     生成Grad-CAM热力图
 
+    梯度和特征图必须来自同一层（features[-1]），确保归因正确。
+
     Args:
         model: 模型实例
         input_tensor: 输入张量
@@ -296,12 +317,18 @@ def generate_gradcam(model, input_tensor, target_class):
     model.eval()
 
     gradients_list = []
+    feature_maps_list = []
 
     def save_gradient(module, grad_input, grad_output):
         gradients_list.append(grad_output[0])
 
+    def save_feature_map(module, input, output):
+        feature_maps_list.append(output)
+
     last_conv_layer = model.features[-1]
-    hook = last_conv_layer.register_full_backward_hook(save_gradient)
+    # 在同一层注册 forward hook 和 backward hook，确保梯度与特征图对应
+    hook_grad = last_conv_layer.register_full_backward_hook(save_gradient)
+    hook_fwd = last_conv_layer.register_forward_hook(save_feature_map)
 
     input_tensor.requires_grad_(True)
 
@@ -310,14 +337,14 @@ def generate_gradcam(model, input_tensor, target_class):
     model.zero_grad()
     output[0][target_class].backward(retain_graph=False)
 
-    hook.remove()
+    hook_grad.remove()
+    hook_fwd.remove()
 
-    feature_maps = model.feature_maps.detach()
-    
-    if not gradients_list:
+    if not gradients_list or not feature_maps_list:
         return np.zeros((224, 224))
-    
+
     gradients = gradients_list[0]
+    feature_maps = feature_maps_list[0].detach()
     
     pooled_gradients = torch.mean(gradients, dim=[0, 2, 3])
     
@@ -413,10 +440,11 @@ async def gradcam_url(request: ImageUrlRequest):
         target_class = prediction.freshness_label
         cam = generate_gradcam(model, input_tensor, target_class)
 
-        original_image = np.array(image.resize((224, 224)))
+        original_image = np.array(image.resize((224, 224)))  # PIL -> RGB
+        original_image = cv2.cvtColor(original_image, cv2.COLOR_RGB2BGR)  # 转 BGR 以匹配 cv2.applyColorMap 输出
         heatmap = cv2.resize(cam, (224, 224))
         heatmap = np.uint8(255 * heatmap)
-        heatmap_colored = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+        heatmap_colored = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)  # BGR
         superimposed = cv2.addWeighted(original_image, 0.6, heatmap_colored, 0.4, 0)
 
         _, buffer = cv2.imencode('.jpg', superimposed)
@@ -437,10 +465,14 @@ async def gradcam_url(request: ImageUrlRequest):
 
 
 if __name__ == "__main__":
-    # 启动服务
+    # Windows 上 torch 可能因 OpenMP 重复加载报错，启动时设置环境变量
+    os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+    # 启动服务（默认仅监听本地，可通过 HOST 环境变量覆盖）
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "8000"))
     uvicorn.run(
         app,
-        host="0.0.0.0",
-        port=8000,
+        host=host,
+        port=port,
         log_level="info"
     )

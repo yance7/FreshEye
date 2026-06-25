@@ -56,7 +56,7 @@ pip install -r requirements-model.txt
 启动服务时可按部署环境指定端口：
 
 ```bash
-python -m uvicorn src.api.model_service:app --host 0.0.0.0 --port <port>
+python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port <port>
 ```
 
 健康检查：
@@ -114,7 +114,8 @@ $env:MODEL_SERVICE_URL="https://your-fishfreshnet-api.example"
 
 ## 注意事项
 
-- 模型权重来源需要可信；`load_model()` 优先使用 PyTorch 的 `weights_only=True` 加载方式。
+- 模型权重来源需要可信；`load_model()` 仅使用 PyTorch 的 `weights_only=True` 安全加载方式，拒绝执行任意 pickle 字节码。
+- 远程 URL 接口经过 SSRF 校验（拒绝私有/环回地址），确保不会被抓取内网资源。
 - 本仓库不内置训练数据说明，实际性能应以你本地权重和验证集为准。
 - 远程 URL 接口会下载图片到临时文件，服务结束后会清理临时文件。
 - Windows 本地安装器通常内置推理核心，源码仓库只保留可复现的打包配置和启动器代码。

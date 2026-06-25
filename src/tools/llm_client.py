@@ -18,11 +18,12 @@ class LLMResponse:
 
 
 class LLMClient:
-    """Small OpenAI-compatible client.
+    """Small OpenAI-compatible chat client.
 
-    Configure with OPENAI_API_KEY and optionally OPENAI_BASE_URL. Doubao or
-    other OpenAI-compatible gateways can be used by pointing OPENAI_BASE_URL at
-    their /v1 endpoint.
+    Configure with OPENAI_API_KEY and optionally OPENAI_BASE_URL. Any
+    OpenAI-compatible gateway (Ark, OpenAI, Ollama, vLLM, etc.) can be used
+    by pointing OPENAI_BASE_URL at its /v1 endpoint. ARK_API_KEY / LLM_BASE_URL
+    are accepted as aliases.
     """
 
     def __init__(self, ctx: Any = None, api_key: str | None = None, base_url: str | None = None) -> None:
@@ -38,21 +39,33 @@ class LLMClient:
         model: str,
         temperature: float = 0.2,
         max_completion_tokens: int = 1000,
+        top_p: float | None = None,
+        frequency_penalty: float | None = None,
         timeout: float | None = None,
     ) -> LLMResponse:
         if not self.api_key or not self.base_url:
             raise RuntimeError("LLM is not configured. Set OPENAI_API_KEY and OPENAI_BASE_URL.")
 
+        if not model:
+            raise RuntimeError(
+                "No LLM model specified. Set the 'model' field in the node config JSON "
+                "or define FISH_AGENT_DEFAULT_MODEL in the environment."
+            )
+
         url = self.base_url
         if not url.endswith("/chat/completions"):
             url = f"{url}/chat/completions"
 
-        payload = {
+        payload: dict[str, Any] = {
             "model": model,
             "messages": [self._message_to_dict(message) for message in messages],
             "temperature": temperature,
             "max_tokens": max_completion_tokens,
         }
+        if top_p is not None:
+            payload["top_p"] = top_p
+        if frequency_penalty is not None:
+            payload["frequency_penalty"] = frequency_penalty
         response = self._post_with_retry(url, payload, timeout=timeout or self.timeout)
         data = response.json()
         return LLMResponse(content=data["choices"][0]["message"].get("content", ""))

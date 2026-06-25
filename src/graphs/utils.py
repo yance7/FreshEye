@@ -22,6 +22,16 @@ def project_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def get_default_model() -> str:
+    """
+    获取默认 LLM 模型 ID。
+
+    优先从环境变量 FISH_AGENT_DEFAULT_MODEL 读取；未配置时返回空字符串，
+    由调用方决定是否报错。不内置任何厂商特定的模型 ID，保证可复现性。
+    """
+    return os.getenv("FISH_AGENT_DEFAULT_MODEL", "")
+
+
 def config_path(relative_path: str) -> Path:
     path = Path(relative_path)
     if path.is_absolute():
@@ -72,10 +82,15 @@ def parse_bbox(bbox: Any, image_size: tuple[int, int] | None = None) -> tuple[in
 def get_confidence_level(confidence_score: float) -> str:
     """
     根据置信度分数计算置信度水平
-    
+
     置信度水平："高"(>=0.8) / "中"(0.5-0.8) / "低"(<0.5)
     """
-    if confidence_score is None or math.isnan(float(confidence_score)):
+    if confidence_score is None:
+        return "低"
+    try:
+        if math.isnan(confidence_score):
+            return "低"
+    except (TypeError, ValueError):
         return "低"
     if confidence_score >= 0.8:
         return "高"
@@ -83,28 +98,6 @@ def get_confidence_level(confidence_score: float) -> str:
         return "中"
     else:
         return "低"
-
-
-def safe_bool_parse(value: Any) -> bool:
-    """
-    安全解析布尔值，正确处理字符串 "false"/"否" 等情况
-    
-    Handles booleans returned as strings by LLMs.
-    """
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        lower_value = value.lower().strip()
-        false_values = ["false", "否", "no", "n", "0", "不", "无", "非"]
-        if lower_value in false_values:
-            return False
-        true_values = ["true", "是", "yes", "y", "1", "有", "含"]
-        if lower_value in true_values:
-            return True
-        return False
-    if isinstance(value, (int, float)):
-        return value > 0
-    return False
 
 
 def generate_attention_overlay(
@@ -120,7 +113,9 @@ def generate_attention_overlay(
     """
     try:
         if image_url.startswith(("http://", "https://")):
-            response = requests.get(image_url, timeout=10)
+            from utils.net import validate_url
+            validate_url(image_url)
+            response = requests.get(image_url, timeout=10, allow_redirects=False)
             response.raise_for_status()
             image = Image.open(io.BytesIO(response.content)).convert("RGB")
         else:

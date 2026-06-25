@@ -1,12 +1,8 @@
 {
     "config": {
         "frequency_penalty": 0,
-        "json_schema": "{\"name\":\"\",\"description\":\"\",\"strict\":false,\"schema\":{}}",
         "max_completion_tokens": 1500,
-        "reasoning_effort": "medium",
-        "response_format": "text",
         "temperature": 0.1,
-        "thinking_type": "enabled",
         "top_p": 0.9,
         "model": "doubao-seed-2-0-lite-260215"
     },

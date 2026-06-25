@@ -11,7 +11,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.runtime import Runtime
 from tools.llm_client import LLMClient
 from graphs.state import BackupModelReviewInput, BackupModelReviewOutput
-from graphs.utils import get_confidence_level, config_path
+from graphs.utils import get_confidence_level, config_path, get_default_model
 
 
 def backup_model_review_node(
@@ -117,9 +117,10 @@ def backup_model_review_node(
 
     # 获取模型配置
     model_config: Dict[str, Any] = llm_config.get("config", {})
-    model_id: str = model_config.get("model", "doubao-seed-1-8-251228")
+    model_id: str = model_config.get("model", get_default_model())
     temperature: float = model_config.get("temperature", 0.2)
     max_tokens: int = model_config.get("max_completion_tokens", 800)
+    top_p: float | None = model_config.get("top_p")
     timeout: float = float(model_config.get("timeout", 60))
 
     try:
@@ -132,6 +133,7 @@ def backup_model_review_node(
             model=model_id,
             temperature=temperature,
             max_completion_tokens=max_tokens,
+            top_p=top_p,
             timeout=timeout
         )
 

@@ -20,7 +20,7 @@ def feedback_loop_node(
     integrations: 数据库存储
     """
     # 初始化结果
-    record_id: str = state.record_id
+    record_id: Optional[str] = state.record_id
     sample_pool_id: Optional[str] = None
     feedback_prompt: str = ""
     

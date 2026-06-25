@@ -1,13 +1,10 @@
 import os
 import tempfile
 import requests
-import uuid
-import chardet
 from io import BytesIO
-from typing import Literal,Callable, Any, Optional,Union
-from pydantic import BaseModel, Field, field_validator,PrivateAttr,ConfigDict
+from typing import Literal, Any, Optional, Union
+from pydantic import BaseModel, Field, PrivateAttr, ConfigDict
 from urllib.parse import urlparse
-from pptx import Presentation
 
 MAX_FILE_SIZE = 100 * 1024 * 1024
 
@@ -100,7 +97,7 @@ class FileOps:
     DOWNLOAD_DIR = tempfile.gettempdir()
 
     @staticmethod
-    def _get_bytes_stream(file_obj:File) -> tuple[bytes, str]:
+    def _get_bytes_stream(file_obj: File) -> tuple[bytes, str]:
         """
         获取文件内容和后缀, 大小限制检查, 超出抛异常
         """
@@ -108,7 +105,7 @@ class FileOps:
 
         if file_obj.is_remote:
             try:
-                # stream=True: 此时只下载 Headers，连接保持打开，还没下载 Body
+                # stream=True: 此时只下载 headers，连接保持打开，还没下载 Body
                 with requests.get(file_obj.url, stream=True, timeout=60) as resp:
                     resp.raise_for_status()
 
@@ -140,11 +137,9 @@ class FileOps:
             if not os.path.exists(file_obj.url):
                 raise FileNotFoundError(f"本地文件不存在: {file_obj.url}")
 
-            '''
             file_size = os.path.getsize(file_obj.url)
             if file_size > MAX_FILE_SIZE:
-                 raise Exception(f"本地文件大小 ({file_size} bytes) 超过限制 100MB")
-            '''
+                raise Exception(f"本地文件大小 ({file_size} bytes) 超过限制 100MB")
 
             with open(file_obj.url, 'rb') as f:
                 return f.read(), ext
@@ -164,10 +159,9 @@ class FileOps:
         try:
             os.makedirs(FileOps.DOWNLOAD_DIR, exist_ok=True)
 
-            # 简单的文件名生成策略 (真实场景建议用 url hash 避免重复下载)
-            # ext = os.path.splitext(file_obj.url.split('?')[0])[1] or ".tmp"
-            # filename = f"{uuid.uuid4().hex}{ext}"
-            local_path = os.path.join(FileOps.DOWNLOAD_DIR, filename)
+            # 仅使用文件名的基本名称，防止路径穿越
+            safe_filename = os.path.basename(filename)
+            local_path = os.path.join(FileOps.DOWNLOAD_DIR, safe_filename)
 
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
             with requests.get(file_obj.url, headers=headers, stream=True, timeout=120) as r:
@@ -181,7 +175,7 @@ class FileOps:
             raise RuntimeError(f"Download failed for {file_obj.url}: {str(e)}")
 
     @staticmethod
-    def read_bytes(file_obj:File) -> bytes:
+    def read_bytes(file_obj: File) -> bytes:
         """
         获取文件的原始二进制数据
         场景：上传到OSS、保存到本地、传给图像处理库
@@ -201,18 +195,22 @@ class FileOps:
             if ext in ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx']:
                 return FileOps._parse_document_bytes(file_obj, content, ext)
 
-            # 默认直接读
-            charset = chardet.detect(content)
-            if 'encoding' in charset:
-                return content.decode(charset['encoding'])
-            else:
-                return content.decode('utf-8')
+            # 默认直接读，使用 chardet 检测编码（可选依赖）
+            encoding = None
+            try:
+                import chardet
+                detected = chardet.detect(content)
+                encoding = detected.get('encoding')
+            except ImportError:
+                pass
+
+            return content.decode(encoding or 'utf-8', errors='replace')
 
         except Exception as e:
             return f"[FileOps Error] Failed to read content: {str(e)}"
 
     @staticmethod
-    def _parse_document_bytes(file_obj: File, content: bytes, ext:str) -> str:
+    def _parse_document_bytes(file_obj: File, content: bytes, ext: str) -> str:
         stream = BytesIO(content)
         text_result = ""
 
@@ -276,8 +274,8 @@ def read_docx(cont_stream) -> str:
     return "\n\n".join(all_parts)
 
 def read_ppt(file_input: Union[str, bytes, BytesIO]) -> str:
-    if not Presentation:
-        return "[Error] 未安装 python-pptx 库，无法解析 PPT 文件"
+    # python-pptx 为可选依赖，延迟导入
+    from pptx import Presentation
 
     # 1. 统一转换为文件流对象 (BytesIO)
     if isinstance(file_input, str):

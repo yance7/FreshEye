@@ -1,7 +1,7 @@
 ﻿"""
 节点⑧ Grad-CAM可视化生成（强化版）
 
-1. 优先调用模型服务的Grad-CAM API
+1. 优先调用模型服务的Grad-CAM API（通过 FishFreshNetClient，支持本地文件 multipart 上传）
 2. 如果模型服务不可用，生成基于区域检测的关注区域标注图
 3. 使用大模型生成自然语言解释
 4. 从配置文件读取模型参数
@@ -12,14 +12,14 @@ import base64
 import tempfile
 import uuid
 import atexit
-import requests
 from typing import Dict, Any, List, Optional
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.runtime import Runtime
 from tools.llm_client import LLMClient
+from tools.fishfreshnet_client import get_client
 from graphs.state import EnhancedGradCAMInput, EnhancedGradCAMOutput
-from graphs.utils import generate_attention_overlay, config_path
+from graphs.utils import generate_attention_overlay, config_path, get_default_model
 from utils.file.file import File
 
 
@@ -62,35 +62,31 @@ def enhanced_gradcam_node(
             key_attention_regions=[]
         )
 
-    # 尝试调用真实Grad-CAM模型服务
+    # 尝试调用真实Grad-CAM模型服务（通过 FishFreshNetClient，正确处理本地文件）
     gradcam_url: Optional[str] = None
     is_real_gradcam: bool = False
 
     try:
-        # 模型服务地址由环境变量显式配置；未配置时直接走降级可视化。
-        model_service_url: str = os.getenv("MODEL_SERVICE_URL", "").rstrip("/")
-        if not model_service_url:
-            raise RuntimeError("MODEL_SERVICE_URL is not configured")
+        client = get_client()
+        if not client._is_configured():
+            raise RuntimeError("FishFreshNet model service URL is not configured")
 
-        # 调用正确的Grad-CAM生成接口
-        gradcam_endpoint: str = f"{model_service_url}/gradcam_url"
+        # 客户端自动判断 URL/本地路径：本地文件走 multipart 上传到 /predict_with_gradcam
+        gradcam_result: Dict[str, Any] = client.predict_with_gradcam_from_url(image_url)
 
-        response = requests.post(
-            gradcam_endpoint,
-            json={"image_url": image_url},
-            timeout=30
+        # /predict_with_gradcam 返回 GradCAMResult（heatmap_image 为 base64）
+        # /gradcam_url 返回 dict（heatmap_base64 为 base64）
+        heatmap_base64: Optional[str] = (
+            gradcam_result.get("heatmap_image")
+            or gradcam_result.get("heatmap_base64")
         )
-
-        if response.status_code == 200:
-            gradcam_result: Dict[str, Any] = response.json()
-            heatmap_base64: Optional[str] = gradcam_result.get("heatmap_base64")
-            if heatmap_base64:
-                is_real_gradcam = True
-                output_path = os.path.join(tempfile.gettempdir(), f"fish_gradcam_{uuid.uuid4().hex[:8]}.jpg")
-                with open(output_path, "wb") as f:
-                    f.write(base64.b64decode(heatmap_base64))
-                atexit.register(lambda path=output_path: os.path.exists(path) and os.remove(path))
-                gradcam_url = output_path
+        if heatmap_base64 and not gradcam_result.get("error"):
+            is_real_gradcam = True
+            output_path = os.path.join(tempfile.gettempdir(), f"fish_gradcam_{uuid.uuid4().hex[:8]}.jpg")
+            with open(output_path, "wb") as f:
+                f.write(base64.b64decode(heatmap_base64))
+            atexit.register(lambda path=output_path: os.path.exists(path) and os.remove(path))
+            gradcam_url = output_path
 
     except Exception:
         is_real_gradcam = False
@@ -166,9 +162,10 @@ Grad-CAM热力图显示模型在判断新鲜度时重点关注哪些区域：
 
     # 获取模型配置
     model_config: Dict[str, Any] = llm_config.get("config", {})
-    model_id: str = model_config.get("model", "doubao-seed-1-8-251228")
+    model_id: str = model_config.get("model", get_default_model())
     temperature: float = model_config.get("temperature", 0.4)
     max_tokens: int = model_config.get("max_completion_tokens", 1000)
+    top_p: float | None = model_config.get("top_p")
 
     try:
         # 使用LLMClient进行多模态调用
@@ -188,7 +185,8 @@ Grad-CAM热力图显示模型在判断新鲜度时重点关注哪些区域：
             messages=messages,
             model=model_id,
             temperature=temperature,
-            max_completion_tokens=max_tokens
+            max_completion_tokens=max_tokens,
+            top_p=top_p
         )
 
         # 解析LLM响应

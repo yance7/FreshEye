@@ -360,6 +360,7 @@ class ReportGenerationOutput(BaseModel):
 class RecommendationGenerationInput(BaseModel):
     """建议生成节点的输入"""
     freshness_level: str = Field(..., description="新鲜度等级")
+    confidence_score: float = Field(default=0.0, description="置信度分数")
     freshness_report: Dict[str, Any] = Field(..., description="评估报告")
     knowledge_graph_match: Dict[str, Any] = Field(default={}, description="知识图谱匹配")
     predicted_remaining_hours: Optional[int] = Field(default=None, description="预计保质时间")
@@ -431,4 +432,3 @@ class QualityDecisionInput(BaseModel):
 class ConfidenceDecisionInput(BaseModel):
     """置信度分支决策的输入"""
     confidence_score: float = Field(..., description="置信度分数")
-    quality_level: str = Field(..., description="质量等级")

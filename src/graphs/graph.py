@@ -74,7 +74,12 @@ def confidence_decision(state: ConfidenceDecisionInput) -> str:
     title: 置信度分支决策
     desc: 根据置信度分数自适应选择后续处理路径
     """
-    if state.confidence_score is None or math.isnan(float(state.confidence_score)):
+    if state.confidence_score is None:
+        return "低置信度"
+    try:
+        if math.isnan(state.confidence_score):
+            return "低置信度"
+    except (TypeError, ValueError):
         return "低置信度"
     if state.confidence_score >= 0.8:
         return "高置信度"

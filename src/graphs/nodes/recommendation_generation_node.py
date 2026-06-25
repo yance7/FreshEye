@@ -11,7 +11,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.runtime import Runtime
 from tools.llm_client import LLMClient
 from graphs.state import RecommendationGenerationInput, RecommendationGenerationOutput
-from graphs.utils import config_path
+from graphs.utils import config_path, get_default_model
 
 
 def recommendation_generation_node(
@@ -45,14 +45,8 @@ def recommendation_generation_node(
     kg: Dict[str, Any] = state.knowledge_graph_match
     fish_type: str = state.fish_type or kg.get("fish_type", "未知鱼种")
     
-    # 从报告中获取置信度
-    confidence_score: float = 0.0
-    if state.freshness_report and "summary" in state.freshness_report:
-        confidence_str: str = state.freshness_report.get("summary", {}).get("confidence", "0%")
-        try:
-            confidence_score = float(confidence_str.replace("%", "")) / 100.0
-        except (ValueError, AttributeError):
-            confidence_score = 0.85  # 默认置信度
+    # 直接从 state 读取置信度（已在工作流上游确定），不再从报告字符串反解析
+    confidence_score: float = state.confidence_score
     
     # 构建系统提示词
     system_prompt: str = llm_config.get("sp", """你是水产品处理与食品安全专家，拥有丰富的烹饪知识。
@@ -130,9 +124,10 @@ def recommendation_generation_node(
     
     # 获取模型配置
     model_config: Dict[str, Any] = llm_config.get("config", {})
-    model_id: str = model_config.get("model", "doubao-seed-1-8-251228")
+    model_id: str = model_config.get("model", get_default_model())
     temperature: float = model_config.get("temperature", 0.5)
     max_tokens: int = model_config.get("max_completion_tokens", 2000)
+    top_p: float | None = model_config.get("top_p")
     timeout: float = float(model_config.get("timeout", 60))
     
     try:
@@ -151,6 +146,7 @@ def recommendation_generation_node(
             model=model_id,
             temperature=temperature,
             max_completion_tokens=max_tokens,
+            top_p=top_p,
             timeout=timeout
         )
         
