@@ -1,4 +1,4 @@
-# Fish-Agent — Agent 导航
+# FreshEye — Agent 导航
 
 面向 OpenCode / AI 编程助手的仓库指引。只记录容易踩坑、靠看文件难以快速推断的事实。节点与分支细节见下文"工作流节点""分支规则"。
 
@@ -139,7 +139,6 @@ enhanced_gradcam -> structured_analysis -> temporal_analysis
 - 主图：`src/graphs/graph.py` 中的 `main_graph`（`builder.compile()`）。
 - HTTP/CLI：`src/main.py`。
 - 模型服务：`src/api/model_service.py`。
-- Windows 启动器：`installer/launcher_app.py`。
 
 ## 设计要点
 
@@ -149,9 +148,3 @@ enhanced_gradcam -> structured_analysis -> temporal_analysis
 - FishFreshNetV1 走 `src/tools/fishfreshnet_client.py`（HTTP），全局单例 `get_client()`；新鲜度三类 `高度新鲜(0)/新鲜(1)/不新鲜(2)`，失败兜底 `confidence_score=0.0`。Grad-CAM 节点通过该客户端调用 `/predict_with_gradcam`（本地文件走 multipart 上传）。
 - URL 安全：`src/utils/net.py` 提供 SSRF 防护（校验 scheme、拒绝私有/环回 IP、禁用重定向），所有用户 URL 抓取均经过校验。
 - `src/agents/` 与 `src/storage/` 目前为空（`storage/` 仅用于放权重文件）。
-
-## Windows 安装器（独立于服务端）
-
-- `installer/launcher_app.py` 为当前 V3.4.0 桌面启动器；`installer/desktop_app.py` 为旧参考实现。
-- 打包：PyInstaller（`installer/Fish-Agent.spec`）+ Inno Setup（`installer/Fish-Agent-installer.iss`）。`*.exe` 与权重不入库，打包时需把模型文件放入脚本指定位置。
-- `installer/Fish-Agent.spec` 中 `datas` 引用 `.installer_innounp/{app}` 目录：该目录是 Inno Setup 安装包解包后的资源目录，需先运行 Inno Setup 打包再用 `innounp` 解包生成，或手动准备等价的 `core/` 资源目录。详见 `installer/README.md`。

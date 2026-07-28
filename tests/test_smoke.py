@@ -1,5 +1,5 @@
 """
-Fish-Agent smoke tests.
+FreshEye smoke tests.
 
 These tests verify that the workflow graph imports correctly and that
 node input/output schemas are valid. They do NOT require a running LLM

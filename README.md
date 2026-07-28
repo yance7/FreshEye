@@ -1,4 +1,4 @@
-# Fish-Agent 水产品新鲜度智能评估系统
+# FreshEye 水产品新鲜度智能评估系统
 
 > [English](#english) | [中文](#中文)
 
@@ -8,7 +8,7 @@
 
 ## English
 
-Fish-Agent is an AI agent workflow for aquatic product food safety. Using fish-eye images as the core input, it combines the FishFreshNetV1 vision model, multimodal large language models, LangGraph orchestration, and Grad-CAM explainability analysis to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
+FreshEye is an AI agent workflow for aquatic product food safety. Using fish-eye images as the core input, it combines the FishFreshNetV1 vision model, multimodal large language models, LangGraph orchestration, and Grad-CAM explainability analysis to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
 
 ### Key Features
 
@@ -47,8 +47,8 @@ image_upload
 
 ```bash
 # 1. Clone
-git clone https://github.com/yance77777/Fish-Agent.git
-cd Fish-Agent
+git clone https://github.com/yance77777/FreshEye.git
+cd FreshEye
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -64,7 +64,7 @@ cp .env.example .env          # Linux/macOS
 python src/main.py -m http -p 5000
 
 # 5. (Optional) Start the FishFreshNetV1 model service
-python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port 8000
+python -m uvicorn src.api.model_service:app --host 0.0.0.0 --port 8000
 ```
 
 ### LLM Configuration
@@ -75,8 +75,8 @@ The workflow calls any **OpenAI-compatible** chat endpoint (`/chat/completions`)
 | --- | --- |
 | OpenAI | `https://api.openai.com/v1` |
 | Volcano Engine Ark (Doubao) | `https://ark.cn-beijing.volces.com/api/v3` |
-| Ollama (local) | `http://localhost:11434/v1` |
-| vLLM (local) | `http://localhost:8000/v1` |
+| Ollama | `http://<your-ollama-host>:11434/v1` |
+| vLLM | `http://<your-vllm-host>:8000/v1` |
 
 The default model is specified per-node in `config/*_llm_cfg.json`. To override globally, set `FISH_AGENT_DEFAULT_MODEL` in `.env`. The shipped configs use a Doubao model ID — change it to match your provider.
 
@@ -90,7 +90,7 @@ The default model is specified per-node in `config/*_llm_cfg.json`. To override 
 | `FISHFRESHNET_API_URL` | No | FishFreshNetV1 inference service URL |
 | `MODEL_SERVICE_URL` | No | Grad-CAM service URL (defaults to `FISHFRESHNET_API_URL`) |
 | `FISHFRESHNET_MODEL_PATH` | No | Model weights file path |
-| `HOST` | No | Bind address (default `127.0.0.1`) |
+| `HOST` | No | Bind address (default `127.0.0.1`, set `0.0.0.0` to expose) |
 | `PORT` | No | Workflow HTTP port (default `5000`) |
 | `CORS_ORIGINS` | No | Comma-separated allowed origins (empty = no CORS) |
 | `FISH_AGENT_LOG_LEVEL` | No | Log level (default `INFO`) |
@@ -101,10 +101,9 @@ The default model is specified per-node in `config/*_llm_cfg.json`. To override 
 ### Directory Structure
 
 ```text
-Fish-Agent/
+FreshEye/
 ├── config/                     # LLM prompts and model params per node
 ├── docs/                       # Model integration & workflow docs
-├── installer/                  # Windows desktop app & packaging config
 ├── scripts/                    # Helper scripts
 ├── src/
 │   ├── api/model_service.py    # FishFreshNetV1 inference service
@@ -120,17 +119,6 @@ Fish-Agent/
 ├── requirements.txt
 └── requirements-model.txt
 ```
-
-### Windows Desktop App
-
-`installer/launcher_app.py` is the V3.4.0 Windows launcher with:
-
-- Image preview with AI attention-region overlay slider.
-- Result cards, confidence dashboard, probability distribution, and history thumbnails.
-- Batch analysis workbench with CSV export.
-- PDF / JSON export (images preserve original aspect ratio in PDF).
-
-Packaging configs: `installer/Fish-Agent.spec` (PyInstaller) + `installer/Fish-Agent-installer.iss` (Inno Setup).
 
 ### Documentation
 
@@ -148,7 +136,7 @@ MIT License
 
 ## 中文
 
-Fish-Agent 是一个面向水产品食品安全场景的 AI 智能体工作流。系统以鱼眼图像为核心输入，结合 FishFreshNetV1 视觉模型、多模态大模型、LangGraph 编排和 Grad-CAM 可解释分析，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
+FreshEye 是一个面向水产品食品安全场景的 AI 智能体工作流。系统以鱼眼图像为核心输入，结合 FishFreshNetV1 视觉模型、多模态大模型、LangGraph 编排和 Grad-CAM 可解释分析，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
 
 ### 核心能力
 
@@ -187,8 +175,8 @@ image_upload
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/yance77777/Fish-Agent.git
-cd Fish-Agent
+git clone https://github.com/yance77777/FreshEye.git
+cd FreshEye
 
 # 2. 安装依赖
 pip install -r requirements.txt
@@ -204,7 +192,7 @@ cp .env.example .env          # Linux/macOS
 python src/main.py -m http -p 5000
 
 # 5. （可选）启动 FishFreshNetV1 模型服务
-python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port 8000
+python -m uvicorn src.api.model_service:app --host 0.0.0.0 --port 8000
 ```
 
 ### LLM 配置说明
@@ -215,8 +203,8 @@ python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port 8000
 | --- | --- |
 | OpenAI | `https://api.openai.com/v1` |
 | 火山引擎 Ark（豆包） | `https://ark.cn-beijing.volces.com/api/v3` |
-| Ollama（本地） | `http://localhost:11434/v1` |
-| vLLM（本地） | `http://localhost:8000/v1` |
+| Ollama | `http://<your-ollama-host>:11434/v1` |
+| vLLM | `http://<your-vllm-host>:8000/v1` |
 
 默认模型在 `config/*_llm_cfg.json` 中逐节点配置。如需全局覆盖，在 `.env` 中设置 `FISH_AGENT_DEFAULT_MODEL`。仓库自带配置使用豆包模型 ID，切换其他服务商时请相应修改。
 
@@ -230,7 +218,7 @@ python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port 8000
 | `FISHFRESHNET_API_URL` | 否 | FishFreshNetV1 推理服务地址 |
 | `MODEL_SERVICE_URL` | 否 | Grad-CAM 服务地址（默认回退到 `FISHFRESHNET_API_URL`） |
 | `FISHFRESHNET_MODEL_PATH` | 否 | 模型权重文件路径 |
-| `HOST` | 否 | 服务绑定地址（默认 `127.0.0.1`） |
+| `HOST` | 否 | 服务绑定地址（默认 `127.0.0.1`，设为 `0.0.0.0` 可对外暴露） |
 | `PORT` | 否 | 工作流 HTTP 端口（默认 `5000`） |
 | `CORS_ORIGINS` | 否 | CORS 允许来源（逗号分隔，留空则不启用） |
 | `FISH_AGENT_LOG_LEVEL` | 否 | 日志级别（默认 `INFO`） |
@@ -241,10 +229,9 @@ python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port 8000
 ### 目录结构
 
 ```text
-Fish-Agent/
+FreshEye/
 ├── config/                     # 多模态/文本大模型提示词与模型参数
 ├── docs/                       # 模型集成与工作流说明
-├── installer/                  # Windows 本地程序源码与打包配置
 ├── scripts/                    # 辅助脚本
 ├── src/
 │   ├── api/model_service.py    # FishFreshNetV1 推理服务
@@ -260,17 +247,6 @@ Fish-Agent/
 ├── requirements.txt
 └── requirements-model.txt
 ```
-
-### Windows 本地程序
-
-`installer/launcher_app.py` 是 V3.4.0 Windows 启动器，主要能力包括：
-
-- 图像预览与 AI 关注区域叠加滑块。
-- 结果卡片、置信度仪表盘、概率分布、处理建议和历史记录。
-- 批量分析工作台与 CSV 汇总导出。
-- PDF/JSON 导出，PDF 中图像保持原始宽高比。
-
-打包配置：`installer/Fish-Agent.spec`（PyInstaller）+ `installer/Fish-Agent-installer.iss`（Inno Setup）。
 
 ### 文档
 

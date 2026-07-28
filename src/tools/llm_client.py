@@ -1,4 +1,4 @@
-"""OpenAI-compatible chat client used by Fish-Agent nodes."""
+"""OpenAI-compatible chat client used by FreshEye nodes."""
 from __future__ import annotations
 
 import base64

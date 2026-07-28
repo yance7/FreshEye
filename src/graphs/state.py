@@ -1,5 +1,5 @@
 """
-Fish-Agent 状态定义文件
+FreshEye 状态定义文件
 支持置信度驱动的自适应分支、多区域融合和反馈闭环。
 """
 from typing import Literal, Optional, List, Dict, Any

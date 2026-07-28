@@ -1,11 +1,11 @@
 [project]
-name = "fish-agent"
+name = "fresheye"
 version = "3.4.0"
-description = "Fish-Agent aquatic product freshness assessment workflow"
+description = "FreshEye aquatic product freshness assessment workflow"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [{ name = "Fish-Agent Contributors" }]
+authors = [{ name = "FreshEye Contributors" }]
 dependencies = [
     "fastapi>=0.121,<1",
     "uvicorn>=0.38,<1",

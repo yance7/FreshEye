@@ -1,4 +1,4 @@
-"""Fish-Agent local HTTP and CLI entry point."""
+"""FreshEye local HTTP and CLI entry point."""
 from __future__ import annotations
 
 import argparse
@@ -65,7 +65,7 @@ logging.basicConfig(level=os.getenv("FISH_AGENT_LOG_LEVEL", "INFO"))
 logger = logging.getLogger("fish-agent")
 
 app = FastAPI(
-    title="Fish-Agent API",
+    title="FreshEye API",
     description="水产品新鲜度智能评估工作流",
     version="3.4.0",
 )
@@ -158,7 +158,7 @@ async def run_workflow(payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.get("/health")
 async def health_check() -> dict[str, str]:
-    return {"status": "ok", "service": "Fish-Agent"}
+    return {"status": "ok", "service": "FreshEye"}
 
 
 @app.post("/run")
@@ -255,7 +255,7 @@ def start_http_server(port: int) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Fish-Agent local runner")
+    parser = argparse.ArgumentParser(description="FreshEye local runner")
     parser.add_argument("-m", choices=["http", "flow", "node"], default="http", help="Run mode")
     parser.add_argument("-n", default="", help="Node ID for node mode")
     parser.add_argument("-p", type=int, default=int(os.getenv("PORT", "5000")), help="HTTP port")

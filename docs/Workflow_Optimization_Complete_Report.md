@@ -1,10 +1,10 @@
-# Fish-Agent 工作流技术说明
+# FreshEye 工作流技术说明
 
-本文档说明 Fish-Agent 当前开源版本的工作流结构、节点职责、分支策略和本地部署方式。它与 `README.md`、`AGENTS.md` 和源码中的实际节点保持一致。
+本文档说明 FreshEye 当前开源版本的工作流结构、节点职责、分支策略和本地部署方式。它与 `README.md`、`AGENTS.md` 和源码中的实际节点保持一致。
 
 ## 总览
 
-Fish-Agent 是一个面向水产品新鲜度评估的 LangGraph 工作流。输入是一张鱼眼图像或包含鱼眼的鱼类图片，输出包括新鲜度等级、置信度、可解释热力图、结构化报告、处理建议和反馈记录。
+FreshEye 是一个面向水产品新鲜度评估的 LangGraph 工作流。输入是一张鱼眼图像或包含鱼眼的鱼类图片，输出包括新鲜度等级、置信度、可解释热力图、结构化报告、处理建议和反馈记录。
 
 核心设计：
 
@@ -110,20 +110,10 @@ export OPENAI_BASE_URL=https://your-openai-compatible-endpoint/v1
 
 工作流客户端位于 `src/tools/fishfreshnet_client.py`。本地路径会走文件上传接口，远程 URL 会走 JSON 接口。
 
-## Windows 本地程序
-
-`installer/launcher_app.py` 是 V3.4.0 Windows 启动器源码。它面向本地用户提供：
-
-- 图片选择、预览和 AI 关注区域叠加。
-- 数值居中的固定比例置信度仪表盘、概率分布和结构化结果卡片。
-- 无占位符图标的选项卡、舒展行距和历史记录缩略图。
-- 批量分析和 CSV 汇总导出。
-- PDF/JSON 导出，PDF 图像按宽高比缩放。
-
 ## 验证建议
 
 ```bash
-python -m compileall src installer
+python -m compileall src
 python src/main.py -m http -p <port>
 python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port <port>
 ```
