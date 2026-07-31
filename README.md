@@ -8,110 +8,109 @@
 
 ## English
 
-FreshEye is an AI agent workflow for aquatic product food safety. Using fish-eye images as the core input, it combines the FishFreshNetV1 vision model, multimodal large language models, LangGraph orchestration, and Grad-CAM explainability analysis to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
+FreshEye is an AI-powered aquatic product freshness assessment system. Using fish-eye images as the core input, it combines the **FishFreshNetV1/V2** lightweight CNN models, **Grad-CAM** explainability analysis, and **confidence-adaptive interaction** to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
+
+**Live Demo**: Frontend on [GitHub Pages](https://yance77777.github.io/FreshEye/) · Backend on [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
 ### Key Features
 
-- Determines whether an uploaded image is a fish, contains a clear fish eye, and meets quality standards.
-- Three-class classification via **FishFreshNetV1** (EfficientNet-B0 + CBAM attention): **Highly Fresh / Fresh / Not Fresh**.
-- Automatic fallback to an OpenAI-compatible multimodal LLM when the dedicated model service is unavailable.
-- Confidence-driven adaptive branching (high / medium / low confidence paths).
-- Generates **Grad-CAM** heatmaps (or degraded attention-region overlays) with natural-language explanations.
-- Outputs structured reports, shelf-life trend prediction, and storage / consumption / handling / safety recommendations.
-- Records a feedback entry for each run to support future sample-pool expansion and model iteration.
+- Determines fish freshness from fish-eye images via **FishFreshNetV1/V2** CNN inference (no LLM dependency).
+- Three-class classification: **Highly Fresh / Fresh / Not Fresh**.
+- Dual-model routing — users can switch between V1 (EfficientNet-B0 + CBAM) and V2 (EfficientNet-B0 + ECA + Light CRA).
+- **Grad-CAM** heatmaps with natural-language explanations for model decision transparency.
+- Confidence-adaptive frontend interaction — green/yellow/red dashboard with retake prompts for low-confidence results.
+- Rule-based structured analysis and 5-category recommendations (storage / consumption / handling / safety / best practices).
+- PDF report export with original image, heatmap, probability distribution, and detailed analysis.
+- PWA support with offline Service Worker caching.
 
-### Workflow
+### Detection Workflow
 
 ```text
 image_upload
-  -> enhanced_quality_check
-      -> [unqualified / not a fish / no eye] quality_unqualified -> END
-      -> [qualified] image_preprocess
-  -> fish_region_detection
-  -> freshness_classification
-      -> [confidence >= 0.8] enhanced_gradcam
-      -> [0.5 <= confidence < 0.8] multi_region_fusion -> enhanced_gradcam
-      -> [confidence < 0.5] backup_model_review
-            -> [second high/medium] enhanced_gradcam
-            -> [second low] low_confidence_prompt -> END
-  -> structured_analysis
-  -> temporal_analysis
-  -> report_generation
-  -> recommendation_generation
-  -> result_visualization
-  -> feedback_loop
+  -> format_validation (JPG/PNG/WebP, max 25MB, 4096x4096)
+  -> model_routing (V1 or V2, default V2)
+  -> cnn_classification (FishFreshNetV1/V2 inference)
+  -> gradcam_visualization (gradient-weighted class activation mapping)
+  -> structured_analysis (rule-based: eye appearance / clarity / color / texture / quality)
+  -> recommendation_generation (5-category rule templates)
+  -> report_generation (structured report + PDF export)
+  -> frontend_confidence_display (3-color dashboard + badges + warnings)
   -> END
 ```
 
-### Quick Start
+### Quick Start (Deployed Version)
+
+#### Backend (FastAPI + PyTorch)
 
 ```bash
-# 1. Clone
-git clone https://github.com/yance77777/FreshEye.git
-cd FreshEye
-
-# 2. Install dependencies
+cd deploy
 pip install -r requirements.txt
-# For the local model service (optional):
-pip install -r requirements-model.txt
-
-# 3. Configure environment
-cp .env.example .env          # Linux/macOS
-# Copy-Item .env.example .env # PowerShell
-# Edit .env — OPENAI_API_KEY and OPENAI_BASE_URL are required.
-
-# 4. Start the workflow service
-python src/main.py -m http -p 5000
-
-# 5. (Optional) Start the FishFreshNetV1 model service
-python -m uvicorn src.api.model_service:app --host 0.0.0.0 --port 8000
+# Place model weights at deploy/src/storage/fishfreshnet_v1.pth and fishfreshnet_v2.pth
+python app.py  # Starts on port 8000
 ```
 
-### LLM Configuration
+Endpoints: `GET /health` · `POST /predict` · `POST /predict_with_gradcam`
 
-The workflow calls any **OpenAI-compatible** chat endpoint (`/chat/completions`). Set `OPENAI_BASE_URL` to your provider's `/v1` endpoint and `OPENAI_API_KEY` to your key.
+#### Frontend (Pure HTML/CSS/JS)
 
-| Provider | Example `OPENAI_BASE_URL` |
-| --- | --- |
-| OpenAI | `https://api.openai.com/v1` |
-| Volcano Engine Ark (Doubao) | `https://ark.cn-beijing.volces.com/api/v3` |
-| Ollama | `http://<your-ollama-host>:11434/v1` |
-| vLLM | `http://<your-vllm-host>:8000/v1` |
+```bash
+cd frontend
+python -m http.server 8080  # Open http://localhost:8080
+```
 
-The default model is specified per-node in `config/*_llm_cfg.json`. To override globally, set `FISH_AGENT_DEFAULT_MODEL` in `.env`. The shipped configs use a Doubao model ID — change it to match your provider.
+### Quick Start (Full Workflow — Optional)
 
-### Environment Variables
+The repository also includes a full LangGraph-based workflow with optional LLM integration for advanced multi-node orchestration. This is **not required** for the deployed version.
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `OPENAI_API_KEY` | Yes | LLM API key (`ARK_API_KEY` accepted as alias) |
-| `OPENAI_BASE_URL` | Yes | OpenAI-compatible endpoint (`LLM_BASE_URL` as alias) |
-| `FISH_AGENT_DEFAULT_MODEL` | No | Default model ID when config JSON omits `model` |
-| `FISHFRESHNET_API_URL` | No | FishFreshNetV1 inference service URL |
-| `MODEL_SERVICE_URL` | No | Grad-CAM service URL (defaults to `FISHFRESHNET_API_URL`) |
-| `FISHFRESHNET_MODEL_PATH` | No | Model weights file path |
-| `HOST` | No | Bind address (default `127.0.0.1`, set `0.0.0.0` to expose) |
-| `PORT` | No | Workflow HTTP port (default `5000`) |
-| `CORS_ORIGINS` | No | Comma-separated allowed origins (empty = no CORS) |
-| `FISH_AGENT_LOG_LEVEL` | No | Log level (default `INFO`) |
-| `FISH_AGENT_LLM_TIMEOUT` | No | LLM request timeout in seconds (default `60`) |
-| `FISH_AGENT_LLM_RETRIES` | No | LLM request retry count (default `3`) |
-| `FISHFRESHNET_MAX_IMAGE_MB` | No | Max upload size for model service (default `25`) |
+```bash
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-model.txt  # For local model service
 
-### Directory Structure
+# Configure environment
+cp .env.example .env  # Edit .env — LLM keys are optional
+
+# Start the workflow service
+python src/main.py -m http -p 5000
+```
+
+### Models
+
+| Model | Architecture | Parameters | Accuracy | Key Innovation |
+| --- | --- | --- | --- | --- |
+| FishFreshNetV1 | EfficientNet-B0 + CBAM | 4.216M | 98.88% | CBAM channel + spatial attention |
+| FishFreshNetV2 | EfficientNet-B0 + ECA + Light CRA | 4.095M | 99.29% | Light CRA (ring-mask + shared conv) + ECA |
+
+Both models are trained on the **MFED** dataset (4800+ samples, 4 environments, 2 fish species), open-sourced on [Mendeley Data](https://data.mendeley.com/).
+
+### Repository Structure
 
 ```text
 FreshEye/
-├── config/                     # LLM prompts and model params per node
+├── deploy/                     # Production backend (deployed on HF Spaces)
+│   ├── app.py                  # FastAPI app: /predict, /predict_with_gradcam, /health
+│   ├── src/
+│   │   ├── fishfreshnet_v2_model.py  # V2 model architecture
+│   │   └── storage/            # Model weights (gitignored)
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/                   # Production frontend (deployed on GitHub Pages)
+│   ├── index.html              # Main analysis page
+│   ├── about.html              # Tech architecture & model details
+│   ├── fish.html               # Fish encyclopedia
+│   ├── guide.html              # User guide
+│   ├── 404.html
+│   └── assets/                 # CSS, JS, Service Worker, samples
+├── src/                        # Full workflow source (LangGraph + optional LLM)
+│   ├── api/model_service.py    # FishFreshNet model service
+│   ├── graphs/                 # LangGraph workflow, state, and nodes
+│   ├── models/                 # FishFreshNet model architecture
+│   ├── tools/                  # LLM client & model service client
+│   ├── utils/                  # File objects, URL safety
+│   └── main.py                 # HTTP / CLI entry point
+├── config/                     # LLM prompt configs (optional, for workflow extension)
 ├── docs/                       # Model integration & workflow docs
 ├── scripts/                    # Helper scripts
-├── src/
-│   ├── api/model_service.py    # FishFreshNetV1 inference service
-│   ├── graphs/                 # LangGraph workflow, state, and nodes
-│   ├── models/                 # FishFreshNetV1 model architecture
-│   ├── tools/                  # LLM client & model service client
-│   ├── utils/                  # File objects, URL safety, doc parsing
-│   └── main.py                 # HTTP / CLI entry point
 ├── tests/                      # Smoke tests
 ├── AGENTS.md                   # Agent navigation guide
 ├── LICENSE
@@ -122,7 +121,7 @@ FreshEye/
 
 ### Documentation
 
-- `AGENTS.md` — Workflow node index and branch rules.
+- `AGENTS.md` — Repository navigation guide.
 - `docs/FishFreshNetV1_Integration_Guide.md` — Model service & Grad-CAM integration guide.
 - `docs/Workflow_Optimization_Complete_Report.md` — Workflow technical report.
 
@@ -136,110 +135,109 @@ MIT License
 
 ## 中文
 
-FreshEye 是一个面向水产品食品安全场景的 AI 智能体工作流。系统以鱼眼图像为核心输入，结合 FishFreshNetV1 视觉模型、多模态大模型、LangGraph 编排和 Grad-CAM 可解释分析，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
+FreshEye 是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
+
+**在线演示**：前端部署于 [GitHub Pages](https://yance77777.github.io/FreshEye/) · 后端部署于 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
 ### 核心能力
 
-- 判断上传图片是否为鱼类、是否包含清晰鱼眼、图像质量是否合格。
-- 使用 **FishFreshNetV1**（EfficientNet-B0 + CBAM 注意力）对鱼眼图像进行三分类：**高度新鲜 / 新鲜 / 不新鲜**。
-- 当专用模型服务不可用时，回退到 OpenAI-compatible 多模态大模型。
-- 根据置信度自动选择高、中、低三条分析路径。
-- 生成 Grad-CAM 热力图或降级关注区域标注图，并配套自然语言解释。
-- 输出结构化报告、保质期趋势预测、储存/食用/处理/安全建议。
-- 记录反馈入口，为后续样本池扩充和模型迭代保留接口。
+- 使用 **FishFreshNetV1/V2** CNN 推理判断鱼眼新鲜度（不依赖大语言模型）。
+- 三分类：**高度新鲜 / 新鲜 / 不新鲜**。
+- 双模型路由——用户可在 V1（EfficientNet-B0 + CBAM）和 V2（EfficientNet-B0 + ECA + Light CRA）之间切换。
+- **Grad-CAM** 热力图配合自然语言解释，让模型决策过程透明可见。
+- 置信度自适应前端交互——绿/黄/红三色仪表盘，低置信度时提示重拍。
+- 基于规则模板的结构化分析和五大类建议（储存 / 食用 / 处理 / 安全警告 / 最佳实践）。
+- PDF 报告导出，含原图、热力图、概率分布和详细分析。
+- PWA 支持，Service Worker 离线缓存。
 
-### 工作流
+### 检测流程
 
 ```text
-image_upload
-  -> enhanced_quality_check
-      -> [不合格 / 非鱼类 / 无鱼眼] quality_unqualified -> END
-      -> [合格] image_preprocess
-  -> fish_region_detection
-  -> freshness_classification
-      -> [confidence >= 0.8] enhanced_gradcam
-      -> [0.5 <= confidence < 0.8] multi_region_fusion -> enhanced_gradcam
-      -> [confidence < 0.5] backup_model_review
-            -> [二次高/中置信度] enhanced_gradcam
-            -> [二次低置信度] low_confidence_prompt -> END
-  -> structured_analysis
-  -> temporal_analysis
-  -> report_generation
-  -> recommendation_generation
-  -> result_visualization
-  -> feedback_loop
+图片上传
+  -> 格式校验（JPG/PNG/WebP，最大 25MB，4096x4096）
+  -> 模型路由（V1 或 V2，默认 V2）
+  -> CNN 分类（FishFreshNetV1/V2 推理）
+  -> Grad-CAM 可视化（梯度加权类激活映射）
+  -> 结构化分析（规则模板：鱼眼外观 / 清澈度 / 颜色 / 纹理 / 质量指标）
+  -> 建议生成（五大类规则模板）
+  -> 报告生成（结构化报告 + PDF 导出）
+  -> 前端置信度展示（三色仪表盘 + 徽标 + 警告）
   -> END
 ```
 
-### 快速开始
+### 快速开始（部署版本）
+
+#### 后端（FastAPI + PyTorch）
 
 ```bash
-# 1. 克隆仓库
-git clone https://github.com/yance77777/FreshEye.git
-cd FreshEye
-
-# 2. 安装依赖
+cd deploy
 pip install -r requirements.txt
-# 如需本地运行模型服务，额外安装：
-pip install -r requirements-model.txt
-
-# 3. 配置环境变量
-cp .env.example .env          # Linux/macOS
-# Copy-Item .env.example .env # PowerShell
-# 编辑 .env。OPENAI_API_KEY 和 OPENAI_BASE_URL 为工作流必填。
-
-# 4. 启动工作流服务
-python src/main.py -m http -p 5000
-
-# 5. （可选）启动 FishFreshNetV1 模型服务
-python -m uvicorn src.api.model_service:app --host 0.0.0.0 --port 8000
+# 将模型权重放置于 deploy/src/storage/fishfreshnet_v1.pth 和 fishfreshnet_v2.pth
+python app.py  # 启动于 8000 端口
 ```
 
-### LLM 配置说明
+端点：`GET /health` · `POST /predict` · `POST /predict_with_gradcam`
 
-工作流通过 OpenAI-compatible `/chat/completions` 接口调用大模型。将 `OPENAI_BASE_URL` 指向你的服务 `/v1` 端点，`OPENAI_API_KEY` 填写密钥。
+#### 前端（纯 HTML/CSS/JS）
 
-| 服务商 | `OPENAI_BASE_URL` 示例 |
-| --- | --- |
-| OpenAI | `https://api.openai.com/v1` |
-| 火山引擎 Ark（豆包） | `https://ark.cn-beijing.volces.com/api/v3` |
-| Ollama | `http://<your-ollama-host>:11434/v1` |
-| vLLM | `http://<your-vllm-host>:8000/v1` |
+```bash
+cd frontend
+python -m http.server 8080  # 打开 http://localhost:8080
+```
 
-默认模型在 `config/*_llm_cfg.json` 中逐节点配置。如需全局覆盖，在 `.env` 中设置 `FISH_AGENT_DEFAULT_MODEL`。仓库自带配置使用豆包模型 ID，切换其他服务商时请相应修改。
+### 快速开始（完整工作流 — 可选）
 
-### 环境变量
+仓库还包含基于 LangGraph 的完整工作流，支持可选的 LLM 集成，用于高级多节点编排。部署版本**不需要**此部分。
 
-| 变量 | 必填 | 说明 |
-| --- | --- | --- |
-| `OPENAI_API_KEY` | 是 | 大模型接口密钥（`ARK_API_KEY` 为别名） |
-| `OPENAI_BASE_URL` | 是 | OpenAI-compatible 服务地址（`LLM_BASE_URL` 为别名） |
-| `FISH_AGENT_DEFAULT_MODEL` | 否 | 默认模型 ID（config JSON 未指定 model 时使用） |
-| `FISHFRESHNET_API_URL` | 否 | FishFreshNetV1 推理服务地址 |
-| `MODEL_SERVICE_URL` | 否 | Grad-CAM 服务地址（默认回退到 `FISHFRESHNET_API_URL`） |
-| `FISHFRESHNET_MODEL_PATH` | 否 | 模型权重文件路径 |
-| `HOST` | 否 | 服务绑定地址（默认 `127.0.0.1`，设为 `0.0.0.0` 可对外暴露） |
-| `PORT` | 否 | 工作流 HTTP 端口（默认 `5000`） |
-| `CORS_ORIGINS` | 否 | CORS 允许来源（逗号分隔，留空则不启用） |
-| `FISH_AGENT_LOG_LEVEL` | 否 | 日志级别（默认 `INFO`） |
-| `FISH_AGENT_LLM_TIMEOUT` | 否 | LLM 请求超时秒数（默认 `60`） |
-| `FISH_AGENT_LLM_RETRIES` | 否 | LLM 请求重试次数（默认 `3`） |
-| `FISHFRESHNET_MAX_IMAGE_MB` | 否 | 模型服务上传图片上限 MB（默认 `25`） |
+```bash
+# 安装依赖
+pip install -r requirements.txt
+pip install -r requirements-model.txt  # 如需本地模型服务
 
-### 目录结构
+# 配置环境变量
+cp .env.example .env  # 编辑 .env — LLM 密钥为可选项
+
+# 启动工作流服务
+python src/main.py -m http -p 5000
+```
+
+### 模型
+
+| 模型 | 架构 | 参数量 | 准确率 | 核心创新 |
+| --- | --- | --- | --- | --- |
+| FishFreshNetV1 | EfficientNet-B0 + CBAM | 4.216M | 98.88% | CBAM 通道 + 空间注意力 |
+| FishFreshNetV2 | EfficientNet-B0 + ECA + Light CRA | 4.095M | 99.29% | Light CRA（环形掩码 + 共享卷积）+ ECA |
+
+两个模型均在 **MFED** 数据集（4800+ 样本，4 种环境，2 种鱼类）上训练，已开源至 [Mendeley Data](https://data.mendeley.com/)。
+
+### 仓库结构
 
 ```text
 FreshEye/
-├── config/                     # 多模态/文本大模型提示词与模型参数
-├── docs/                       # 模型集成与工作流说明
-├── scripts/                    # 辅助脚本
-├── src/
-│   ├── api/model_service.py    # FishFreshNetV1 推理服务
+├── deploy/                     # 生产后端（部署于 HF Spaces）
+│   ├── app.py                  # FastAPI 应用：/predict, /predict_with_gradcam, /health
+│   ├── src/
+│   │   ├── fishfreshnet_v2_model.py  # V2 模型架构
+│   │   └── storage/            # 模型权重（gitignored）
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/                   # 生产前端（部署于 GitHub Pages）
+│   ├── index.html              # 主分析页
+│   ├── about.html              # 技术架构与模型详情
+│   ├── fish.html               # 鱼类百科
+│   ├── guide.html              # 使用指南
+│   ├── 404.html
+│   └── assets/                 # CSS、JS、Service Worker、示例图片
+├── src/                        # 完整工作流源码（LangGraph + 可选 LLM）
+│   ├── api/model_service.py    # FishFreshNet 模型服务
 │   ├── graphs/                 # LangGraph 工作流、状态和节点
-│   ├── models/                 # FishFreshNetV1 模型结构
+│   ├── models/                 # FishFreshNet 模型架构
 │   ├── tools/                  # LLM 客户端与模型服务客户端
-│   ├── utils/                  # 文件对象、URL 安全、文档解析
+│   ├── utils/                  # 文件对象、URL 安全
 │   └── main.py                 # HTTP / CLI 入口
+├── config/                     # LLM 提示词配置（可选，用于工作流扩展）
+├── docs/                       # 模型集成与工作流文档
+├── scripts/                    # 辅助脚本
 ├── tests/                      # 冒烟测试
 ├── AGENTS.md                   # Agent 导航指引
 ├── LICENSE
@@ -250,7 +248,7 @@ FreshEye/
 
 ### 文档
 
-- `AGENTS.md`：工作流节点索引和分支规则。
+- `AGENTS.md`：仓库导航指引。
 - `docs/FishFreshNetV1_Integration_Guide.md`：模型服务与 Grad-CAM 集成说明。
 - `docs/Workflow_Optimization_Complete_Report.md`：工作流技术说明。
 

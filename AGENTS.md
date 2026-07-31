@@ -50,14 +50,16 @@ FishFreshNetV1 模型服务（默认端口 8000，需模型依赖 + 权重）：
 python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port 8000
 # 或：python src/api/model_service.py  （__main__ 监听 8000，可通过 PORT 覆盖）
 ```
-- 端点：`GET /`、`POST /predict`、`POST /predict_with_gradcam`、`POST /predict_url`、`POST /gradcam_url`。
+- 端点：`GET /`、`POST /predict`、`POST /predict_with_gradcam`。
 - 权重查找顺序：`FISHFRESHNET_MODEL_PATH` → `src/storage/fishfreshnet_v1.pth` → 仓库根上级的 `fishfreshnet_v1.pth`。
 
 ## 环境变量
 
-- **工作流必填**：`OPENAI_API_KEY`、`OPENAI_BASE_URL`（OpenAI 兼容；`llm_client.py` 也接受 `ARK_API_KEY` / `LLM_BASE_URL` 作别名）。
+> **注意**：部署版本（`deploy/` 目录）仅使用 CNN 推理，不需要 LLM 配置。以下环境变量仅用于完整工作流（`src/` 目录）。
+
+- **工作流（可选，完整版需要）**：`OPENAI_API_KEY`、`OPENAI_BASE_URL`（OpenAI 兼容；`llm_client.py` 也接受 `ARK_API_KEY` / `LLM_BASE_URL` 作别名）。部署版本不需要 LLM。
 - **默认模型**：`FISH_AGENT_DEFAULT_MODEL`（当节点 config JSON 中未指定 `model` 时使用；不设置且 config 也未指定时调用会报错）。
-- 模型服务相关（可选）：`FISHFRESHNET_API_URL`、`MODEL_SERVICE_URL`（留空时自动回退到 `FISHFRESHNET_API_URL`）、`FISHFRESHNET_MODEL_PATH`。**未配置时工作流自动跳过专用模型，回退多模态大模型**（`fishfreshnet_client.py` 抛 `RuntimeError`，节点捕获走 LLM 路径）。
+- 模型服务相关（可选）：`FISHFRESHNET_API_URL`、`MODEL_SERVICE_URL`（留空时自动回退到 `FISHFRESHNET_API_URL`）、`FISHFRESHNET_MODEL_PATH`。未配置时工作流跳过专用模型服务。
 - 服务配置：`HOST`（默认 `127.0.0.1`）、`PORT`（默认 `5000`）、`FISH_AGENT_WORKSPACE`、`CORS_ORIGINS`、`FISH_AGENT_LOG_LEVEL`、`FISH_AGENT_LLM_TIMEOUT`、`FISH_AGENT_LLM_RETRIES`、`FISHFRESHNET_MAX_IMAGE_MB`。模板见 `.env.example`。
 
 ## 验证 / 测试
@@ -68,7 +70,7 @@ python -m uvicorn src.api.model_service:app --host 127.0.0.1 --port 8000
 
 ## 工作流节点
 
-16 个实际节点，14 个逻辑步骤。类型 `agent` = 调用大模型，`task` = 纯数据处理。
+16 个实际节点，14 个逻辑步骤（完整工作流，部署版本不使用）。类型 `agent` = 调用大模型，`task` = 纯数据处理。
 
 | # | 节点 | 文件 | 类型 | 职责 |
 | --- | --- | --- | --- | --- |

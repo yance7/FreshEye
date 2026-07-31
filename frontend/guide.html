@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+  <meta name="theme-color" content="#04162b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FreshEye" />
+  <meta name="description" content="FreshEye 使用指南 — 拍照教程、三步使用流程、常见问题 FAQ" />
+  <meta name="robots" content="index, follow" />
+  <meta name="keywords" content="FreshEye,使用指南,鱼眼新鲜度检测,拍照教程,FAQ,AI 检测,水产品新鲜度" />
+  <meta name="author" content="祈雨柒" />
+  <meta property="og:title" content="FreshEye · 使用指南" />
+  <meta property="og:description" content="FreshEye 使用指南 — 拍照教程、三步使用流程、常见问题 FAQ" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://yance77777.github.io/FreshEye-Web/guide.html" />
+  <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%2304162b'/%3E%3Ccircle cx='600' cy='270' r='130' fill='none' stroke='%2327d0c4' stroke-width='8'/%3E%3Ccircle cx='600' cy='270' r='85' fill='%2327d0c4'/%3E%3Ccircle cx='600' cy='270' r='48' fill='%2304162b'/%3E%3Ccircle cx='578' cy='248' r='18' fill='%23ffffff' opacity='0.7'/%3E%3Ctext x='600' y='490' font-family='system-ui,-apple-system,sans-serif' font-size='68' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EFreshEye%3C/text%3E%3C/svg%3E" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="FreshEye · 使用指南" />
+  <meta name="twitter:description" content="拍照教程、三步使用流程、常见问题 FAQ。" />
+  <meta name="twitter:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%2304162b'/%3E%3Ccircle cx='600' cy='270' r='130' fill='none' stroke='%2327d0c4' stroke-width='8'/%3E%3Ccircle cx='600' cy='270' r='85' fill='%2327d0c4'/%3E%3Ccircle cx='600' cy='270' r='48' fill='%2304162b'/%3E%3Ccircle cx='578' cy='248' r='18' fill='%23ffffff' opacity='0.7'/%3E%3Ctext x='600' y='490' font-family='system-ui,-apple-system,sans-serif' font-size='68' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EFreshEye%3C/text%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://yance77777.github.io/FreshEye-Web/guide.html" />
+  <title>FreshEye · 使用指南</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2304162b'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%2327d0c4' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2327d0c4'/%3E%3Ccircle cx='28' cy='28' r='4' fill='%23ffffff' opacity='0.8'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2304162b'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%2327d0c4' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2327d0c4'/%3E%3Ccircle cx='28' cy='28' r='4' fill='%23ffffff' opacity='0.8'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="manifest" href="./assets/manifest.json">
+  <script src="assets/ui.js" defer></script>
+</head>
+<body>
+  <a href="#guide-main" class="skip-link">跳到主内容</a>
+
+  <!-- ============ 深海动态背景层 ============ -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="glow glow-3"></div>
+    <div class="bubbles" id="bubbles"></div>
+    <div class="wave wave-1"></div>
+    <div class="wave wave-2"></div>
+  </div>
+
+  <!-- ============ 导航栏 ============ -->
+  <header class="navbar" role="banner">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true"><span class="brand-eye"></span></div>
+      <div class="brand-text">
+        <span class="brand-title">FreshEye</span>
+        <span class="brand-sub">水产品新鲜度智能评估</span>
+      </div>
+    </div>
+    <nav class="nav-links" aria-label="主导航">
+      <a href="index.html">首页</a>
+      <a href="guide.html" class="is-current" aria-current="page">指南</a>
+      <a href="fish.html">百科</a>
+      <a href="about.html">关于</a>
+      <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer">开源</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="navOverlay">
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+      <span class="nav-toggle-bar"></span>
+    </button>
+  </header>
+
+  <!-- 移动端全屏导航遮罩 -->
+  <div class="nav-overlay" id="navOverlay" hidden>
+    <nav class="nav-overlay-links" aria-label="移动端导航">
+      <a href="index.html" data-close>首页</a>
+      <a href="guide.html" class="is-current" aria-current="page" data-close>指南</a>
+      <a href="fish.html" data-close>百科</a>
+      <a href="about.html" data-close>关于</a>
+      <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer" data-close>开源</a>
+    </nav>
+  </div>
+
+  <main id="guide-main">
+
+    <!-- ============ 页头 ============ -->
+    <header class="page-hero">
+      <span class="page-hero-eyebrow">USER GUIDE</span>
+      <h1 class="page-hero-title">使用指南</h1>
+      <p class="page-hero-sub">三步上手 FreshEye，轻松检测水产品新鲜度</p>
+    </header>
+
+    <!-- ============ 三步使用流程 ============ -->
+    <section id="steps" class="reveal" style="margin-bottom: var(--space-7);">
+      <div class="section-head">
+        <h2 class="section-title">三步使用流程</h2>
+      </div>
+      <div class="users-grid">
+        <div class="user-card step-card">
+          <span class="step-num" aria-hidden="true">1</span>
+          <div class="user-icon" aria-hidden="true">📷</div>
+          <h3 class="user-title">上传鱼眼照片</h3>
+          <p class="user-text">支持<strong style="color:var(--foam);">点击上传</strong>、<strong style="color:var(--foam);">拖拽</strong>、<strong style="color:var(--foam);">剪贴板粘贴</strong>三种方式，移动端还可直接调用<strong style="color:var(--foam);">相机拍照</strong>。JPG/PNG/WebP 格式，最大 25MB。</p>
+        </div>
+        <div class="user-card step-card">
+          <span class="step-num" aria-hidden="true">2</span>
+          <div class="user-icon" aria-hidden="true">⚡</div>
+          <h3 class="user-title">AI 秒级分析</h3>
+          <p class="user-text"><strong style="color:var(--foam);">FishFreshNet</strong> 模型推理三分类概率，同步生成 <strong style="color:var(--foam);">Grad-CAM 热力图</strong> 解释模型关注区域。置信度驱动自适应分支，确保每次检测都有可靠结果。</p>
+        </div>
+        <div class="user-card step-card">
+          <span class="step-num" aria-hidden="true">3</span>
+          <div class="user-icon" aria-hidden="true">📊</div>
+          <h3 class="user-title">查看分析报告</h3>
+          <p class="user-text">4-Tab 报告自由切换：<strong style="color:var(--foam);">概览</strong>（新鲜度等级 + 置信度）、<strong style="color:var(--foam);">AI 视觉</strong>（热力图滑块对比）、<strong style="color:var(--foam);">详细报告</strong>（结构化分析）、<strong style="color:var(--foam);">处理建议</strong>（5 大类建议）。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 拍照教程 ============ -->
+    <section id="photo-tutorial" class="reveal">
+      <div class="section-head">
+        <h2 class="section-title">拍照教程</h2>
+      </div>
+      <p class="intro-sub">好的照片是准确检测的前提。请参考以下正确与错误示例对比，拍摄时遵循正确示例的要求。</p>
+      <div class="compare-pain">
+        <div class="pain-card solution">
+          <div class="pain-card-head">
+            <span class="pain-icon" aria-hidden="true">✓</span>
+            <span>正确示例</span>
+          </div>
+          <ul class="pain-list">
+            <li><strong>正面拍摄鱼眼</strong>：镜头正对鱼眼，避免侧角</li>
+            <li><strong>光线充足</strong>：自然光或白色光源，均匀照亮鱼眼</li>
+            <li><strong>距离适中</strong>：10–30cm，鱼眼占图片面积 30% 以上</li>
+            <li><strong>对焦清晰</strong>：点击屏幕对焦鱼眼，确保瞳孔/角膜细节可见</li>
+            <li><strong>擦干水分</strong>：拍照前擦干鱼眼表面，避免反光</li>
+          </ul>
+        </div>
+        <div class="pain-card pain">
+          <div class="pain-card-head">
+            <span class="pain-icon" aria-hidden="true">!</span>
+            <span>错误示例</span>
+          </div>
+          <ul class="pain-list">
+            <li><strong>侧面角度</strong>：鱼眼变形，关键特征缺失</li>
+            <li><strong>光线不足</strong>：昏暗环境致噪点高、细节丢失</li>
+            <li><strong>距离过远/过近</strong>：鱼眼太小或失焦模糊</li>
+            <li><strong>模糊失焦</strong>：手抖或未对焦，瞳孔边界不清</li>
+            <li><strong>反光遮挡</strong>：强光直射或水珠反光遮盖角膜</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 常见问题 FAQ ============ -->
+    <section id="faq" class="reveal">
+      <div class="section-head">
+        <h2 class="section-title">常见问题 FAQ</h2>
+      </div>
+      <div class="intro-sub">点击问题展开查看答案。</div>
+
+      <div class="accordion is-open" data-accordion>
+        <div class="accordion-head" role="button" tabindex="0" aria-expanded="true">
+          <span class="accordion-title">支持哪些图片格式？</span>
+          <span class="accordion-arrow" aria-hidden="true">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-inner">
+            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">支持 <strong style="color:var(--aqua);">JPG / PNG / WebP</strong> 三种常见图片格式，单张图片最大 <strong style="color:var(--aqua);">25MB</strong>。建议使用原图上传，避免过度压缩导致鱼眼细节丢失。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" data-accordion>
+        <div class="accordion-head" role="button" tabindex="0" aria-expanded="false">
+          <span class="accordion-title">分析需要多长时间？</span>
+          <span class="accordion-arrow" aria-hidden="true">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-inner">
+            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">通常 <strong style="color:var(--aqua);">3–10 秒</strong>即可完成分析。首次使用可能需要 <strong style="color:var(--aqua);">20–30 秒</strong>唤醒 AI 服务（Hugging Face Spaces 冷启动），后续检测会显著加快。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" data-accordion>
+        <div class="accordion-head" role="button" tabindex="0" aria-expanded="false">
+          <span class="accordion-title">置信度低怎么办？</span>
+          <span class="accordion-arrow" aria-hidden="true">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-inner">
+            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">当置信度低于 60% 时会弹出提示。建议<strong style="color:var(--aqua);">重新拍摄</strong>：确保鱼眼清晰可见、光线充足、正面拍摄、对焦准确。若多次重拍仍低置信度，可能为少见鱼种或质量边界样本，建议结合人工判断。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" data-accordion>
+        <div class="accordion-head" role="button" tabindex="0" aria-expanded="false">
+          <span class="accordion-title">离线模式是什么？</span>
+          <span class="accordion-arrow" aria-hidden="true">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-inner">
+            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">当 API 不可用（网络断开或服务过载）时，FreshEye 会自动<strong style="color:var(--mid);">降级为演示模式</strong>，展示模拟数据供用户体验完整流程。离线模式下结果带 <span class="sim-tag">模拟</span> 标记，不可作为真实检测依据。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" data-accordion>
+        <div class="accordion-head" role="button" tabindex="0" aria-expanded="false">
+          <span class="accordion-title">历史记录保存在哪？</span>
+          <span class="accordion-arrow" aria-hidden="true">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-inner">
+            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">历史记录保存在<strong style="color:var(--aqua);">本地浏览器 localStorage</strong>，最多 <strong style="color:var(--aqua);">20 条</strong>，<strong style="color:var(--aqua);">不会上传服务器</strong>。清除浏览器数据或更换设备后记录将丢失。建议定期清理以释放存储空间。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" data-accordion>
+        <div class="accordion-head" role="button" tabindex="0" aria-expanded="false">
+          <span class="accordion-title">支持哪些鱼类？</span>
+          <span class="accordion-arrow" aria-hidden="true">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-inner">
+            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">模型经 <strong style="color:var(--aqua);">MFED 数据集</strong>训练，支持常见<strong style="color:var(--aqua);">淡水鱼</strong>（鲫鱼、稻花鱼等）。<strong style="color:var(--aqua);">海水鱼</strong>也可参考使用——鱼眼新鲜度特征在不同鱼种间具有共性（瞳孔清澈度、角膜浑浊度等），但海水鱼结果仅供参考。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 最佳实践 Tips ============ -->
+    <section id="tips" class="reveal">
+      <div class="section-head">
+        <h2 class="section-title">最佳实践 Tips</h2>
+      </div>
+      <div class="social-grid">
+        <div class="social-card">
+          <div class="social-icon" aria-hidden="true">💧</div>
+          <h3>擦干水分</h3>
+          <p>拍照前用纸巾轻轻擦干鱼眼表面水分，避免水珠反光遮挡角膜特征。</p>
+        </div>
+        <div class="social-card">
+          <div class="social-icon" aria-hidden="true">☀️</div>
+          <h3>优选光源</h3>
+          <p>选择<strong>自然光</strong>或<strong>白色光源</strong>环境，避免黄色灯光影响鱼眼颜色判断。</p>
+        </div>
+        <div class="social-card">
+          <div class="social-icon" aria-hidden="true">🎯</div>
+          <h3>构图占比</h3>
+          <p>确保鱼眼占图片面积的 <strong>30% 以上</strong>，AI 才能提取足够的细节特征。</p>
+        </div>
+        <div class="social-card">
+          <div class="social-icon" aria-hidden="true">🚫</div>
+          <h3>避免反光</h3>
+          <p>避开直射强光和阴影遮挡，调整拍摄角度消除镜面反光。</p>
+        </div>
+        <div class="social-card">
+          <div class="social-icon" aria-hidden="true">🧹</div>
+          <h3>清理记录</h3>
+          <p>定期清理历史记录释放 localStorage 存储空间，保持应用流畅运行。</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ 页脚 ============ -->
+  <footer class="competition-footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-brand-row">
+          <span class="footer-brand-logo" aria-hidden="true"><span class="brand-eye"></span></span>
+          <span class="footer-brand-name">FreshEye</span>
+        </div>
+        <p class="footer-brand-desc">上传鱼眼照片，AI 秒级分析水产品新鲜度。轻量化模型 + Grad-CAM 可解释热力图，让每一次判断都有据可依。</p>
+      </div>
+      <nav aria-label="页脚导航">
+        <h4 class="footer-col-title">快速导航</h4>
+        <div class="footer-links">
+          <a href="index.html">首页 · 开始检测</a>
+          <a href="guide.html">使用指南</a>
+          <a href="fish.html">鱼种百科</a>
+          <a href="about.html">技术细节</a>
+          <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer">开源代码 ↗</a>
+        </div>
+      </nav>
+      <div>
+        <h4 class="footer-col-title">技术栈</h4>
+        <div class="footer-stack">
+          <span>Python + FastAPI</span>
+          <span>PyTorch</span>
+          <span>EfficientNet-B0</span>
+          <span>Grad-CAM</span>
+          <span>推理流水线</span>
+          <span>纯 HTML/CSS/JS</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="competition-info">
+        <span class="badge">🏆 TRAE AI 创造力大赛</span>
+        <span class="badge">🏷 社会服务赛道</span>
+        <span class="badge">👤 参赛者：祈雨柒</span>
+      </div>
+      <div class="footer-copy">FreshEye © 2026 · 一拍知鲜，吃得放心</div>
+    </div>
+  </footer>
+
+  <script>
+    // FAQ 手风琴折叠（页面特有逻辑，保留本地）
+    function initAccordion() {
+      const accordions = document.querySelectorAll("[data-accordion]");
+      accordions.forEach(acc => {
+        const head = acc.querySelector(".accordion-head");
+        if (!head) return;
+        const toggle = () => {
+          const isOpen = acc.classList.toggle("is-open");
+          head.setAttribute("aria-expanded", String(isOpen));
+        };
+        head.addEventListener("click", toggle);
+        // 键盘支持：Enter / Space 切换
+        head.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          }
+        });
+      });
+    }
+
+    // 初始化（气泡 / 汉堡菜单 / 入场动画统一由 FreshUI 共享库提供）
+    document.addEventListener("DOMContentLoaded", () => {
+      FreshUI.initBubbles();
+      FreshUI.initHamburgerMenu();
+      FreshUI.initReveal();
+      initAccordion();
+    });
+
+    // ============ Service Worker 注册 ============
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./assets/sw.js')
+          .catch((err) => console.warn('📦 PWA: SW 注册失败', err));
+      });
+    }
+  </script>
+</body>
+</html>
