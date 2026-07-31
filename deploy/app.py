@@ -47,7 +47,6 @@ PREDICTION_CACHE_TTL = 60
 CACHE_MAX_SIZE = 128
 CORS_MAX_AGE = 600
 MAX_IMAGE_DIM = 4096
-MAX_CONCURRENT_GRADCAM = 2
 
 _v1_model_path_candidates = ["src/storage/fishfreshnet_v1.pth"]
 _v2_model_path_candidates = ["src/storage/fishfreshnet_v2.pth"]
@@ -196,7 +195,9 @@ v1_model: Optional[nn.Module] = None
 v2_model: Optional[nn.Module] = None
 device: Optional[str] = None
 _http_session: Optional[requests.Session] = None
-_gradcam_semaphore: Optional[threading.Semaphore] = None
+# 模型推理锁：Grad-CAM 依赖模块级 forward/backward hook，
+# 并发推理会触发彼此已注册的 hook 导致特征/梯度串扰，故所有模型前向统一串行。
+_inference_lock = threading.Lock()
 _cache_lock = threading.Lock()
 
 
@@ -249,13 +250,12 @@ def _warmup_model(model: nn.Module, dev: str) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global v1_model, v2_model, device, _http_session, _gradcam_semaphore
+    global v1_model, v2_model, device, _http_session
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     logger.info(f"设备: {device}")
 
     _http_session = requests.Session()
-    _gradcam_semaphore = threading.Semaphore(MAX_CONCURRENT_GRADCAM)
 
     v1_loaded = False
     v2_loaded = False
@@ -389,10 +389,11 @@ def _build_prediction_result(probs: torch.Tensor, predicted: torch.Tensor,
 def predict_image_with_model(image: Image.Image, model: nn.Module,
                               model_version_str: str, current_device: str) -> PredictionResult:
     input_tensor = preprocess(image).unsqueeze(0).to(current_device)
-    with torch.no_grad():
-        outputs = model(input_tensor)
-        probs = F.softmax(outputs, dim=1)
-        confidence, predicted = torch.max(probs, 1)
+    with _inference_lock:
+        with torch.no_grad():
+            outputs = model(input_tensor)
+            probs = F.softmax(outputs, dim=1)
+            confidence, predicted = torch.max(probs, 1)
     return _build_prediction_result(probs, predicted, confidence, model_version_str)
 
 
@@ -488,9 +489,9 @@ def _encode_heatmap(overlay: np.ndarray) -> str:
 
 def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
                                model_version_str: str, current_device: str) -> Tuple[PredictionResult, str]:
-    if _gradcam_semaphore is None:
-        raise RuntimeError("Grad-CAM semaphore not initialized")
-    if not _gradcam_semaphore.acquire(timeout=30):
+    # 整个 Grad-CAM 流程（hook 注册、前向、反向）必须在推理锁内执行，
+    # 否则并发请求会触发彼此注册的模块级 hook，导致热力图数据串扰。
+    if not _inference_lock.acquire(timeout=30):
         raise HTTPException(status_code=429, detail="服务器繁忙，请稍后重试")
     try:
         original = np.array(image.resize((224, 224)))
@@ -536,7 +537,7 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
         heatmap_b64 = _encode_heatmap(overlay)
         return prediction, heatmap_b64
     finally:
-        _gradcam_semaphore.release()
+        _inference_lock.release()
 
 
 def _predict_from_bytes(data: bytes, model: nn.Module, version_str: str,
