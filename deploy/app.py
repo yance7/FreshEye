@@ -1,4 +1,8 @@
-"""FreshEye - Fish Freshness Detection API with V1/V2 model support"""
+"""FreshEye - Fish Freshness Detection API with V1/V2 model support
+
+Developed with TRAE IDE during the TRAE AI Creativity Competition.
+Social Service Track · Author: 祈雨柒
+"""
 import os
 import sys
 import io

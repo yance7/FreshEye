@@ -12,6 +12,8 @@ FreshEye is an AI-powered aquatic product freshness assessment system. Using fis
 
 **Live Demo**: Frontend on [GitHub Pages](https://yance77777.github.io/FreshEye/) · Backend on [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
+> 🏆 Developed with **TRAE IDE** · TRAE AI Creativity Competition · Social Service Track · Author: 祈雨柒 (Qi Yuqi)
+
 ### Key Features
 
 - Determines fish freshness from fish-eye images via **FishFreshNetV1/V2** CNN inference (no LLM dependency).
@@ -138,6 +140,8 @@ MIT License
 FreshEye 是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
 
 **在线演示**：前端部署于 [GitHub Pages](https://yance77777.github.io/FreshEye/) · 后端部署于 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
+
+> 🏆 使用 **TRAE IDE** 全程开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
 
 ### 核心能力
 
