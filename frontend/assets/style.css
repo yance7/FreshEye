@@ -76,7 +76,7 @@ body {
   line-height: 1.65;
   color: var(--foam);
   background: var(--abyss);
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-top: env(safe-area-inset-top, 0px);
@@ -1656,7 +1656,7 @@ footer {
   box-shadow: 0 10px 32px rgba(39, 208, 196, 0.5);
 }
 .btn-analyze:active:not(.is-disabled):not(.is-loading) {
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(0.97);
 }
 .btn-analyze.is-disabled {
   background: rgba(255, 255, 255, 0.08);
@@ -4713,4 +4713,70 @@ html, body { overscroll-behavior: contain; }
   .btn-analyze { padding: 12px 20px; font-size: 0.95rem; }
   .history-item { padding: 10px; }
   .freshness-label { font-size: 1.3rem; }
+}
+
+/* ============================================================ */
+/*  动画交互优化 v5 · 渐进式入场 + 触摸反馈增强                   */
+/* ============================================================ */
+
+/* ---------- 结果面板渐进入场（stagger） ---------- */
+/* backwards fill-mode：动画前保持 from 状态，结束后不覆盖 hover transform */
+.results-visible .panel {
+  animation: panelSlideIn 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+}
+.results-visible .results-grid > .panel:nth-child(1) { animation-delay: 0.06s; }
+.results-visible .results-grid > .panel:nth-child(2) { animation-delay: 0.14s; }
+.results-visible > .panel:nth-of-type(1) { animation-delay: 0.22s; }
+.results-visible > .panel:nth-of-type(2) { animation-delay: 0.30s; }
+.results-visible > .panel:nth-of-type(3) { animation-delay: 0.38s; }
+.results-visible > .panel:nth-of-type(4) { animation-delay: 0.46s; }
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- 历史记录项滑入 ---------- */
+.history-item {
+  animation: historySlideIn 0.3s ease backwards;
+}
+.history-item:nth-child(1) { animation-delay: 0.02s; }
+.history-item:nth-child(2) { animation-delay: 0.06s; }
+.history-item:nth-child(3) { animation-delay: 0.10s; }
+.history-item:nth-child(4) { animation-delay: 0.14s; }
+.history-item:nth-child(5) { animation-delay: 0.18s; }
+.history-item:nth-child(6) { animation-delay: 0.22s; }
+.history-item:nth-child(7) { animation-delay: 0.26s; }
+.history-item:nth-child(8) { animation-delay: 0.30s; }
+.history-item:nth-child(n+9) { animation-delay: 0.34s; }
+@keyframes historySlideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---------- 通用按钮点击缩放反馈 ---------- */
+.btn-export:active,
+.clear-btn:active,
+.reupload-btn:active,
+.camera-btn:active,
+.sample-tag:active,
+.back-to-top:active {
+  transform: scale(0.95);
+}
+
+/* ---------- 移动端触摸反馈增强 ---------- */
+@media (hover: none) and (pointer: coarse) {
+  .btn-analyze:active:not(.is-disabled):not(.is-loading) {
+    transform: scale(0.96);
+    transition: transform 0.08s ease;
+  }
+  .upload-zone:active {
+    transform: scale(0.99);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* ---------- 减少动画偏好：禁用渐进入场 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .results-visible .panel,
+  .history-item { animation: none; opacity: 1; }
 }
