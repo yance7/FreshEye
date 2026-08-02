@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="FreshEye">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#04162b"/>
+      <stop offset="55%" stop-color="#0a2a4a"/>
+      <stop offset="100%" stop-color="#04162b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="42%">
+      <stop offset="0%" stop-color="#27d0c4" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#27d0c4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="iris" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a2a3a"/>
+      <stop offset="38%" stop-color="#0a2a3a"/>
+      <stop offset="39%" stop-color="#27d0c4"/>
+      <stop offset="100%" stop-color="#1aa8a0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="360" fill="url(#bg)"/>
+  <rect width="1200" height="360" fill="url(#glow)"/>
+  <!-- 鱼眼 Logo -->
+  <circle cx="600" cy="150" r="92" fill="none" stroke="#27d0c4" stroke-width="5" opacity="0.85"/>
+  <circle cx="600" cy="150" r="66" fill="url(#iris)"/>
+  <circle cx="600" cy="150" r="34" fill="#04162b"/>
+  <circle cx="582" cy="132" r="13" fill="#ffffff" opacity="0.78"/>
+  <!-- 标题 -->
+  <text x="600" y="296" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="56" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="2">FreshEye</text>
+  <text x="600" y="332" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="20" font-weight="500" fill="#27d0c4" text-anchor="middle" letter-spacing="3">水产品新鲜度智能评估系统</text>
+</svg>

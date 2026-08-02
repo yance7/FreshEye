@@ -56,20 +56,46 @@
 /* ============ 亮色主题 ============ */
 [data-theme="light"] {
   color-scheme: light;
-  --abyss: #eef3f8;
-  --deep: #dde7f0;
-  --ocean: #c3d6e6;
-  --sea: #6ba8c9;
-  --aqua: #159c92;
-  --foam: #1a3a52;
-  --white: #0b2238;
-  --ink: #0b2238;
-  --muted: #5a7a92;
-  --card: rgba(0, 0, 0, .04);
-  --card-hover: rgba(0, 0, 0, .07);
-  --border: rgba(0, 0, 0, .12);
-  --border-hover: rgba(21, 156, 146, .5);
+  /* 背景：柔和冷灰蓝，避免刺眼纯白 */
+  --abyss: #eef2f7;
+  --deep: #e2eaf2;
+  --ocean: #d0dde9;
+  /* 强调色：浅底加深以保证对比度 */
+  --sea: #2f7fa0;
+  --aqua: #0a8a82;
+  /* 文字：深石板蓝 */
+  --foam: #1b3a52;
+  --white: #1b3a52;
+  --ink: #1b3a52;
+  --muted: #5d7891;
+  /* 卡片：纯白实体 + 明确边界（解决原 rgba 卡片几乎不可见的问题） */
+  --card: #ffffff;
+  --card-hover: #f5f9fc;
+  --border: rgba(27, 58, 82, .14);
+  --border-hover: rgba(10, 138, 130, .55);
 }
+
+/* 亮色主题：降低装饰层饱和度，避免浅底上过艳 */
+[data-theme="light"] .glow-1 { background: radial-gradient(circle, rgba(10, 138, 130, .13), transparent 65%); }
+[data-theme="light"] .glow-2 { background: radial-gradient(circle, rgba(47, 127, 160, .12), transparent 65%); }
+[data-theme="light"] .glow-3 { background: radial-gradient(circle, rgba(27, 58, 82, .06), transparent 65%); }
+[data-theme="light"] .wave-1 { opacity: .45; }
+[data-theme="light"] .wave-2 { opacity: .04; }
+/* 亮色主题：卡片增加柔和阴影提升层次感 */
+[data-theme="light"] .user-card,
+[data-theme="light"] .pain-card,
+[data-theme="light"] .sample-card,
+[data-theme="light"] .metric-item { box-shadow: 0 2px 12px rgba(27, 58, 82, .06); }
+/* 亮色主题：导航栏改白色半透明（原硬编码深色与浅色页面不协调） */
+[data-theme="light"] .navbar { background: rgba(255, 255, 255, .72); }
+[data-theme="light"] .navbar.is-scrolled {
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 10px 34px rgba(27, 58, 82, .10);
+  border-bottom-color: rgba(10, 138, 130, .20);
+}
+/* 亮色主题：全屏遮罩类组件改浅色（原硬编码深色与浅色页面不协调） */
+[data-theme="light"] .nav-overlay { background: rgba(238, 242, 247, .97); }
+[data-theme="light"] .confidence-modal-overlay { background: rgba(238, 242, 247, .85); }
 
 /* ============ 基础重置 ============ */
 *, *::before, *::after {

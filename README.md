@@ -1,6 +1,27 @@
-# FreshEye 水产品新鲜度智能评估系统
+<div align="center">
 
-> [English](#english) | [中文](#中文)
+<img src="docs/banner.svg" alt="FreshEye" width="720"/>
+
+# FreshEye · 水产品新鲜度智能评估系统
+
+**一拍知鲜 · 吃得放心** — 基于 FishFreshNet CNN 的鱼眼新鲜度智能识别
+
+[![License](https://img.shields.io/badge/License-MIT-0a8a82?style=flat-square)](LICENSE)
+[![Accuracy](https://img.shields.io/badge/Accuracy-99.29%25-27d0c4?style=flat-square)](#模型)
+[![Models](https://img.shields.io/badge/Models-V1%20%2B%20V2-2f7fa0?style=flat-square)](#模型)
+[![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2B%20PyTorch-009688?style=flat-square)](#快速开始部署版本)
+[![Frontend](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS-1b3a52?style=flat-square)](#快速开始部署版本)
+[![PWA](https://img.shields.io/badge/PWA-supported-8b5cf6?style=flat-square)](#核心能力)
+
+**在线演示**：前端 [GitHub Pages](https://yance77777.github.io/FreshEye-Web/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
+
+> 🏆 使用 **TRAE IDE** 全程开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
+
+</div>
+
+---
+
+> [English](#english) | [中文](#中文) | [核心能力](#核心能力) | [快速开始](#快速开始部署版本) | [模型](#模型) | [仓库结构](#仓库结构)
 
 ---
 
@@ -9,10 +30,6 @@
 ## English
 
 FreshEye is an AI-powered aquatic product freshness assessment system. Using fish-eye images as the core input, it combines the **FishFreshNetV1/V2** lightweight CNN models, **Grad-CAM** explainability analysis, and **confidence-adaptive interaction** to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
-
-**Live Demo**: Frontend on [GitHub Pages](https://yance77777.github.io/FreshEye/) · Backend on [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
-
-> 🏆 Developed with **TRAE IDE** · TRAE AI Creativity Competition · Social Service Track · Author: 祈雨柒 (Qi Yuqi)
 
 ### Key Features
 
@@ -39,6 +56,8 @@ image_upload
   -> frontend_confidence_display (3-color dashboard + badges + warnings)
   -> END
 ```
+
+<a id="快速开始部署版本"></a>
 
 ### Quick Start (Deployed Version)
 
@@ -76,14 +95,18 @@ cp .env.example .env  # Edit .env — LLM keys are optional
 python src/main.py -m http -p 5000
 ```
 
+<a id="模型"></a>
+
 ### Models
 
 | Model | Architecture | Parameters | Accuracy | Key Innovation |
-| --- | --- | --- | --- | --- |
-| FishFreshNetV1 | EfficientNet-B0 + CBAM | 4.216M | 98.88% | CBAM channel + spatial attention |
-| FishFreshNetV2 | EfficientNet-B0 + ECA + Light CRA | 4.095M | 99.29% | Light CRA (ring-mask + shared conv) + ECA |
+| :--- | :--- | :--- | :--- | :--- |
+| **FishFreshNetV1** | EfficientNet-B0 + CBAM | 4.216M | 98.88% | CBAM channel + spatial attention |
+| **FishFreshNetV2** | EfficientNet-B0 + ECA + Light CRA | 4.095M | **99.29%** | Light CRA (ring-mask + shared conv) + ECA |
 
 Both models are trained on the **MFED** dataset (4800+ samples, 4 environments, 2 fish species), open-sourced on [Mendeley Data](https://data.mendeley.com/).
+
+<a id="仓库结构"></a>
 
 ### Repository Structure
 
@@ -123,36 +146,39 @@ FreshEye/
 
 ### Documentation
 
-- `AGENTS.md` — Repository navigation guide.
-- `docs/FishFreshNetV1_Integration_Guide.md` — Model service & Grad-CAM integration guide.
-- `docs/Workflow_Optimization_Complete_Report.md` — Workflow technical report.
+| File | Description |
+| :--- | :--- |
+| [`AGENTS.md`](AGENTS.md) | Repository navigation guide |
+| [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md) | Model service & Grad-CAM integration guide |
+| [`docs/Workflow_Optimization_Complete_Report.md`](docs/Workflow_Optimization_Complete_Report.md) | Workflow technical report |
 
 ### License
 
-MIT License
+MIT License — see [LICENSE](LICENSE).
 
 ---
 
 <a id="中文"></a>
 
+<a id="核心能力"></a>
+
 ## 中文
 
 FreshEye 是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
 
-**在线演示**：前端部署于 [GitHub Pages](https://yance77777.github.io/FreshEye/) · 后端部署于 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
-
-> 🏆 使用 **TRAE IDE** 全程开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
-
 ### 核心能力
 
-- 使用 **FishFreshNetV1/V2** CNN 推理判断鱼眼新鲜度（不依赖大语言模型）。
-- 三分类：**高度新鲜 / 新鲜 / 不新鲜**。
-- 双模型路由——用户可在 V1（EfficientNet-B0 + CBAM）和 V2（EfficientNet-B0 + ECA + Light CRA）之间切换。
-- **Grad-CAM** 热力图配合自然语言解释，让模型决策过程透明可见。
-- 置信度自适应前端交互——绿/黄/红三色仪表盘，低置信度时提示重拍。
-- 基于规则模板的结构化分析和五大类建议（储存 / 食用 / 处理 / 安全警告 / 最佳实践）。
-- PDF 报告导出，含原图、热力图、概率分布和详细分析。
-- PWA 支持，Service Worker 离线缓存。
+| 能力 | 说明 |
+| :--- | :--- |
+| 🐟 **CNN 推理** | 使用 FishFreshNetV1/V2 判断鱼眼新鲜度（不依赖大语言模型） |
+| 🎯 **三分类** | 高度新鲜 / 新鲜 / 不新鲜 |
+| 🔀 **双模型路由** | V1（EfficientNet-B0 + CBAM）与 V2（EfficientNet-B0 + ECA + Light CRA）可切换 |
+| 🔥 **Grad-CAM** | 热力图配合自然语言解释，模型决策透明可见 |
+| 🚦 **置信度自适应** | 绿/黄/红三色仪表盘，低置信度时提示重拍 |
+| 📋 **结构化分析** | 规则模板：鱼眼外观 / 清澈度 / 颜色 / 纹理 / 质量指标 |
+| 💡 **五大类建议** | 储存 / 食用 / 处理 / 安全警告 / 最佳实践 |
+| 📄 **PDF 报告** | 含原图、热力图、概率分布和详细分析 |
+| 📱 **PWA 支持** | Service Worker 离线缓存 |
 
 ### 检测流程
 
@@ -208,9 +234,9 @@ python src/main.py -m http -p 5000
 ### 模型
 
 | 模型 | 架构 | 参数量 | 准确率 | 核心创新 |
-| --- | --- | --- | --- | --- |
-| FishFreshNetV1 | EfficientNet-B0 + CBAM | 4.216M | 98.88% | CBAM 通道 + 空间注意力 |
-| FishFreshNetV2 | EfficientNet-B0 + ECA + Light CRA | 4.095M | 99.29% | Light CRA（环形掩码 + 共享卷积）+ ECA |
+| :--- | :--- | :--- | :--- | :--- |
+| **FishFreshNetV1** | EfficientNet-B0 + CBAM | 4.216M | 98.88% | CBAM 通道 + 空间注意力 |
+| **FishFreshNetV2** | EfficientNet-B0 + ECA + Light CRA | 4.095M | **99.29%** | Light CRA（环形掩码 + 共享卷积）+ ECA |
 
 两个模型均在 **MFED** 数据集（4800+ 样本，4 种环境，2 种鱼类）上训练，已开源至 [Mendeley Data](https://data.mendeley.com/)。
 
@@ -252,10 +278,22 @@ FreshEye/
 
 ### 文档
 
-- `AGENTS.md`：仓库导航指引。
-- `docs/FishFreshNetV1_Integration_Guide.md`：模型服务与 Grad-CAM 集成说明。
-- `docs/Workflow_Optimization_Complete_Report.md`：工作流技术说明。
+| 文件 | 说明 |
+| :--- | :--- |
+| [`AGENTS.md`](AGENTS.md) | 仓库导航指引 |
+| [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md) | 模型服务与 Grad-CAM 集成说明 |
+| [`docs/Workflow_Optimization_Complete_Report.md`](docs/Workflow_Optimization_Complete_Report.md) | 工作流技术说明 |
 
 ### 许可证
 
-MIT License
+MIT License — 详见 [LICENSE](LICENSE)。
+
+---
+
+<div align="center">
+
+**FreshEye** · 一拍知鲜，吃得放心 🐟
+
+Made with TRAE IDE · TRAE AI Creativity Competition · Social Service Track
+
+</div>
