@@ -23,7 +23,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
 from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
-from PIL import Image, UnidentifiedImageError, DecompressionBombError
+from PIL import Image, UnidentifiedImageError
 Image.MAX_IMAGE_PIXELS = 12_000_000
 import numpy as np
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Request
@@ -479,7 +479,7 @@ def load_image_from_bytes(data: bytes) -> Image.Image:
         if w > MAX_IMAGE_DIM or h > MAX_IMAGE_DIM:
             raise HTTPException(status_code=400, detail=f"图片尺寸过大，最大允许 {MAX_IMAGE_DIM}x{MAX_IMAGE_DIM} 像素")
         return img.convert("RGB")
-    except DecompressionBombError as exc:
+    except Image.DecompressionBombError as exc:
         raise HTTPException(status_code=400, detail="图片像素数过大，请压缩后重试") from exc
     except (UnidentifiedImageError, OSError, ValueError) as exc:
         raise HTTPException(status_code=400, detail="图片损坏或格式无效，请上传有效的 JPG/PNG/WebP 图片") from exc
