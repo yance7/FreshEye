@@ -157,28 +157,7 @@
     window.addEventListener("resize", onScroll, { passive: true });
     onScroll();
 
-    /* ---------- 2. 主题切换 ---------- */
-    var themeBtn = document.getElementById("themeToggle");
-    if (themeBtn) {
-      function updateThemeIcon() {
-        var isLight = document.documentElement.dataset.theme === "light";
-        themeBtn.textContent = isLight ? "☀️" : "🌙";
-      }
-      updateThemeIcon();
-      themeBtn.addEventListener("click", function () {
-        var isLight = document.documentElement.dataset.theme === "light";
-        if (isLight) {
-          delete document.documentElement.dataset.theme;
-          localStorage.removeItem("fresheye-theme");
-        } else {
-          document.documentElement.dataset.theme = "light";
-          localStorage.setItem("fresheye-theme", "light");
-        }
-        updateThemeIcon();
-      });
-    }
-
-    /* ---------- 3. 卡片 tilt 微交互（桌面端专属） ---------- */
+    /* ---------- 2. 卡片 tilt 微交互（桌面端专属） ---------- */
     if (!finePointer.matches) return;
 
     var TILT_SELECTOR =

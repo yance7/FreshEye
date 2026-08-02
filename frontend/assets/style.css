@@ -53,56 +53,12 @@
   --navbar-h: 64px;
 }
 
-/* ============ 亮色主题 ============ */
-[data-theme="light"] {
-  color-scheme: light;
-  /* 背景：柔和冷灰蓝，避免刺眼纯白 */
-  --abyss: #eef2f7;
-  --deep: #e2eaf2;
-  --ocean: #d0dde9;
-  /* 强调色：浅底加深以保证对比度 */
-  --sea: #2f7fa0;
-  --aqua: #0a8a82;
-  /* 文字：深石板蓝 */
-  --foam: #1b3a52;
-  --white: #1b3a52;
-  --ink: #1b3a52;
-  --muted: #5d7891;
-  /* 卡片：纯白实体 + 明确边界（解决原 rgba 卡片几乎不可见的问题） */
-  --card: #ffffff;
-  --card-hover: #f5f9fc;
-  --border: rgba(27, 58, 82, .14);
-  --border-hover: rgba(10, 138, 130, .55);
-}
-
-/* 亮色主题：降低装饰层饱和度，避免浅底上过艳 */
-[data-theme="light"] .glow-1 { background: radial-gradient(circle, rgba(10, 138, 130, .13), transparent 65%); }
-[data-theme="light"] .glow-2 { background: radial-gradient(circle, rgba(47, 127, 160, .12), transparent 65%); }
-[data-theme="light"] .glow-3 { background: radial-gradient(circle, rgba(27, 58, 82, .06), transparent 65%); }
-[data-theme="light"] .wave-1 { opacity: .45; }
-[data-theme="light"] .wave-2 { opacity: .04; }
-/* 亮色主题：卡片增加柔和阴影提升层次感 */
-[data-theme="light"] .user-card,
-[data-theme="light"] .pain-card,
-[data-theme="light"] .sample-card,
-[data-theme="light"] .metric-item { box-shadow: 0 2px 12px rgba(27, 58, 82, .06); }
-/* 亮色主题：导航栏改白色半透明（原硬编码深色与浅色页面不协调） */
-[data-theme="light"] .navbar { background: rgba(255, 255, 255, .72); }
-[data-theme="light"] .navbar.is-scrolled {
-  background: rgba(255, 255, 255, .88);
-  box-shadow: 0 10px 34px rgba(27, 58, 82, .10);
-  border-bottom-color: rgba(10, 138, 130, .20);
-}
-/* 亮色主题：全屏遮罩类组件改浅色（原硬编码深色与浅色页面不协调） */
-[data-theme="light"] .nav-overlay { background: rgba(238, 242, 247, .97); }
-[data-theme="light"] .confidence-modal-overlay { background: rgba(238, 242, 247, .85); }
-
 /* ============ 基础重置 ============ */
 *, *::before, *::after {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 /* Dark mode scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -238,17 +194,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .brand-sub { font-size: 11.5px; color: var(--muted); letter-spacing: 0.3px; }
 
 .nav-links { display: flex; gap: var(--space-5); align-items: center; }
-.theme-toggle {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  width: 36px; height: 36px;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 18px; cursor: pointer;
-  transition: all var(--transition-fast);
-  flex-shrink: 0;
-}
-.theme-toggle:hover { background: var(--card-hover); border-color: var(--border-hover); }
 .nav-links a {
   color: var(--muted);
   text-decoration: none;
@@ -2704,23 +2649,6 @@ select, input[type="file"],
     -webkit-backdrop-filter: none !important;
     background: rgba(255, 255, 255, 0.08) !important;
   }
-
-  /* 亮色主题移动端：恢复实体白色背景（否则 8% 白在浅底上几乎不可见） */
-  [data-theme="light"] .navbar,
-  [data-theme="light"] .panel,
-  [data-theme="light"] .upload-zone,
-  [data-theme="light"] .preview-card,
-  [data-theme="light"] .badge,
-  [data-theme="light"] .metric-item,
-  [data-theme="light"] .advice-card,
-  [data-theme="light"] .compare-slider,
-  [data-theme="light"] .accordion,
-  [data-theme="light"] .pain-card,
-  [data-theme="light"] .user-card,
-  [data-theme="light"] .table-wrap {
-    background: var(--card) !important;
-  }
-  [data-theme="light"] .navbar { background: rgba(255, 255, 255, .92) !important; }
 
   /* 移动端隐藏光晕和次要水纹，减少渲染层 */
   .glow { display: none; }

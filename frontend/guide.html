@@ -30,9 +30,6 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
   <link rel="stylesheet" href="assets/style.css">
-  <script>
-    (function(){var t=localStorage.getItem('fresheye-theme');if(t)document.documentElement.dataset.theme=t;})();
-  </script>
   <link rel="manifest" href="./assets/manifest.json">
   <script src="assets/ui.js" defer></script>
 </head>
@@ -64,7 +61,6 @@
       <a href="fish.html">百科</a>
       <a href="about.html">关于</a>
       <a href="https://github.com/yance77777/FreshEye" target="_blank" rel="noopener noreferrer">开源</a>
-      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换亮色/暗色主题" title="切换主题">🌙</button>
     </nav>
     <button class="nav-toggle" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="navOverlay">
       <span class="nav-toggle-bar"></span>
@@ -219,18 +215,6 @@
         <div class="accordion-body">
           <div class="accordion-inner">
             <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">历史记录保存在<strong style="color:var(--aqua);">本地浏览器 localStorage</strong>，最多 <strong style="color:var(--aqua);">50 条</strong>，<strong style="color:var(--aqua);">不会上传服务器</strong>。清除浏览器数据或更换设备后记录将丢失。建议定期清理以释放存储空间。</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="accordion" data-accordion>
-        <div class="accordion-head" role="button" tabindex="0" aria-expanded="false">
-          <span class="accordion-title">支持亮色/暗色主题吗？</span>
-          <span class="accordion-arrow" aria-hidden="true">▶</span>
-        </div>
-        <div class="accordion-body">
-          <div class="accordion-inner">
-            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">点击导航栏右上角的 <strong style="color:var(--aqua);">🌙/☀️ 按钮</strong>即可切换主题。选择会保存在浏览器本地，下次访问自动恢复。默认为<strong style="color:var(--aqua);">暗色深海主题</strong>。</p>
           </div>
         </div>
       </div>
