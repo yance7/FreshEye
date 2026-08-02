@@ -656,7 +656,12 @@ async def health():
 
 
 def _check_rate_limit(request: Request):
-    client_id = request.client.host if request.client else "unknown"
+    # HF Space 等反向代理后端需从 X-Forwarded-For 取真实客户端 IP
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        client_id = forwarded.split(",")[0].strip()
+    else:
+        client_id = request.client.host if request.client else "unknown"
     if not _rate_limiter.check(client_id):
         raise HTTPException(status_code=429, detail="请求过于频繁，请稍后重试（每分钟限 15 次）")
 
