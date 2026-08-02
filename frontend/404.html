@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space;" />
   <meta name="theme-color" content="#04162b" />
   <meta name="robots" content="noindex" />
   <meta name="description" content="FreshEye — 页面未找到。上传鱼眼照片，AI 秒级分析水产品新鲜度。" />
@@ -18,6 +19,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" /></noscript>
   <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function(){var t=localStorage.getItem('fresheye-theme');if(t)document.documentElement.dataset.theme=t;})();
+  </script>
   <script src="assets/ui.js" defer></script>
   <style>
     .page-404 { min-height: 100vh; min-height: 100svh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: calc(120px + env(safe-area-inset-top, 0px)) 24px calc(48px + env(safe-area-inset-bottom, 0px)); position: relative; overflow: hidden; }
@@ -67,7 +71,8 @@
       <a href="guide.html">指南</a>
       <a href="fish.html">百科</a>
       <a href="about.html">关于</a>
-      <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer">开源</a>
+      <a href="https://github.com/yance77777/FreshEye" target="_blank" rel="noopener noreferrer">开源</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换亮色/暗色主题" title="切换主题">🌙</button>
     </nav>
     <button class="nav-toggle" id="navToggle" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="navOverlay">
       <span class="nav-toggle-bar"></span>
@@ -82,7 +87,7 @@
       <a href="guide.html" data-close>指南</a>
       <a href="fish.html" data-close>百科</a>
       <a href="about.html" data-close>关于</a>
-      <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer" data-close>开源</a>
+      <a href="https://github.com/yance77777/FreshEye" target="_blank" rel="noopener noreferrer" data-close>开源</a>
     </nav>
   </div>
 

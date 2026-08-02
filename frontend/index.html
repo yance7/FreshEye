@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space;" />
   <meta name="theme-color" content="#04162b" />
   <meta name="color-scheme" content="dark" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -29,6 +30,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
   <link rel="stylesheet" href="assets/style.css">
+  <script>
+    (function(){var t=localStorage.getItem('fresheye-theme');if(t)document.documentElement.dataset.theme=t;})();
+  </script>
   <link rel="manifest" href="./assets/manifest.json">
   <script src="assets/ui.js" defer></script>
 </head>
@@ -60,6 +64,7 @@
       <a href="fish.html">百科</a>
       <a href="about.html">关于</a>
       <a href="https://github.com/yance77777/FreshEye" target="_blank" rel="noopener noreferrer">开源</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换亮色/暗色主题" title="切换主题">🌙</button>
     </nav>
     <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="navOverlay">
       <span class="nav-toggle-bar"></span>
@@ -733,6 +738,7 @@
       <div class="history-section">
         <div class="history-head">
           <h3 class="history-title"><span aria-hidden="true">📋</span> 历史记录</h3>
+          <button class="history-clear-btn" id="historyClearBtn" type="button" aria-label="清空全部历史记录" title="清空全部历史记录">清空全部</button>
         </div>
         <div class="history-filter-bar">
           <input type="search" id="historySearch" class="history-search-input" placeholder="搜索历史记录…" aria-label="搜索历史记录" autocomplete="off" />
@@ -1087,24 +1093,85 @@
     }
 
     /**
-     * 压缩图片用于上传（F3：减少上传体积和推理时间）
-     * 输出 File 对象，而非 dataURL
+     * 从 JPEG data URL 读取 EXIF orientation 值（1-8），非 JPEG 或无 EXIF 返回 1。
+     * 手机竖拍照片通常 orientation=6，需在 canvas 绘制前旋转校正。
      */
+    function getExifOrientation(dataUrl) {
+      try {
+        const base64 = dataUrl.split(',')[1];
+        if (!base64) return 1;
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) return 1;
+        let offset = 2;
+        while (offset < bytes.length - 1) {
+          if (bytes[offset] !== 0xFF) break;
+          const marker = bytes[offset + 1];
+          const segSize = (bytes[offset + 2] << 8) | bytes[offset + 3];
+          if (marker === 0xE1 && segSize > 7) {
+            const exif = bytes[offset + 4];
+            if (exif === 0x45 && bytes[offset + 5] === 0x78 &&
+                bytes[offset + 6] === 0x69 && bytes[offset + 7] === 0x66) {
+              const tOff = offset + 10;
+              const le = bytes[tOff + 2] === 0x49;
+              const r16 = (o) => le
+                ? (bytes[tOff + o] | (bytes[tOff + o + 1] << 8))
+                : ((bytes[tOff + o] << 8) | bytes[tOff + o + 1]);
+              const r32 = (o) => le
+                ? (bytes[tOff + o] | (bytes[tOff + o + 1] << 8) | (bytes[tOff + o + 2] << 16) | (bytes[tOff + o + 3] << 24))
+                : ((bytes[tOff + o] << 24) | (bytes[tOff + o + 1] << 16) | (bytes[tOff + o + 2] << 8) | bytes[tOff + o + 3]);
+              const ifdOff = r32(4);
+              const numEntries = r16(ifdOff);
+              for (let i = 0; i < numEntries; i++) {
+                const eOff = ifdOff + 2 + i * 12;
+                if (r16(eOff) === 0x0112) return r16(eOff + 8);
+              }
+            }
+          }
+          offset += 2 + segSize;
+        }
+      } catch (_) {}
+      return 1;
+    }
+
+    /**
+     * 根据 EXIF orientation 在 canvas 上绘制旋转/翻转后的图片。
+     */
+    function drawWithOrientation(ctx, img, orientation, dw, dh) {
+      const w = img.naturalWidth, h = img.naturalHeight;
+      switch (orientation) {
+        case 1: ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        case 2: ctx.translate(dw, 0); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        case 3: ctx.translate(dw, dh); ctx.rotate(Math.PI); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        case 4: ctx.translate(0, dh); ctx.scale(1, -1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        case 5: ctx.scale(1, -1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        case 6: ctx.translate(dw, 0); ctx.rotate(Math.PI / 2); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        case 7: ctx.translate(dw, dh); ctx.scale(-1, -1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        case 8: ctx.translate(0, dh); ctx.rotate(-Math.PI / 2); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
+        default: ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh);
+      }
+    }
+
     function compressImageForUpload(file, maxDim, quality) {
       return new Promise((resolve) => {
         if (file.size < 500 * 1024) { resolve(null); return; }
         const reader = new FileReader();
         reader.onload = (e) => {
+          const dataUrl = e.target.result;
+          const orientation = getExifOrientation(dataUrl);
           const img = new Image();
           img.onload = () => {
             const w = img.naturalWidth, h = img.naturalHeight;
-            if (w <= maxDim && h <= maxDim) { resolve(null); return; }
-            const scale = Math.min(1, maxDim / Math.max(w, h));
-            const tw = Math.round(w * scale), th = Math.round(h * scale);
+            if (w <= maxDim && h <= maxDim && orientation === 1) { resolve(null); return; }
+            const swap = orientation >= 5 && orientation <= 8;
+            const srcW = swap ? h : w, srcH = swap ? w : h;
+            const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+            const tw = Math.round(srcW * scale), th = Math.round(srcH * scale);
             const canvas = document.createElement('canvas');
             canvas.width = tw; canvas.height = th;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, tw, th);
+            drawWithOrientation(ctx, img, orientation, tw, th);
             canvas.toBlob((blob) => {
               if (blob) {
                 resolve(new File([blob], file.name || 'image.jpg', { type: 'image/jpeg', lastModified: Date.now() }));
@@ -1114,7 +1181,7 @@
             }, 'image/jpeg', quality);
           };
           img.onerror = () => resolve(null);
-          img.src = e.target.result;
+          img.src = dataUrl;
         };
         reader.onerror = () => resolve(null);
         reader.readAsDataURL(file);
@@ -2535,17 +2602,31 @@
      */
     function compressThumbnail(dataUrl) {
       return new Promise((resolve) => {
+        const orientation = getExifOrientation(dataUrl);
         const img = new Image();
         img.onload = () => {
+          const swap = orientation >= 5 && orientation <= 8;
+          const nw = swap ? img.naturalHeight : img.naturalWidth;
+          const nh = swap ? img.naturalWidth : img.naturalHeight;
           const canvas = document.createElement("canvas");
           canvas.width = 150;
           canvas.height = 150;
           const ctx = canvas.getContext("2d");
-          // 居中裁剪
-          const minSide = Math.min(img.naturalWidth, img.naturalHeight);
-          const sx = (img.naturalWidth - minSide) / 2;
-          const sy = (img.naturalHeight - minSide) / 2;
-          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 150, 150);
+          if (orientation !== 1) {
+            const tmp = document.createElement("canvas");
+            tmp.width = nw; tmp.height = nh;
+            const tctx = tmp.getContext("2d");
+            drawWithOrientation(tctx, img, orientation, nw, nh);
+            const minSide = Math.min(nw, nh);
+            const sx = (nw - minSide) / 2;
+            const sy = (nh - minSide) / 2;
+            ctx.drawImage(tmp, sx, sy, minSide, minSide, 0, 0, 150, 150);
+          } else {
+            const minSide = Math.min(img.naturalWidth, img.naturalHeight);
+            const sx = (img.naturalWidth - minSide) / 2;
+            const sy = (img.naturalHeight - minSide) / 2;
+            ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 150, 150);
+          }
           resolve(canvas.toDataURL("image/jpeg", 0.5));
         };
         img.onerror = () => resolve("");
@@ -2605,10 +2686,21 @@
     function deleteHistory(id) {
       const hist = loadHistory().filter((r) => r.id !== id);
       saveHistory(hist);
-      // 同步删除收藏
       const favs = loadFavorites().filter((fid) => fid !== id);
       saveFavorites(favs);
       renderHistory();
+    }
+
+    /**
+     * 清空全部历史记录（含收藏），带二次确认
+     */
+    function clearAllHistory() {
+      if (loadHistory().length === 0) return;
+      if (!confirm("确定清空全部历史记录？此操作不可撤销。")) return;
+      saveHistory([]);
+      saveFavorites([]);
+      renderHistory();
+      showToast("已清空全部历史记录", "success", 3000);
     }
 
     /**
@@ -2695,7 +2787,7 @@
       const favAriaLabel = isFav ? "取消收藏" : "收藏";
       item.innerHTML = `
         <div class="history-content">
-          <img class="history-thumb" alt="历史记录鱼眼照片缩略图" src="${thumbSrc}" width="56" height="56" loading="lazy" decoding="async" />
+          <img class="history-thumb" alt="历史记录鱼眼照片缩略图" src="${escapeHtml(thumbSrc)}" width="56" height="56" loading="lazy" decoding="async" />
           <div class="history-info">
             <div class="history-row1">
               <span class="history-badge ${cls}">
@@ -2840,6 +2932,7 @@
       });
       document.getElementById("historySearch")?.addEventListener("input", debounce(renderHistory, 200));
       document.getElementById("historyFilter")?.addEventListener("change", renderHistory);
+      document.getElementById("historyClearBtn")?.addEventListener("click", clearAllHistory);
     }
 
     // 5 大类建议可折叠

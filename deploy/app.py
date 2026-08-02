@@ -26,12 +26,11 @@ from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 from PIL import Image, UnidentifiedImageError, DecompressionBombError
 Image.MAX_IMAGE_PIXELS = 12_000_000
 import numpy as np
-from fastapi import FastAPI, File, UploadFile, HTTPException, Query
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel
 import uvicorn
-import requests
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -195,7 +194,6 @@ class GradCAMResult(BaseModel):
 v1_model: Optional[nn.Module] = None
 v2_model: Optional[nn.Module] = None
 device: Optional[str] = None
-_http_session: Optional[requests.Session] = None
 # 模型推理锁：Grad-CAM 依赖模块级 forward/backward hook，
 # 并发推理会触发彼此已注册的 hook 导致特征/梯度串扰，故所有模型前向统一串行。
 _inference_lock = threading.Lock()
@@ -236,6 +234,65 @@ _prediction_cache = _TTLCache()
 _gradcam_cache = _TTLCache()
 
 
+class _RateLimiter:
+    """滑动窗口速率限制器（单实例内存版，适用于 HF Spaces 单副本部署）。"""
+
+    def __init__(self, max_requests: int = 15, window_seconds: int = 60):
+        self._max = max_requests
+        self._window = window_seconds
+        self._buckets: "dict[str, list[float]]" = {}
+        self._lock = threading.Lock()
+
+    def check(self, client_id: str) -> bool:
+        now = time.monotonic()
+        with self._lock:
+            timestamps = self._buckets.get(client_id, [])
+            cutoff = now - self._window
+            timestamps = [t for t in timestamps if t > cutoff]
+            if len(timestamps) >= self._max:
+                self._buckets[client_id] = timestamps
+                return False
+            timestamps.append(now)
+            self._buckets[client_id] = timestamps
+            return True
+
+
+class _Metrics:
+    """运行时指标统计，用于 /health 端点运维监控。"""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self.total_requests = 0
+        self.cache_hits = 0
+        self.total_inference_ms = 0.0
+        self.inference_count = 0
+
+    def record_request(self, inference_ms: float = 0.0, cache_hit: bool = False):
+        with self._lock:
+            self.total_requests += 1
+            if cache_hit:
+                self.cache_hits += 1
+            if inference_ms > 0:
+                self.total_inference_ms += inference_ms
+                self.inference_count += 1
+
+    def snapshot(self) -> dict:
+        with self._lock:
+            avg_ms = (self.total_inference_ms / self.inference_count) if self.inference_count else 0.0
+            hit_rate = (self.cache_hits / self.total_requests) if self.total_requests else 0.0
+            return {
+                "total_requests": self.total_requests,
+                "cache_hits": self.cache_hits,
+                "cache_hit_rate": round(hit_rate, 4),
+                "avg_inference_ms": round(avg_ms, 1),
+                "inference_count": self.inference_count,
+            }
+
+
+_rate_limiter = _RateLimiter(max_requests=15, window_seconds=60)
+_metrics = _Metrics()
+
+
 def _cache_key(data: bytes, model_version: str) -> str:
     h = hashlib.blake2b(data, digest_size=16)
     return f"{h.hexdigest()}:{model_version}"
@@ -251,12 +308,10 @@ def _warmup_model(model: nn.Module, dev: str) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global v1_model, v2_model, device, _http_session
+    global v1_model, v2_model, device
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     logger.info(f"设备: {device}")
-
-    _http_session = requests.Session()
 
     v1_loaded = False
     v2_loaded = False
@@ -290,10 +345,6 @@ async def lifespan(app: FastAPI):
         logger.warning("V2模型不可用，降级为仅V1模型服务")
 
     yield
-
-    if _http_session is not None:
-        _http_session.close()
-        _http_session = None
 
 
 app = FastAPI(title="FreshEye API", version="2.0.0", lifespan=lifespan)
@@ -408,11 +459,15 @@ def _build_prediction_result(probs: torch.Tensor, predicted: torch.Tensor,
 def predict_image_with_model(image: Image.Image, model: nn.Module,
                               model_version_str: str, current_device: str) -> PredictionResult:
     input_tensor = preprocess(image).unsqueeze(0).to(current_device)
-    with _inference_lock:
+    if not _inference_lock.acquire(timeout=30):
+        raise HTTPException(status_code=503, detail="模型推理队列繁忙，请稍后重试")
+    try:
         with torch.no_grad():
             outputs = model(input_tensor)
             probs = F.softmax(outputs, dim=1)
             confidence, predicted = torch.max(probs, 1)
+    finally:
+        _inference_lock.release()
     return _build_prediction_result(probs, predicted, confidence, model_version_str)
 
 
@@ -546,6 +601,7 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
                 gradients = gradients_list[0]
                 feature_maps = feature_maps_list[0].detach()
                 heatmap = _compute_cam_vectorized(gradients, feature_maps)
+                del gradients, feature_maps
             else:
                 heatmap = np.zeros((224, 224), dtype=np.float32)
         except Exception as exc:
@@ -592,15 +648,26 @@ async def health():
         "v2_loaded": v2_model is not None,
         "device": device,
         "cuda_available": torch.cuda.is_available(),
+        "prediction_cache_size": len(_prediction_cache),
+        "gradcam_cache_size": len(_gradcam_cache),
+        "metrics": _metrics.snapshot(),
         "timestamp": datetime.now().isoformat(),
     }
 
 
+def _check_rate_limit(request: Request):
+    client_id = request.client.host if request.client else "unknown"
+    if not _rate_limiter.check(client_id):
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后重试（每分钟限 15 次）")
+
+
 @app.post("/predict", response_model=PredictionResult)
 async def predict_freshness(
+    request: Request,
     file: UploadFile = File(...),
     model_version: str = Query("v2", description="Model version: v1 or v2")
 ):
+    _check_rate_limit(request)
     try:
         model, version_str = get_model(model_version)
         data = await read_limited_upload(file)
@@ -609,6 +676,7 @@ async def predict_freshness(
         if cached is not None:
             _log_inference("/predict", version_str, cached.freshness_level,
                            cached.confidence_score, 0.0, cache_hit=True)
+            _metrics.record_request(cache_hit=True)
             return cached
         t0 = time.monotonic()
         result = await asyncio.to_thread(_predict_from_bytes, data, model, version_str, device)
@@ -616,6 +684,7 @@ async def predict_freshness(
         _prediction_cache.set(key, result)
         _log_inference("/predict", version_str, result.freshness_level,
                        result.confidence_score, duration_ms, cache_hit=False)
+        _metrics.record_request(inference_ms=duration_ms)
         return result
     except HTTPException:
         raise
@@ -626,9 +695,11 @@ async def predict_freshness(
 
 @app.post("/predict_with_gradcam", response_model=GradCAMResult)
 async def predict_with_gradcam(
+    request: Request,
     file: UploadFile = File(...),
     model_version: str = Query("v2", description="Model version: v1 or v2")
 ):
+    _check_rate_limit(request)
     try:
         model, version_str = get_model(model_version)
         data = await read_limited_upload(file)
@@ -637,6 +708,7 @@ async def predict_with_gradcam(
         if cached is not None:
             _log_inference("/predict_with_gradcam", version_str, cached.prediction.freshness_level,
                            cached.prediction.confidence_score, 0.0, cache_hit=True)
+            _metrics.record_request(cache_hit=True)
             return cached
         t0 = time.monotonic()
         prediction, heatmap_b64 = await asyncio.to_thread(
@@ -647,6 +719,7 @@ async def predict_with_gradcam(
         _gradcam_cache.set(key, result)
         _log_inference("/predict_with_gradcam", version_str, prediction.freshness_level,
                        prediction.confidence_score, duration_ms, cache_hit=False)
+        _metrics.record_request(inference_ms=duration_ms)
         return result
     except HTTPException:
         raise
