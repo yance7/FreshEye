@@ -22,6 +22,7 @@ ENV PORT=7860
 ENV V1_MODEL_PATH=/app/src/storage/fishfreshnet_v1.pth
 ENV V2_MODEL_PATH=/app/src/storage/fishfreshnet_v2.pth
 ENV KMP_DUPLICATE_LIB_OK=TRUE
+ENV PYTHONUNBUFFERED=1
 
 EXPOSE 7860
 

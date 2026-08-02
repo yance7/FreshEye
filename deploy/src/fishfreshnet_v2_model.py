@@ -68,10 +68,6 @@ class LightweightCRA(nn.Module):
             attention = attention + weight * mask
         return projected * attention * self.num_rings
 
-    def get_ring_weights(self, x: torch.Tensor) -> torch.Tensor:
-        weights, _ = self._ring_weights(x)
-        return weights
-
 
 class CompactClassifier(nn.Module):
     def __init__(self, in_features: int, num_classes: int, dropout: float = 0.3) -> None:
@@ -90,8 +86,6 @@ class CompactClassifier(nn.Module):
 class FishFreshNetV2(nn.Module):
     def __init__(self, num_classes: int = 3, dropout: float = 0.3, pretrained: bool = True) -> None:
         super().__init__()
-        self.use_cra = True
-        self.attention_type = "eca"
         weights = models.EfficientNet_B0_Weights.IMAGENET1K_V1 if pretrained else None
         backbone = models.efficientnet_b0(weights=weights)
         self.features = backbone.features

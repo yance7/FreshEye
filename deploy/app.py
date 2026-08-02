@@ -24,7 +24,9 @@ import torch.nn.functional as F
 from torchvision import transforms
 from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 from PIL import Image, UnidentifiedImageError
-Image.MAX_IMAGE_PIXELS = 12_000_000
+# 与 MAX_IMAGE_DIM(4096) 保持自洽：4096x4096=16,777,216 为上限，
+# 避免出现"文档允许 4096x4096，实际却被炸弹阈值拦截"的矛盾。
+Image.MAX_IMAGE_PIXELS = 4096 * 4096
 import numpy as np
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -65,7 +67,18 @@ def _resolve_model_path(env_var: str, candidates: list) -> str:
 
 V1_MODEL_PATH = _resolve_model_path("V1_MODEL_PATH", _v1_model_path_candidates)
 V2_MODEL_PATH = _resolve_model_path("V2_MODEL_PATH", _v2_model_path_candidates)
-MAX_IMAGE_MB = int(os.getenv("FISHFRESHNET_MAX_IMAGE_MB", "25"))
+
+
+def _env_int(name: str, default: int) -> int:
+    """安全解析整数型环境变量，非法值回退默认，避免启动崩溃。"""
+    try:
+        return int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        logger.warning(f"环境变量 {name} 解析失败，使用默认值 {default}")
+        return default
+
+
+MAX_IMAGE_MB = _env_int("FISHFRESHNET_MAX_IMAGE_MB", 25)
 MAX_IMAGE_BYTES = MAX_IMAGE_MB * 1024 * 1024
 
 
@@ -125,12 +138,10 @@ class FishFreshNetV1(nn.Module):
             nn.Dropout(p=dropout),
             nn.Linear(1280, num_classes),
         )
-        self.feature_maps = None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         features = self.features(x)
         features = self.attention(features)
-        self.feature_maps = features
         features = self.pool(features)
         features = torch.flatten(features, 1)
         return self.classifier(features)
@@ -235,25 +246,39 @@ _gradcam_cache = _TTLCache()
 
 
 class _RateLimiter:
-    """滑动窗口速率限制器（单实例内存版，适用于 HF Spaces 单副本部署）。"""
+    """滑动窗口速率限制器（单实例内存版，适用于 HF Spaces 单副本部署）。
 
-    def __init__(self, max_requests: int = 15, window_seconds: int = 60):
+    - 桶数量有上限（_max_buckets），超过时淘汰最久未活动条目，防止伪造 IP 造成内存 DoS。
+    - check() 每次调用顺带清理过期时间戳，保持桶内数据量受控。
+    """
+
+    def __init__(self, max_requests: int = 15, window_seconds: int = 60, max_buckets: int = 10000):
         self._max = max_requests
         self._window = window_seconds
+        self._max_buckets = max_buckets
         self._buckets: "dict[str, list[float]]" = {}
+        self._last_activity: "dict[str, float]" = {}
         self._lock = threading.Lock()
 
     def check(self, client_id: str) -> bool:
         now = time.monotonic()
         with self._lock:
-            timestamps = self._buckets.get(client_id, [])
             cutoff = now - self._window
+            timestamps = self._buckets.get(client_id, [])
             timestamps = [t for t in timestamps if t > cutoff]
             if len(timestamps) >= self._max:
                 self._buckets[client_id] = timestamps
+                self._last_activity[client_id] = now
                 return False
+            # 桶数量超限时，淘汰最久未活动条目
+            if client_id not in self._buckets and len(self._buckets) >= self._max_buckets:
+                if self._last_activity:
+                    oldest = min(self._last_activity, key=self._last_activity.get)
+                    self._buckets.pop(oldest, None)
+                    self._last_activity.pop(oldest, None)
             timestamps.append(now)
             self._buckets[client_id] = timestamps
+            self._last_activity[client_id] = now
             return True
 
 
@@ -474,10 +499,11 @@ def predict_image_with_model(image: Image.Image, model: nn.Module,
 def load_image_from_bytes(data: bytes) -> Image.Image:
     try:
         img = Image.open(io.BytesIO(data))
-        img.load()
+        # 尺寸预校验：仅解析文件头即可获得宽高，无需完整解码，避免内存浪费
         w, h = img.size
         if w > MAX_IMAGE_DIM or h > MAX_IMAGE_DIM:
             raise HTTPException(status_code=400, detail=f"图片尺寸过大，最大允许 {MAX_IMAGE_DIM}x{MAX_IMAGE_DIM} 像素")
+        img.load()
         return img.convert("RGB")
     except Image.DecompressionBombError as exc:
         raise HTTPException(status_code=400, detail="图片像素数过大，请压缩后重试") from exc
@@ -490,18 +516,21 @@ def load_image_from_bytes(data: bytes) -> Image.Image:
 
 
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
-ALLOWED_FILE_SIGNATURES = (
-    b"\xff\xd8\xff",
-    b"\x89PNG\r\n\x1a\n",
-    b"RIFF",
-)
+
+
+def _is_webp_signature(data: bytes) -> bool:
+    # WebP 容器为 RIFF 格式，但 RIFF 也可能承载 WAV/AVI 等文件，
+    # 需精确校验第 8-12 字节的 "WEBP" 标识，避免误放行非 WebP 的 RIFF 文件。
+    return len(data) >= 12 and data.startswith(b"RIFF") and data[8:12] == b"WEBP"
 
 
 def validate_image_format(file: UploadFile, data: bytes) -> None:
     ct = (file.content_type or "").lower()
     if ct and ct not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(status_code=400, detail="图片格式不支持，请上传 JPG/PNG/WebP")
-    if not any(data.startswith(sig) for sig in ALLOWED_FILE_SIGNATURES):
+    is_jpeg = data.startswith(b"\xff\xd8\xff")
+    is_png = data.startswith(b"\x89PNG\r\n\x1a\n")
+    if not (is_jpeg or is_png or _is_webp_signature(data)):
         raise HTTPException(status_code=400, detail="图片内容与格式不匹配")
 
 
@@ -523,8 +552,8 @@ def _gradcam_hooks(model: nn.Module) -> Iterator[Tuple[list, list]]:
     def save_grad(module: nn.Module, grad_input: tuple, grad_output: tuple) -> None:
         gradients_list.append(grad_output[0])
 
-    def save_fmap(module: nn.Module, input: tuple, output: torch.Tensor) -> None:
-        feature_maps_list.append(output)
+    def save_fmap(module: nn.Module, module_input: tuple, module_output: torch.Tensor) -> None:
+        feature_maps_list.append(module_output)
 
     last_conv = model.features[-1]
     hook_grad = last_conv.register_full_backward_hook(save_grad)
@@ -566,7 +595,7 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
     # 整个 Grad-CAM 流程（hook 注册、前向、反向）必须在推理锁内执行，
     # 否则并发请求会触发彼此注册的模块级 hook，导致热力图数据串扰。
     if not _inference_lock.acquire(timeout=30):
-        raise HTTPException(status_code=429, detail="服务器繁忙，请稍后重试")
+        raise HTTPException(status_code=503, detail="模型推理队列繁忙，请稍后重试")
     try:
         original = np.array(image.resize((224, 224)))
         input_tensor = preprocess(image).unsqueeze(0).to(current_device)
@@ -601,7 +630,10 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
                 gradients = gradients_list[0]
                 feature_maps = feature_maps_list[0].detach()
                 heatmap = _compute_cam_vectorized(gradients, feature_maps)
-                del gradients, feature_maps
+                # 显式释放张量引用：仅 del 局部别名无法释放内存，
+                # 需同时清空 hook 收集列表，避免引用滞留至函数返回
+                gradients_list.clear()
+                feature_maps_list.clear()
             else:
                 heatmap = np.zeros((224, 224), dtype=np.float32)
         except Exception as exc:
@@ -656,12 +688,18 @@ async def health():
 
 
 def _check_rate_limit(request: Request):
-    # HF Space 等反向代理后端需从 X-Forwarded-For 取真实客户端 IP
+    # 防绕过：客户端标识 = 连接 IP + X-Forwarded-For 最后一个转发地址。
+    # HF Space 等反向代理会把真实客户端 IP *追加*到 XFF 末尾，而攻击者自填的
+    # 伪造 XFF 只会出现在前面的位置——取末位 + 连接 IP 组合，攻击者无法仅靠伪造
+    # XFF 头改变标识，从而规避按真实客户端的限流。
+    connect_ip = request.client.host if request.client else "unknown"
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        client_id = forwarded.split(",")[0].strip()
+        forwarded_ips = [p.strip() for p in forwarded.split(",") if p.strip()]
+        xff_last = forwarded_ips[-1] if forwarded_ips else "none"
     else:
-        client_id = request.client.host if request.client else "unknown"
+        xff_last = "none"
+    client_id = f"{connect_ip}|{xff_last}"
     if not _rate_limiter.check(client_id):
         raise HTTPException(status_code=429, detail="请求过于频繁，请稍后重试（每分钟限 15 次）")
 

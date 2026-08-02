@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space; base-uri 'self'; form-action 'self'; frame-ancestors 'none';" />
   <meta name="theme-color" content="#04162b" />
   <meta name="color-scheme" content="dark" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -840,6 +840,19 @@
     const HISTORY_KEY = "fresheye-history";
     const FAVORITES_KEY = "fresheye-favorites";
     const ONBOARDING_KEY = "fresheye-onboarded";
+
+    // ============ 无障碍辅助 ============
+    /**
+     * 平滑滚动到目标元素；用户开启「减少动态效果」时降级为直接跳转。
+     * @param {Element} el 目标元素
+     * @param {ScrollIntoViewOptions} [opts]
+     */
+    function scrollToTarget(el, opts) {
+      if (!el || typeof el.scrollIntoView !== "function") return;
+      const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const behavior = prefersReduced ? "auto" : "smooth";
+      el.scrollIntoView({ behavior, ...opts });
+    }
     const MODEL_PREF_KEY = "fresheye-model";
     const LEGACY_KEYS = {
       "fish-agent-history": HISTORY_KEY,
@@ -1084,85 +1097,28 @@
     }
 
     /**
-     * 从 JPEG data URL 读取 EXIF orientation 值（1-8），非 JPEG 或无 EXIF 返回 1。
-     * 手机竖拍照片通常 orientation=6，需在 canvas 绘制前旋转校正。
+     * 压缩大图用于上传（>500KB 时压缩到 maxDim 内，JPEG q=0.85）
      */
-    function getExifOrientation(dataUrl) {
-      try {
-        const base64 = dataUrl.split(',')[1];
-        if (!base64) return 1;
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) return 1;
-        let offset = 2;
-        while (offset < bytes.length - 1) {
-          if (bytes[offset] !== 0xFF) break;
-          const marker = bytes[offset + 1];
-          const segSize = (bytes[offset + 2] << 8) | bytes[offset + 3];
-          if (marker === 0xE1 && segSize > 7) {
-            const exif = bytes[offset + 4];
-            if (exif === 0x45 && bytes[offset + 5] === 0x78 &&
-                bytes[offset + 6] === 0x69 && bytes[offset + 7] === 0x66) {
-              const tOff = offset + 10;
-              const le = bytes[tOff + 2] === 0x49;
-              const r16 = (o) => le
-                ? (bytes[tOff + o] | (bytes[tOff + o + 1] << 8))
-                : ((bytes[tOff + o] << 8) | bytes[tOff + o + 1]);
-              const r32 = (o) => le
-                ? (bytes[tOff + o] | (bytes[tOff + o + 1] << 8) | (bytes[tOff + o + 2] << 16) | (bytes[tOff + o + 3] << 24))
-                : ((bytes[tOff + o] << 24) | (bytes[tOff + o + 1] << 16) | (bytes[tOff + o + 2] << 8) | bytes[tOff + o + 3]);
-              const ifdOff = r32(4);
-              const numEntries = r16(ifdOff);
-              for (let i = 0; i < numEntries; i++) {
-                const eOff = ifdOff + 2 + i * 12;
-                if (r16(eOff) === 0x0112) return r16(eOff + 8);
-              }
-            }
-          }
-          offset += 2 + segSize;
-        }
-      } catch (_) {}
-      return 1;
-    }
-
-    /**
-     * 根据 EXIF orientation 在 canvas 上绘制旋转/翻转后的图片。
-     */
-    function drawWithOrientation(ctx, img, orientation, dw, dh) {
-      const w = img.naturalWidth, h = img.naturalHeight;
-      switch (orientation) {
-        case 1: ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        case 2: ctx.translate(dw, 0); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        case 3: ctx.translate(dw, dh); ctx.rotate(Math.PI); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        case 4: ctx.translate(0, dh); ctx.scale(1, -1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        case 5: ctx.scale(1, -1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        case 6: ctx.translate(dw, 0); ctx.rotate(Math.PI / 2); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        case 7: ctx.translate(dw, dh); ctx.scale(-1, -1); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        case 8: ctx.translate(0, dh); ctx.rotate(-Math.PI / 2); ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh); break;
-        default: ctx.drawImage(img, 0, 0, w, h, 0, 0, dw, dh);
-      }
-    }
-
     function compressImageForUpload(file, maxDim, quality) {
       return new Promise((resolve) => {
         if (file.size < 500 * 1024) { resolve(null); return; }
         const reader = new FileReader();
         reader.onload = (e) => {
           const dataUrl = e.target.result;
-          const orientation = getExifOrientation(dataUrl);
           const img = new Image();
           img.onload = () => {
+            // 现代浏览器（Chrome 81+/Firefox 77+/Safari 13.1+）默认按
+            // image-orientation: from-image 解码，naturalWidth/Height 与 drawImage
+            // 均已自动应用 EXIF 方向。此处直接按解码后尺寸绘制即可，
+            // 不再手动旋转——否则 orientation 5-8 的照片会被二次旋转。
             const w = img.naturalWidth, h = img.naturalHeight;
-            if (w <= maxDim && h <= maxDim && orientation === 1) { resolve(null); return; }
-            const swap = orientation >= 5 && orientation <= 8;
-            const srcW = swap ? h : w, srcH = swap ? w : h;
-            const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
-            const tw = Math.round(srcW * scale), th = Math.round(srcH * scale);
+            if (w <= maxDim && h <= maxDim) { resolve(null); return; }
+            const scale = Math.min(1, maxDim / Math.max(w, h));
+            const tw = Math.round(w * scale), th = Math.round(h * scale);
             const canvas = document.createElement('canvas');
             canvas.width = tw; canvas.height = th;
             const ctx = canvas.getContext('2d');
-            drawWithOrientation(ctx, img, orientation, tw, th);
+            ctx.drawImage(img, 0, 0, tw, th);
             canvas.toBlob((blob) => {
               if (blob) {
                 resolve(new File([blob], file.name || 'image.jpg', { type: 'image/jpeg', lastModified: Date.now() }));
@@ -1616,7 +1572,6 @@
 
     /**
      * 启用分析按钮（图片加载完成后调用）
-     * 上传后焦点自动移到按钮
      */
     function enableAnalyzeButton() {
       if (!analyzeBtn) return;
@@ -1624,7 +1579,7 @@
       analyzeBtn.classList.add("is-ready");
       analyzeBtn.disabled = false;
       analyzeBtnText.textContent = "开始分析";
-      analyzeBtn.focus();
+      // 不自动聚焦：避免每次上传都抢占焦点/触发非预期滚动，读屏用户可自行 Tab 定位
     }
 
     /**
@@ -1939,7 +1894,7 @@
       showLoading();
       // 滚动到结果区
       if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        scrollToTarget(resultsSection, { block: "start" });
       }
 
       try {
@@ -2083,7 +2038,8 @@
      * @param {object} data API 返回 JSON
      * @param {number} [durationSec] 分析耗时（秒）
      */
-    function updateResults(data, durationSec) {
+    function updateResults(data, durationSec, opts) {
+      const fromHistory = !!(opts && opts.fromHistory);
       const pred = data?.prediction || {};
       const resultModelVersion = pred.model_version || data?.model_version || currentModelVersion;
       const heatmapBase64 = data?.heatmap_image || "";
@@ -2099,7 +2055,7 @@
 
       lastAnalysisResult = data;
       updateModelVersionText(resultModelVersion);
-      updateFreshnessCard(level, label, confidence);
+      updateFreshnessCard(level, label, confidence, resultModelVersion);
       updateConfidenceGauge(confidence);
       // 检测完成：瞳孔颜色随最终置信度变化
       updatePupilColorByConfidence(confidence);
@@ -2109,8 +2065,8 @@
       updateRecommendations(label, confidence);
       updateMetrics(pred, durationSec);
 
-      // 置信度自适应前端机制
-      handleConfidenceAdaptive(confidence);
+      // 置信度自适应前端机制（历史记录加载只显示横幅，不弹窗打断用户）
+      handleConfidenceAdaptive(confidence, fromHistory);
 
       resultsPanel.classList.remove("results-hidden");
       resultsPanel.classList.add("results-visible");
@@ -2121,8 +2077,10 @@
 
     /**
      * 置信度自适应主逻辑：仪表盘颜色 + 工作流徽标 + 警告横幅 + 弹窗
+     * @param {number} confidence 置信度（0-1）
+     * @param {boolean} [fromHistory] 是否从历史记录加载（不弹窗，仅横幅）
      */
-    function handleConfidenceAdaptive(confidence) {
+    function handleConfidenceAdaptive(confidence, fromHistory) {
       const pctStr = (confidence * 100).toFixed(1);
 
       // 1. 更新仪表盘数字颜色
@@ -2144,11 +2102,11 @@
 
       // 4. 根据置信度区间显示对应警告
       if (confidence < 0.6) {
-        // < 60%：红色横幅 + 弹窗
+        // < 60%：红色横幅 + 弹窗（历史记录加载时不弹窗，避免打断查看）
         const lowConfSpan = document.getElementById("warningLowConf");
         if (lowConfSpan) lowConfSpan.textContent = pctStr;
         if (warnLow) warnLow.hidden = false;
-        showConfidenceModal(confidence);
+        if (!fromHistory) showConfidenceModal(confidence);
       } else if (confidence < 0.75) {
         // 60% - 75%：黄色横幅
         const midConfSpan = document.getElementById("warningMidConf");
@@ -2225,7 +2183,7 @@
           closeModal();
           clearImage();
           const uploadZoneEl = document.getElementById("uploadZone");
-          if (uploadZoneEl) uploadZoneEl.scrollIntoView({ behavior: "smooth" });
+          if (uploadZoneEl) scrollToTarget(uploadZoneEl);
         };
       }
       if (viewBtn) {
@@ -2242,13 +2200,13 @@
     /**
      * 更新鲜度等级卡片（文字 + 颜色）
      */
-    function updateFreshnessCard(level, label, confidence) {
+    function updateFreshnessCard(level, label, confidence, modelVersion) {
       const cls = label === 0 ? "freshness-high" : label === 1 ? "freshness-mid" : label === 2 ? "freshness-low" : "freshness-mid";
       freshnessCard.classList.remove("freshness-high", "freshness-mid", "freshness-low");
       freshnessCard.classList.add(cls);
       freshnessLabel.textContent = level;
       const pct = (confidence * 100).toFixed(1);
-      freshnessMeta.textContent = `置信度 ${pct}% · 基于 ${getModelDisplayName()}`;
+      freshnessMeta.textContent = `置信度 ${pct}% · 基于 ${getModelDisplayName(modelVersion)}`;
     }
 
     /**
@@ -2438,23 +2396,6 @@
       fillList("adviceBest", recs.best);
     }
 
-    /**
-     * 重置所有状态：清除预览、隐藏结果、回到初始态
-     */
-    function resetAll() {
-      clearImage();
-      hideLoading();
-      resultsPanel.classList.remove("results-visible");
-      resultsPanel.classList.add("results-hidden");
-      resultsEmpty.style.display = "block";
-      if (resultHint) resultHint.textContent = "上传后将在此展示";
-      // 清除建议折叠状态
-      adviceGrid?.querySelectorAll(".advice-card-expandable.is-expanded").forEach(c => {
-        c.classList.remove("is-expanded");
-      });
-      resetAnalyzeButton();
-    }
-
     // ============================================================
     //  Tab 切换 / 手风琴 / 历史记录 / 收藏 / 导出 / 引导
     // ============================================================
@@ -2593,31 +2534,19 @@
      */
     function compressThumbnail(dataUrl) {
       return new Promise((resolve) => {
-        const orientation = getExifOrientation(dataUrl);
         const img = new Image();
         img.onload = () => {
-          const swap = orientation >= 5 && orientation <= 8;
-          const nw = swap ? img.naturalHeight : img.naturalWidth;
-          const nh = swap ? img.naturalWidth : img.naturalHeight;
+          // 同 compressImageForUpload：现代浏览器已自动应用 EXIF 方向，
+          // 直接按解码后尺寸居中裁剪，避免 orientation 5-8 二次旋转。
+          const nw = img.naturalWidth, nh = img.naturalHeight;
           const canvas = document.createElement("canvas");
           canvas.width = 150;
           canvas.height = 150;
           const ctx = canvas.getContext("2d");
-          if (orientation !== 1) {
-            const tmp = document.createElement("canvas");
-            tmp.width = nw; tmp.height = nh;
-            const tctx = tmp.getContext("2d");
-            drawWithOrientation(tctx, img, orientation, nw, nh);
-            const minSide = Math.min(nw, nh);
-            const sx = (nw - minSide) / 2;
-            const sy = (nh - minSide) / 2;
-            ctx.drawImage(tmp, sx, sy, minSide, minSide, 0, 0, 150, 150);
-          } else {
-            const minSide = Math.min(img.naturalWidth, img.naturalHeight);
-            const sx = (img.naturalWidth - minSide) / 2;
-            const sy = (img.naturalHeight - minSide) / 2;
-            ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 150, 150);
-          }
+          const minSide = Math.min(nw, nh);
+          const sx = (nw - minSide) / 2;
+          const sy = (nh - minSide) / 2;
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 150, 150);
           resolve(canvas.toDataURL("image/jpeg", 0.5));
         };
         img.onerror = () => resolve("");
@@ -2878,11 +2807,11 @@
       hideLoading();
       lastAnalysisResult = data;
       lastAnalysisResult.__processingTime = r.processingTime;
-      updateResults(data);
+      updateResults(data, null, { fromHistory: true });
       setAnalyzeDone();
       if (resultHint) resultHint.textContent = "历史记录 · " + formatHistoryTime(r.timestamp);
       metricDuration.textContent = r.processingTime ? `${r.processingTime.toFixed(1)}s` : "—";
-      resultsSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollToTarget(resultsSection, { block: "start" });
     }
 
     // ---- 历史记录事件委托 ----
@@ -2954,31 +2883,6 @@
       });
     }
 
-    // 将 img 元素转为 base64 DataURL；已是 data: 直接返回，否则用 canvas 转换
-    function imgToDataURL(imgElement) {
-      return new Promise((resolve) => {
-        const rawSrc = imgElement?.getAttribute("src");
-        if (!imgElement || !rawSrc || rawSrc === "" || rawSrc === "#") {
-          resolve("");
-          return;
-        }
-        const src = imgElement.src;
-        if (src.startsWith("data:")) { resolve(src); return; }
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = imgElement.naturalWidth || 400;
-          canvas.height = imgElement.naturalHeight || 400;
-          if (!canvas.width || !canvas.height) { resolve(src); return; }
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(imgElement, 0, 0);
-          resolve(canvas.toDataURL("image/png"));
-        } catch (e) {
-          // 跨域污染时回退到原始 src
-          resolve(src);
-        }
-      });
-    }
-
     function compressDataURL(dataURL, maxDim, quality) {
       return new Promise((resolve) => {
         if (!dataURL) { resolve(""); return; }
@@ -2994,9 +2898,9 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, tw, th);
           try { resolve(canvas.toDataURL('image/jpeg', quality)); }
-          catch(e) { resolve(dataURL); }
+          catch(e) { resolve(''); }
         };
-        img.onerror = () => resolve(dataURL);
+        img.onerror = () => resolve("");
         img.src = dataURL;
       });
     }
@@ -3004,6 +2908,11 @@
       return new Promise((resolve) => {
         const rawSrc = imgEl?.getAttribute("src");
         if (!imgEl || !rawSrc || rawSrc === '' || rawSrc === '#') { resolve(''); return; }
+        // 安全白名单：仅允许 data:image/(jpeg|png|webp) 或 http(s) 资源进入导出文档，
+        // 防止后端返回的异常 payload 被原样透传进导出 HTML 的属性上下文。
+        const isSafeScheme = /^data:image\/(jpeg|png|webp);base64,/i.test(rawSrc)
+          || /^https?:\/\//i.test(rawSrc);
+        if (!isSafeScheme) { resolve(''); return; }
         if (rawSrc.startsWith('data:')) { resolve(compressDataURL(rawSrc, maxDim, quality)); return; }
         try {
           const w = imgEl.naturalWidth || 400;
@@ -3175,10 +3084,10 @@
       }).join('');
 
       const imgBlock = imgSrc
-        ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${imgSrc}" alt="鱼眼照片" width="200" height="200"></div><div class="pdf-caption">原始视觉捕获</div></div>`
+        ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${escapeHtml(imgSrc)}" alt="鱼眼照片" width="200" height="200"></div><div class="pdf-caption">原始视觉捕获</div></div>`
         : `<div class="pdf-img-block"><div class="pdf-img-empty">无图片</div></div>`;
       const heatBlock = heatmapSrc
-        ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${heatmapSrc}" alt="Grad-CAM 热力图" width="200" height="200"></div><div class="pdf-caption">AI 决策聚焦区域 (Grad-CAM)</div></div>`
+        ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${escapeHtml(heatmapSrc)}" alt="Grad-CAM 热力图" width="200" height="200"></div><div class="pdf-caption">AI 决策聚焦区域 (Grad-CAM)</div></div>`
         : '';
 
       // 报告内常驻工具栏：显式打印 / 下载 / 关闭，覆盖自动打印被拦截的场景（移动端常见）
