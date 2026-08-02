@@ -1885,7 +1885,7 @@
       }
 
       try {
-        const data = await callPredictApiWithRetry(selectedFile);
+        const data = await callPredictApi(selectedFile);
         if (runId !== analysisRunId) return;
         // 统一用前端当前时间作为分析时间戳，避免后端时区格式不一致导致显示偏差
         data.timestamp = new Date().toISOString();
@@ -1913,34 +1913,6 @@
     }
 
     /**
-     * 指数退避重试包装（1s → 2s → 4s）
-     * 仅对瞬态错误重试：网络错误、超时、429、5xx
-     * 不重试 4xx 客户端错误（格式错误、过大等）
-     */
-    const MAX_RETRIES = 2;
-    const RETRY_BASE_DELAY = 1000;
-    function isRetryableError(err) {
-      if (err.name === "AbortError") return false;
-      if (err.name === "NetworkError") return true;
-      if (err instanceof HttpError) {
-        if (err.status === 429) return true;
-        if (err.status >= 500 && err.status < 600) return true;
-        return false;
-      }
-      return false;
-    }
-    async function callPredictApiWithRetry(file, attempt = 1) {
-      try {
-        return await callPredictApi(file);
-      } catch (err) {
-        if (!isRetryableError(err) || attempt >= MAX_RETRIES) throw err;
-        const delay = RETRY_BASE_DELAY * Math.pow(2, attempt - 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return callPredictApiWithRetry(file, attempt + 1);
-      }
-    }
-
-    /**
      * 调用 /predict_with_gradcam 端点
      * @param {File} file
      * @returns {Promise<object>}
@@ -1960,15 +1932,14 @@
 
       const controller = new AbortController();
       currentAbortController = controller;
-      const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+      let isTimeout = false;
+      const timeoutId = setTimeout(() => { isTimeout = true; controller.abort(); }, API_TIMEOUT);
 
       try {
         const res = await fetch(`${API_BASE_URL}/predict_with_gradcam?model_version=${encodeURIComponent(currentModelVersion)}`, {
           method: "POST",
           body: formData,
           signal: controller.signal,
-          // 不设置 Content-Type，让浏览器自动设置 multipart boundary
-          // model_version 是后端 Query 参数，拼在 URL 上而非 FormData
         });
         clearTimeout(timeoutId);
 
@@ -1981,15 +1952,17 @@
         return await res.json();
       } catch (err) {
         clearTimeout(timeoutId);
-        // 已经是 HttpError 就直接抛出
         if (err instanceof HttpError) throw err;
-        // AbortError
         if (err.name === "AbortError") {
+          if (isTimeout) {
+            const e = new Error("请求超时");
+            e.name = "TimeoutError";
+            throw e;
+          }
           const e = new Error("ABORT");
           e.name = "AbortError";
           throw e;
         }
-        // 网络错误
         const netErr = new Error("网络连接失败");
         netErr.name = "NetworkError";
         netErr.cause = err;
@@ -2014,7 +1987,7 @@
      */
     function handleAnalysisError(err) {
       let msg = "";
-      if (err.name === "AbortError") {
+      if (err.name === "TimeoutError") {
         msg = "AI 服务未运行 ⏳\n分析请求超时。AI 模型服务可能正在启动或已停止运行，请稍后重试。";
       } else if (err.name === "NetworkError") {
         msg = "AI 服务未运行 🔌\n无法连接到 AI 分析服务。模型服务可能未启动或网络不可达，请稍后重试。";
