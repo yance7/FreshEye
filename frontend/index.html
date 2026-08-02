@@ -14,13 +14,13 @@
   <meta property="og:title" content="FreshEye · 水产品新鲜度智能评估" />
   <meta property="og:description" content="上传鱼眼照片，AI 秒级分析新鲜度。支持 V1/V2 双模型切换，99%+ 准确率 + Grad-CAM 可解释热力图。" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://yance77777.github.io/FreshEye-Web/" />
+  <meta property="og:url" content="https://yance77777.github.io/FreshEye/" />
   <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%2304162b'/%3E%3Ccircle cx='600' cy='270' r='130' fill='none' stroke='%2327d0c4' stroke-width='8'/%3E%3Ccircle cx='600' cy='270' r='85' fill='%2327d0c4'/%3E%3Ccircle cx='600' cy='270' r='48' fill='%2304162b'/%3E%3Ccircle cx='578' cy='248' r='18' fill='%23ffffff' opacity='0.7'/%3E%3Ctext x='600' y='490' font-family='system-ui,-apple-system,sans-serif' font-size='68' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EFreshEye%3C/text%3E%3C/svg%3E" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="FreshEye — AI 鱼眼新鲜度检测" />
   <meta name="twitter:description" content="上传鱼眼照片，AI 秒级分析新鲜度。支持 V1/V2 双模型切换。" />
   <meta name="twitter:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Crect width='1200' height='630' fill='%2304162b'/%3E%3Ccircle cx='600' cy='270' r='130' fill='none' stroke='%2327d0c4' stroke-width='8'/%3E%3Ccircle cx='600' cy='270' r='85' fill='%2327d0c4'/%3E%3Ccircle cx='600' cy='270' r='48' fill='%2304162b'/%3E%3Ccircle cx='578' cy='248' r='18' fill='%23ffffff' opacity='0.7'/%3E%3Ctext x='600' y='490' font-family='system-ui,-apple-system,sans-serif' font-size='68' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EFreshEye%3C/text%3E%3C/svg%3E" />
-  <link rel="canonical" href="https://yance77777.github.io/FreshEye-Web/" />
+  <link rel="canonical" href="https://yance77777.github.io/FreshEye/" />
   <title>FreshEye · 水产品新鲜度智能评估</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -59,7 +59,7 @@
       <a href="guide.html">指南</a>
       <a href="fish.html">百科</a>
       <a href="about.html">关于</a>
-      <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer">开源</a>
+      <a href="https://github.com/yance77777/FreshEye" target="_blank" rel="noopener noreferrer">开源</a>
     </nav>
     <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="navOverlay">
       <span class="nav-toggle-bar"></span>
@@ -75,7 +75,7 @@
       <a href="guide.html" data-close>指南</a>
       <a href="fish.html" data-close>百科</a>
       <a href="about.html" data-close>关于</a>
-      <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer" data-close>开源</a>
+      <a href="https://github.com/yance77777/FreshEye" target="_blank" rel="noopener noreferrer" data-close>开源</a>
     </nav>
   </div>
 
@@ -394,12 +394,6 @@
 
       <!-- 结果面板：4-tab 分析报告 -->
       <div class="results results-hidden" id="resultsPanel">
-
-        <!-- 离线模式横幅 -->
-        <div class="offline-banner" id="offlineBanner" hidden>
-          <span class="offline-icon" aria-hidden="true">⚠️</span>
-          <span class="offline-text">当前为离线演示模式。AI 分析服务暂时不可用，展示的是模拟分析结果。</span>
-        </div>
 
         <!-- 置信度警告横幅 -->
         <div class="confidence-warning confidence-warning-mid" id="confidenceWarningMid" hidden>
@@ -775,7 +769,7 @@
           <a href="guide.html">使用指南</a>
           <a href="fish.html">鱼种百科</a>
           <a href="about.html">技术细节</a>
-          <a href="https://github.com/yance77777/FreshEye-Web" target="_blank" rel="noopener noreferrer">开源代码 ↗</a>
+          <a href="https://github.com/yance77777/FreshEye" target="_blank" rel="noopener noreferrer">开源代码 ↗</a>
         </div>
       </nav>
       <div>
@@ -839,7 +833,6 @@
     // ---- API 配置与全局状态 ----
     const API_BASE_URL = "https://andreas777-fresheye.hf.space";
     const API_TIMEOUT = 60000; // 60 秒超时（HF Spaces 冷启动预留）
-    let apiAvailable = false;          // 健康检查结果
     let analysisInProgress = false;    // 是否正在分析中
     let lastAnalysisResult = null;     // 最近一次分析结果（JSON）
     let currentAbortController = null; // 当前请求的 AbortController（用于切换图片时取消）
@@ -1817,7 +1810,6 @@
     /**
      * 在分析按钮旁显示当前模型版本 Badge
      * V2 用主强调色（青绿），V1 用降饱和色（蓝灰）以示备选
-     * 离线模式下 Badge 仍显示，加 is-offline class 灰化
      */
     function updateModelVersionBadge() {
       const actions = document.querySelector(".analyze-actions");
@@ -1838,13 +1830,13 @@
       badge.textContent = currentModelVersion === "v2" ? "V2" : "V1";
       badge.classList.toggle("is-v2", currentModelVersion === "v2");
       badge.classList.toggle("is-v1", currentModelVersion === "v1");
-      badge.classList.toggle("is-offline", offlineMode === true);
     }
 
     // ---- 健康检查预热 ----
 
     /**
      * 页面加载时静默发起健康检查，预热 HF Spaces 冷启动
+     * 不影响分析流程：服务不可用时在分析阶段明确报错
      */
     async function checkApiHealth() {
       try {
@@ -1852,23 +1844,11 @@
         const timeoutId = setTimeout(() => controller.abort(), 8000);
         const res = await fetch(`${API_BASE_URL}/health`, { signal: controller.signal });
         clearTimeout(timeoutId);
-        if (res.ok) {
-          apiAvailable = true;
-          // 如果之前因冷启动误判为离线，恢复在线状态
-          if (offlineMode) {
-            offlineMode = false;
-            if (offlineBanner) offlineBanner.hidden = true;
-            updateModelVersionBadge();
-          }
-        } else {
-          apiAvailable = false;
-          console.warn(`⚠️ API 健康检查失败：HTTP ${res.status}（可能在冷启动中）`);
-          showToast("正在唤醒 AI 服务，首次分析可能需要 20-30 秒", "info", 5000);
+        if (!res.ok) {
+          console.warn(`⚠️ API 健康检查返回 HTTP ${res.status}`);
         }
       } catch (err) {
-        apiAvailable = false;
-        console.warn("⚠️ API 服务未就绪（可能在冷启动中）", err);
-        showToast("正在唤醒 AI 服务，首次分析可能需要 20-30 秒", "info", 5000);
+        console.warn("⚠️ API 健康检查失败（服务可能未启动）", err);
       }
     }
 
@@ -1905,22 +1885,20 @@
       }
 
       try {
-        // 离线模式走模拟流程
-        const data = offlineMode ? await simulateAnalysis() : await callPredictApiWithRetry(selectedFile);
+        const data = await callPredictApiWithRetry(selectedFile);
         if (runId !== analysisRunId) return;
         // 统一用前端当前时间作为分析时间戳，避免后端时区格式不一致导致显示偏差
         data.timestamp = new Date().toISOString();
         lastAnalysisResult = data;
         const durationSec = (performance.now() - analysisStartTime) / 1000;
         lastAnalysisResult.__processingTime = durationSec;
-        consecutiveFailures = 0; // 成功则重置失败计数
         stopScanning();
         hideLoading();
         updateResults(data, durationSec);
         // 保存到历史记录
         addHistoryRecord(data, durationSec);
         setAnalyzeDone();
-        if (resultHint) resultHint.textContent = offlineMode ? "离线演示 · 分析完成" : "分析完成";
+        if (resultHint) resultHint.textContent = "分析完成";
       } catch (err) {
         if (runId !== analysisRunId || err.name === "AbortError") return;
         stopScanning();
@@ -2032,88 +2010,26 @@
 
     /**
      * 统一错误处理：根据错误类型生成友好文案
-     * 连续失败 2 次自动切换离线模式
+     * AI 服务不可用时明确告知用户，不降级为模拟数据
      */
-    let consecutiveFailures = 0;
     function handleAnalysisError(err) {
-      consecutiveFailures++;
-      // 连续失败 2 次或健康检查已知不可用 → 自动切换离线模式
-      if (consecutiveFailures >= 2 || !apiAvailable) {
-        enableOfflineMode();
-        showToast("AI 服务暂不可用，已切换到离线演示模式", "error", 3500);
-        // 自动用模拟流程重跑
-        setTimeout(() => startAnalysis(), 800);
-        return;
-      }
       let msg = "";
       if (err.name === "AbortError") {
-        msg = "分析超时。AI 服务可能正在启动，请稍后重试 ⏳";
+        msg = "AI 服务未运行 ⏳\n分析请求超时。AI 模型服务可能正在启动或已停止运行，请稍后重试。";
       } else if (err.name === "NetworkError") {
-        msg = "无法连接到分析服务。请检查网络连接或稍后重试 🔌";
+        msg = "AI 服务未运行 🔌\n无法连接到 AI 分析服务。模型服务可能未启动或网络不可达，请稍后重试。";
       } else if (err instanceof HttpError) {
         switch (err.status) {
           case 413: msg = "图片文件过大，请上传小于 25MB 的图片"; break;
           case 400: msg = "图片格式不支持，请上传 JPG/PNG/WebP 格式的鱼眼照片"; break;
-          case 503: msg = "模型服务正在启动中，请稍后重试（预计 30 秒）"; break;
-          default: msg = `服务器错误（状态码 ${err.status}），请稍后重试`;
+          case 422: msg = "模型版本参数无效，请刷新页面后重试"; break;
+          case 503: msg = "AI 服务未运行 ⏳\n模型服务正在启动中，请等待约 30 秒后重试。"; break;
+          default: msg = `AI 服务返回错误（状态码 ${err.status}），请稍后重试`;
         }
       } else {
         msg = `分析失败：${err.message || "未知错误"}`;
       }
       showError(msg);
-    }
-
-    // ---- 离线演示模式 ----
-    let offlineMode = false;
-    function enableOfflineMode() {
-      offlineMode = true;
-      apiAvailable = false;
-      if (offlineBanner) offlineBanner.hidden = false;
-    }
-
-    /**
-     * 离线模式模拟分析流程（2-3s 延迟 + 随机合理结果）
-     */
-    function simulateAnalysis() {
-      return new Promise((resolve) => {
-        const delay = 2000 + Math.random() * 1000;
-        setTimeout(() => {
-          // 覆盖高/中/低三种置信度，让评审能看到全部交互效果
-          const results = [
-            {
-              // 高置信度（≥80%）—— 无警告
-              freshness_level: "高度新鲜",
-              freshness_label: 0,
-              confidence_score: 0.9785,
-              all_probabilities: { "高度新鲜": 0.9785, "新鲜": 0.0183, "不新鲜": 0.0032 },
-              description: "鱼眼清澈明亮，角膜透明，瞳孔清晰可见，表面有自然光泽。综合判断为高度新鲜。",
-              timestamp: new Date().toISOString(),
-            },
-            {
-              // 中置信度（60%-75%）—— 触发黄色横幅
-              freshness_level: "新鲜",
-              freshness_label: 1,
-              confidence_score: 0.6834,
-              all_probabilities: { "高度新鲜": 0.1523, "新鲜": 0.6834, "不新鲜": 0.1643 },
-              description: "鱼眼基本清澈，角膜略有浑浊，整体新鲜度良好。建议尽快食用。",
-              timestamp: new Date().toISOString(),
-            },
-            {
-              // 低置信度（<60%）—— 触发红色弹窗
-              freshness_level: "不新鲜",
-              freshness_label: 2,
-              confidence_score: 0.4205,
-              all_probabilities: { "高度新鲜": 0.0815, "新鲜": 0.2880, "不新鲜": 0.4205 },
-              description: "鱼眼浑浊，角膜不透明，AI 置信度较低，建议重新拍摄。",
-              timestamp: new Date().toISOString(),
-            },
-          ];
-          const idx = Math.floor(Math.random() * 3);
-          // 模拟结果携带当前选中的 model_version，保持与后端响应结构一致
-          results[idx].model_version = currentModelVersion;
-          resolve({ prediction: results[idx], heatmap_image: null, simulated: true });
-        }, delay);
-      });
     }
 
     /**
@@ -2140,7 +2056,6 @@
       const pred = data?.prediction || {};
       const resultModelVersion = pred.model_version || data?.model_version || currentModelVersion;
       const heatmapBase64 = data?.heatmap_image || "";
-      const isSimulated = !!data?.simulated;
       const level = pred.freshness_level || "未知";
       // 数值安全化：非有限数 → -1 / 0
       const safeNum = (v) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
@@ -2153,7 +2068,7 @@
 
       lastAnalysisResult = data;
       updateModelVersionText(resultModelVersion);
-      updateFreshnessCard(level, label, confidence, isSimulated);
+      updateFreshnessCard(level, label, confidence);
       updateConfidenceGauge(confidence);
       // 检测完成：瞳孔颜色随最终置信度变化
       updatePupilColorByConfidence(confidence);
@@ -2295,19 +2210,12 @@
 
     /**
      * 更新鲜度等级卡片（文字 + 颜色）
-     * 离线模式追加 [模拟数据] 标签
      */
-    function updateFreshnessCard(level, label, confidence, isSimulated) {
+    function updateFreshnessCard(level, label, confidence) {
       const cls = label === 0 ? "freshness-high" : label === 1 ? "freshness-mid" : label === 2 ? "freshness-low" : "freshness-mid";
       freshnessCard.classList.remove("freshness-high", "freshness-mid", "freshness-low");
       freshnessCard.classList.add(cls);
       freshnessLabel.textContent = level;
-      if (isSimulated) {
-        const span = document.createElement("span");
-        span.className = "sim-tag";
-        span.textContent = "模拟数据";
-        freshnessLabel.appendChild(span);
-      }
       const pct = (confidence * 100).toFixed(1);
       freshnessMeta.textContent = `置信度 ${pct}% · 基于 ${getModelDisplayName()}`;
     }
@@ -2378,27 +2286,13 @@
 
     /**
      * 更新原图 vs 热力图对比区（滑块结构）
-     * 离线模式叠加 CSS 模拟热力图
      */
     function updateComparisonView(heatmapBase64) {
       if (compareOriginal && selectedFileDataURL) compareOriginal.src = selectedFileDataURL;
       if (heatmapBase64 && compareHeatmap) {
-        // 真实热力图（base64）
         compareHeatmap.src = `data:image/jpeg;base64,${heatmapBase64}`;
         compareHeatmap.style.display = "block";
-        // 移除可能的模拟热力图层
-        compOverlay?.querySelector(".simulated-heatmap")?.remove();
         if (compOverlay) compOverlay.style.display = "block";
-        if (compHandle) compHandle.style.display = "block";
-        setSliderPos(50);
-      } else if (offlineMode && compOverlay) {
-        // 离线模式：叠加 CSS 径向渐变模拟热力图
-        compareHeatmap.style.display = "none";
-        compOverlay.querySelector(".simulated-heatmap")?.remove();
-        const sim = document.createElement("div");
-        sim.className = "simulated-heatmap";
-        compOverlay.appendChild(sim);
-        compOverlay.style.display = "block";
         if (compHandle) compHandle.style.display = "block";
         setSliderPos(50);
       } else {
@@ -2708,7 +2602,6 @@
         heatmapThumbnail: heatThumb,
         processingTime: durationSec,
         modelVersion: pred.model_version || data?.model_version || currentModelVersion,
-        simulated: !!data?.simulated,
         recommendations: data?.recommendations || null,
       };
       const hist = loadHistory();
@@ -2910,7 +2803,6 @@
       // 构造兼容 updateResults 的数据结构
       const data = {
         heatmap_image: r.heatmapThumbnail || "",
-        simulated: !!r.simulated,
         recommendations: r.recommendations || null,
         prediction: {
           freshness_level: r.freshnessLevel,
@@ -3101,7 +2993,6 @@
       const now = new Date();
       const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
       const duration = lastAnalysisResult.__processingTime ? `${lastAnalysisResult.__processingTime.toFixed(1)}s` : "—";
-      const isSim = !!lastAnalysisResult.simulated;
 
       exportPdfBtn.innerHTML = '<span class="btn-export-spinner" aria-hidden="true"></span> 压缩图片…';
       let rawImgSrc = "";
@@ -3340,7 +3231,7 @@
     </div>
     <div class="pdf-header-title">水产品新鲜度分析报告</div>
     <div class="pdf-header-meta">
-      <span class="pdf-meta-tag"><strong>模型</strong> ${escapeHtml(model)}${isSim ? ' (模拟)' : ''}</span>
+      <span class="pdf-meta-tag"><strong>模型</strong> ${escapeHtml(model)}</span>
       <span class="pdf-meta-tag"><strong>耗时</strong> ${escapeHtml(duration)}</span>
       <span class="pdf-meta-tag"><strong>时间</strong> ${escapeHtml(ts)}</span>
     </div>

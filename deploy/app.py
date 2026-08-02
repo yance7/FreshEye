@@ -6,6 +6,7 @@ Social Service Track · Author: 祈雨柒
 import os
 import sys
 import io
+import json
 import base64
 import logging
 import asyncio
@@ -43,7 +44,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 HEATMAP_JPEG_QUALITY = 85
-PREDICTION_CACHE_TTL = 60
+PREDICTION_CACHE_TTL = 1800  # 30 分钟：鱼眼新鲜度是确定性结果，同一张图结果不变
 CACHE_MAX_SIZE = 128
 CORS_MAX_AGE = 600
 MAX_IMAGE_DIM = 4096
@@ -344,6 +345,24 @@ def _validate_model_version(model_version: str) -> str:
     return model_version
 
 
+def _log_inference(endpoint: str, version: str, label: str, confidence: float,
+                    duration_ms: float, cache_hit: bool, extra: Optional[Dict] = None) -> None:
+    """结构化日志：单行 JSON，便于后续聚合分析模型线上表现。"""
+    payload = {
+        "event": "inference",
+        "endpoint": endpoint,
+        "model_version": version,
+        "label": label,
+        "confidence": round(confidence, 4),
+        "duration_ms": round(duration_ms, 1),
+        "cache_hit": cache_hit,
+        "timestamp": datetime.now().isoformat(),
+    }
+    if extra:
+        payload.update(extra)
+    logger.info(json.dumps(payload, ensure_ascii=False))
+
+
 def get_model(model_version: str = "v2") -> Tuple[nn.Module, str]:
     global v1_model, v2_model
     model_version = _validate_model_version(model_version)
@@ -588,10 +607,15 @@ async def predict_freshness(
         key = _cache_key(data, version_str)
         cached = _prediction_cache.get(key)
         if cached is not None:
+            _log_inference("/predict", version_str, cached.freshness_level,
+                           cached.confidence_score, 0.0, cache_hit=True)
             return cached
+        t0 = time.monotonic()
         result = await asyncio.to_thread(_predict_from_bytes, data, model, version_str, device)
+        duration_ms = (time.monotonic() - t0) * 1000
         _prediction_cache.set(key, result)
-        logger.info(f"预测({version_str}): {result.freshness_level} ({result.confidence_score:.2%})")
+        _log_inference("/predict", version_str, result.freshness_level,
+                       result.confidence_score, duration_ms, cache_hit=False)
         return result
     except HTTPException:
         raise
@@ -611,13 +635,18 @@ async def predict_with_gradcam(
         key = _cache_key(data, version_str)
         cached = _gradcam_cache.get(key)
         if cached is not None:
+            _log_inference("/predict_with_gradcam", version_str, cached.prediction.freshness_level,
+                           cached.prediction.confidence_score, 0.0, cache_hit=True)
             return cached
+        t0 = time.monotonic()
         prediction, heatmap_b64 = await asyncio.to_thread(
             _gradcam_from_bytes, data, model, version_str, device
         )
+        duration_ms = (time.monotonic() - t0) * 1000
         result = GradCAMResult(heatmap_image=heatmap_b64, prediction=prediction)
         _gradcam_cache.set(key, result)
-        logger.info(f"预测+Grad-CAM({version_str}): {prediction.freshness_level}")
+        _log_inference("/predict_with_gradcam", version_str, prediction.freshness_level,
+                       prediction.confidence_score, duration_ms, cache_hit=False)
         return result
     except HTTPException:
         raise
