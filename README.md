@@ -13,7 +13,7 @@
 [![Frontend](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS-1b3a52?style=flat-square)](#快速开始部署版本)
 [![PWA](https://img.shields.io/badge/PWA-supported-8b5cf6?style=flat-square)](#核心能力)
 
-**在线演示**：前端 [GitHub Pages](https://yance77777.github.io/FreshEye-Web/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
+**在线演示**：前端 [GitHub Pages](https://fresheye.yance777.com/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
 > 🏆 使用 **TRAE IDE** 全程开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
 
