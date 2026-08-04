@@ -372,7 +372,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="FreshEye（鲜眸） API", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="鲜眸（FreshEye） API", version="2.0.0", lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 _cors_env = os.getenv("CORS_ORIGINS", "").strip()

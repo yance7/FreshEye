@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/banner.svg" alt="FreshEye · 鲜眸" width="720"/>
+<img src="docs/banner.svg" alt="鲜眸 · FreshEye" width="720"/>
 
-# FreshEye · 鲜眸 · 水产品新鲜度智能评估系统
+# 鲜眸 · FreshEye · 水产品新鲜度智能评估系统
 
 **一拍知鲜 · 吃得放心** — 基于 FishFreshNet CNN 的鱼眼新鲜度智能识别
 
@@ -29,7 +29,7 @@
 
 ## English
 
-FreshEye (鲜眸) is an AI-powered aquatic product freshness assessment system. Using fish-eye images as the core input, it combines the **FishFreshNetV1/V2** lightweight CNN models, **Grad-CAM** explainability analysis, and **confidence-adaptive interaction** to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
+鲜眸 (FreshEye) is an AI-powered aquatic product freshness assessment system. Using fish-eye images as the core input, it combines the **FishFreshNetV1/V2** lightweight CNN models, **Grad-CAM** explainability analysis, and **confidence-adaptive interaction** to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
 
 <a id="key-features"></a>
 
@@ -146,7 +146,7 @@ MIT License — see [LICENSE](LICENSE).
 
 ## 中文
 
-FreshEye（鲜眸）是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
+鲜眸（FreshEye）是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
 
 <a id="核心能力"></a>
 
@@ -261,7 +261,7 @@ MIT License — 详见 [LICENSE](LICENSE)。
 
 <div align="center">
 
-**FreshEye · 鲜眸** · 一拍知鲜，吃得放心 🐟
+**鲜眸 · FreshEye** · 一拍知鲜，吃得放心 🐟
 
 Made with TRAE IDE · TRAE AI Creativity Competition · Social Service Track
 

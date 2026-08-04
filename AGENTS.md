@@ -1,4 +1,4 @@
-# FreshEye（鲜眸） — Agent 导航
+# 鲜眸（FreshEye） — Agent 导航
 
 面向 AI 编程助手的仓库指引，只记录容易踩坑、靠看文件难以快速推断的事实。
 

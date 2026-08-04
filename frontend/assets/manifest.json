@@ -1,7 +1,7 @@
 {
-  "name": "FreshEye · 鲜眸 - 水产品新鲜度智能评估",
+  "name": "鲜眸 · FreshEye - 水产品新鲜度智能评估",
   "short_name": "鲜眸",
-  "description": "FreshEye · 鲜眸：上传鱼眼照片，AI 秒级分析水产品新鲜度",
+  "description": "鲜眸 · FreshEye：上传鱼眼照片，AI 秒级分析水产品新鲜度",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
