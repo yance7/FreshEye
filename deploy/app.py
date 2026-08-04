@@ -382,11 +382,8 @@ elif _cors_env:
     _cors_origins = [o.strip() for o in _cors_env.split(",") if o.strip()]
 else:
     _cors_origins = [
+        "https://fresheye.yance777.com",
         "https://yance77777.github.io",
-        "http://localhost:8080",
-        "http://localhost:3000",
-        "http://127.0.0.1:8080",
-        "http://127.0.0.1:3000",
     ]
 
 app.add_middleware(

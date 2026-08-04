@@ -1,6 +1,6 @@
 """FreshEye API 冒烟测试
 
-运行方式：cd y:\\FreshEye\\hf-deploy && python -m pytest test_app.py -v
+运行方式：cd deploy && python -m pytest test_app.py -v
 或无 pytest 时：python test_app.py
 """
 import io
