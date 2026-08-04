@@ -1,10 +1,11 @@
-# FreshEye — Agent 导航
+# FreshEye（鲜眸） — Agent 导航
 
 面向 AI 编程助手的仓库指引，只记录容易踩坑、靠看文件难以快速推断的事实。
 
 ## 仓库布局
 
 - **本目录即为 git 仓库根**。所有开发命令都必须在仓库根目录下执行。
+- 项目中文名：**鲜眸**（英文名 FreshEye）。
 - 本项目为**纯 CNN 推理架构**（FishFreshNetV1/V2），无大语言模型依赖。
 - 模型权重（`*.pth` 等）被 `.gitignore` 忽略，不入库；需自行放入 `deploy/src/storage/`（见"模型权重"）。
 

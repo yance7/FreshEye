@@ -1,6 +1,6 @@
-# FreshEye API
+# FreshEye（鲜眸） API
 
-基于鱼眼图像的水产品新鲜度智能评估 API 服务，使用 **FishFreshNetV1/V2** 纯 CNN 推理，无 LLM 依赖。
+FreshEye（鲜眸）是一款基于鱼眼图像的水产品新鲜度智能评估 API 服务，使用 **FishFreshNetV1/V2** 纯 CNN 推理，无 LLM 依赖。
 
 > 🐟 使用 TRAE IDE 开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
 

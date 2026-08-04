@@ -1,6 +1,6 @@
 # FishFreshNet 模型与 API 集成指南
 
-本文介绍 FreshEye 生产后端（`deploy/`）中 FishFreshNetV1/V2 的模型结构、推理服务、接口约定与部署方式。模型权重体积较大，默认不纳入源码仓库。
+本文介绍 FreshEye（鲜眸）生产后端（`deploy/`）中 FishFreshNetV1/V2 的模型结构、推理服务、接口约定与部署方式。模型权重体积较大，默认不纳入源码仓库。
 
 ## 代码组成
 
