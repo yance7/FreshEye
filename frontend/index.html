@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://andreas777-fresheye.hf.space; base-uri 'self'; form-action 'self';" />
   <meta name="theme-color" content="#04162b" />
   <meta name="color-scheme" content="dark" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="鲜眸" />
-  <meta name="description" content="鲜眸 · FreshEye — 上传鱼眼照片，AI 秒级分析水产品新鲜度。支持 FishFreshNetV1（经典版）和 FishFreshNetV2（高精度版）双模型，99%+ 准确率，Grad-CAM 可解释热力图。" />
+  <meta name="description" content="鲜眸 · FreshEye — 上传鱼眼照片，AI 秒级分析水产品新鲜度。提供经典版与高精度版两种识别模式，99%+ 准确率，附可解释热力图。" />
   <meta name="keywords" content="鲜眸,鱼眼新鲜度检测,水产品新鲜度,AI食品检测,FishFreshNetV1,FishFreshNetV2,Grad-CAM,深度学习,食品安全" />
   <meta name="author" content="祈雨柒" />
   <meta property="og:title" content="鲜眸 · FreshEye · 水产品新鲜度智能评估" />
-  <meta property="og:description" content="上传鱼眼照片，AI 秒级分析新鲜度。支持 V1/V2 双模型切换，99%+ 准确率 + Grad-CAM 可解释热力图。" />
+  <meta property="og:description" content="上传鱼眼照片，AI 秒级分析新鲜度。经典版与高精度版一键切换，99%+ 准确率，附可解释热力图。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://fresheye.yance777.com/" />
   <meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Cdefs%3E%3CradialGradient id='i' cx='50%' cy='45%' r='55%'%3E%3Cstop offset='0%' stop-color='%230f5666'/%3E%3Cstop offset='52%' stop-color='%231185b8'/%3E%3Cstop offset='80%' stop-color='%2327d0c4'/%3E%3Cstop offset='100%' stop-color='%23bdf6ef'/%3E%3C/radialGradient%3E%3CradialGradient id='p' cx='38%' cy='32%' r='68%'%3E%3Cstop offset='0%' stop-color='%231a2238'/%3E%3Cstop offset='60%' stop-color='%23000814'/%3E%3Cstop offset='100%' stop-color='%23000000'/%3E%3C/radialGradient%3E%3CradialGradient id='s' cx='50%' cy='42%' r='62%'%3E%3Cstop offset='0%' stop-color='%23ffffff'/%3E%3Cstop offset='70%' stop-color='%23eaf4f9'/%3E%3Cstop offset='100%' stop-color='%23cfe2ec'/%3E%3C/radialGradient%3E%3CradialGradient id='h' cx='50%' cy='50%' r='50%'%3E%3Cstop offset='0%' stop-color='%23ffffff' stop-opacity='0.98'/%3E%3Cstop offset='55%' stop-color='%23ffffff' stop-opacity='0.45'/%3E%3Cstop offset='100%' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='630' fill='%2304162b'/%3E%3Ccircle cx='600' cy='270' r='200' fill='none' stroke='%2327d0c4' stroke-width='4' opacity='0.55'/%3E%3Cg fill='%231fd3c6' opacity='0.85'%3E%3Ccircle cx='600' cy='70' r='8'/%3E%3Ccircle cx='741' cy='129' r='8'/%3E%3Ccircle cx='841' cy='229' r='8'/%3E%3Ccircle cx='880' cy='370' r='8'/%3E%3Ccircle cx='841' cy='511' r='8'/%3E%3Ccircle cx='741' cy='611' r='8'/%3E%3Ccircle cx='600' cy='650' r='8'/%3E%3Ccircle cx='459' cy='611' r='8'/%3E%3Ccircle cx='359' cy='511' r='8'/%3E%3Ccircle cx='320' cy='370' r='8'/%3E%3Ccircle cx='359' cy='229' r='8'/%3E%3Ccircle cx='459' cy='129' r='8'/%3E%3C/g%3E%3Ccircle cx='600' cy='370' r='170' fill='url(%23s)'/%3E%3Ccircle cx='600' cy='370' r='140' fill='url(%23i)'/%3E%3Ccircle cx='600' cy='370' r='100' fill='none' stroke='%2327d0c4' stroke-width='5' opacity='0.3'/%3E%3Ccircle cx='600' cy='370' r='70' fill='url(%23p)'/%3E%3Cellipse cx='550' cy='310' rx='48' ry='38' fill='url(%23h)' transform='rotate(-22 550 310)'/%3E%3Ccircle cx='560' cy='305' r='7' fill='%23ffffff' opacity='0.95'/%3E%3Ccircle cx='650' cy='440' r='14' fill='%23ffffff' opacity='0.65'/%3E%3Ctext x='600' y='550' font-family='system-ui,-apple-system,sans-serif' font-size='68' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EFreshEye%3C/text%3E%3C/svg%3E" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="鲜眸 · FreshEye — AI 鱼眼新鲜度检测" />
-  <meta name="twitter:description" content="上传鱼眼照片，AI 秒级分析新鲜度。支持 V1/V2 双模型切换。" />
+  <meta name="twitter:description" content="上传鱼眼照片，AI 秒级分析新鲜度。经典版与高精度版一键切换。" />
   <meta name="twitter:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630'%3E%3Cdefs%3E%3CradialGradient id='i' cx='50%' cy='45%' r='55%'%3E%3Cstop offset='0%' stop-color='%230f5666'/%3E%3Cstop offset='52%' stop-color='%231185b8'/%3E%3Cstop offset='80%' stop-color='%2327d0c4'/%3E%3Cstop offset='100%' stop-color='%23bdf6ef'/%3E%3C/radialGradient%3E%3CradialGradient id='p' cx='38%' cy='32%' r='68%'%3E%3Cstop offset='0%' stop-color='%231a2238'/%3E%3Cstop offset='60%' stop-color='%23000814'/%3E%3Cstop offset='100%' stop-color='%23000000'/%3E%3C/radialGradient%3E%3CradialGradient id='s' cx='50%' cy='42%' r='62%'%3E%3Cstop offset='0%' stop-color='%23ffffff'/%3E%3Cstop offset='70%' stop-color='%23eaf4f9'/%3E%3Cstop offset='100%' stop-color='%23cfe2ec'/%3E%3C/radialGradient%3E%3CradialGradient id='h' cx='50%' cy='50%' r='50%'%3E%3Cstop offset='0%' stop-color='%23ffffff' stop-opacity='0.98'/%3E%3Cstop offset='55%' stop-color='%23ffffff' stop-opacity='0.45'/%3E%3Cstop offset='100%' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='630' fill='%2304162b'/%3E%3Ccircle cx='600' cy='270' r='200' fill='none' stroke='%2327d0c4' stroke-width='4' opacity='0.55'/%3E%3Cg fill='%231fd3c6' opacity='0.85'%3E%3Ccircle cx='600' cy='70' r='8'/%3E%3Ccircle cx='741' cy='129' r='8'/%3E%3Ccircle cx='841' cy='229' r='8'/%3E%3Ccircle cx='880' cy='370' r='8'/%3E%3Ccircle cx='841' cy='511' r='8'/%3E%3Ccircle cx='741' cy='611' r='8'/%3E%3Ccircle cx='600' cy='650' r='8'/%3E%3Ccircle cx='459' cy='611' r='8'/%3E%3Ccircle cx='359' cy='511' r='8'/%3E%3Ccircle cx='320' cy='370' r='8'/%3E%3Ccircle cx='359' cy='229' r='8'/%3E%3Ccircle cx='459' cy='129' r='8'/%3E%3C/g%3E%3Ccircle cx='600' cy='370' r='170' fill='url(%23s)'/%3E%3Ccircle cx='600' cy='370' r='140' fill='url(%23i)'/%3E%3Ccircle cx='600' cy='370' r='100' fill='none' stroke='%2327d0c4' stroke-width='5' opacity='0.3'/%3E%3Ccircle cx='600' cy='370' r='70' fill='url(%23p)'/%3E%3Cellipse cx='550' cy='310' rx='48' ry='38' fill='url(%23h)' transform='rotate(-22 550 310)'/%3E%3Ccircle cx='560' cy='305' r='7' fill='%23ffffff' opacity='0.95'/%3E%3Ccircle cx='650' cy='440' r='14' fill='%23ffffff' opacity='0.65'/%3E%3Ctext x='600' y='550' font-family='system-ui,-apple-system,sans-serif' font-size='68' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EFreshEye%3C/text%3E%3C/svg%3E" />
   <link rel="canonical" href="https://fresheye.yance777.com/" />
   <title>鲜眸 · FreshEye · 水产品新鲜度智能评估</title>
@@ -195,7 +195,7 @@
   <h1 class="hero-title" id="hero-title">鲜眸 · FreshEye</h1>
       <span class="hero-chip"><span class="hero-chip-dot" aria-hidden="true"></span>AI 驱动 · 非破坏式新鲜度检测</span>
       <p class="hero-tagline">一拍知鲜 · 吃得放心</p>
-      <p class="hero-desc">上传一张鱼眼照片，AI 秒级给出新鲜度等级、置信度与可解释热力图——让每一餐都安心</p>
+  <p class="hero-desc">上传一张鱼眼照片，AI 秒级给出新鲜度等级、判断把握与可解释热力图——让每一餐都安心</p>
       <div class="hero-badges" role="list">
         <span class="badge" role="listitem">
           <span class="badge-icon" aria-hidden="true">🐟</span>
@@ -223,13 +223,13 @@
         <span class="section-hint">支持点击 · 拖拽 · 粘贴</span>
       </div>
 
-      <!-- 模型选择 -->
+      <!-- 识别模式选择 -->
       <div class="model-selector" id="modelSelector">
-        <label class="model-selector-label" for="modelVersionSelect">模型版本</label>
+        <label class="model-selector-label" for="modelVersionSelect">识别模式</label>
         <div class="model-selector-wrap">
-          <select id="modelVersionSelect" class="model-select" aria-label="选择模型版本" autocomplete="off">
-            <option value="v2" selected>V2（推荐）</option>
-            <option value="v1">V1（经典版）</option>
+          <select id="modelVersionSelect" class="model-select" aria-label="选择识别模式" autocomplete="off">
+            <option value="v2" selected>高精度版（推荐）</option>
+            <option value="v1">经典版</option>
           </select>
         </div>
       </div>
@@ -359,7 +359,7 @@
           </svg>
         </div>
         <p class="result-text">上传鱼眼照片后，AI 将在此展示新鲜度分析结果</p>
-        <p class="result-sub" id="resultSubText">基于 FishFreshNetV2 深度学习模型 + Grad-CAM 可解释热力图</p>
+  <p class="result-sub" id="resultSubText">AI 已完成鱼眼特征分析，热力图展示判断依据</p>
       </div>
 
       <!-- 骨架屏：分析中（概览 Tab，默认激活） -->
@@ -394,12 +394,12 @@
         <!-- 置信度警告横幅 -->
         <div class="confidence-warning confidence-warning-mid" id="confidenceWarningMid" hidden>
           <span class="warning-icon" aria-hidden="true">⚠️</span>
-          <span class="warning-text">识别置信度中等（<span id="warningMidConf">—</span>%）。建议在光线充足的环境下重新拍摄鱼眼特写照片，以获得更准确的分析结果。</span>
+  <span class="warning-text">识别把握中等（<span id="warningMidConf">—</span>%）。建议在光线充足的环境下重新拍摄鱼眼特写照片，以获得更准确的分析结果。</span>
           <button class="warning-dismiss" id="warningMidDismiss" type="button" aria-label="关闭警告">✕</button>
         </div>
         <div class="confidence-warning confidence-warning-low" id="confidenceWarningLow" hidden>
           <span class="warning-icon" aria-hidden="true">🚨</span>
-          <span class="warning-text">识别置信度较低（<span id="warningLowConf">—</span>%）。AI 可能无法准确判断，请确认上传的是清晰的鱼眼特写照片。</span>
+  <span class="warning-text">识别把握较低（<span id="warningLowConf">—</span>%）。AI 可能无法准确判断，请确认上传的是清晰的鱼眼特写照片。</span>
           <button class="warning-dismiss" id="warningLowDismiss" type="button" aria-label="关闭警告">✕</button>
         </div>
 
@@ -431,7 +431,7 @@
               <div class="metric-val" id="metricAppearance">—</div>
             </div>
             <div class="metric-item">
-              <div class="metric-label"><span aria-hidden="true">📊</span> 置信度</div>
+  <div class="metric-label"><span aria-hidden="true">📊</span> 判断把握</div>
               <div class="metric-val" id="metricConfidence">—</div>
             </div>
             <div class="metric-item">
@@ -454,13 +454,13 @@
                 </div>
                 <div>
                   <div class="freshness-label" id="freshnessLabel">高度新鲜</div>
-                  <div class="freshness-meta" id="freshnessMeta">置信度 99.29% · 基于 FishFreshNetV2</div>
+  <div class="freshness-meta" id="freshnessMeta">判断把握 99.29% · 高精度版</div>
                 </div>
               </div>
             </div>
 
             <div class="panel">
-              <p class="panel-title">模型置信度</p>
+  <p class="panel-title">判断把握</p>
               <div class="gauge-wrap">
                 <div class="gauge" data-confidence="0.9923" id="gaugeWrap">
                   <svg viewBox="0 0 120 120" width="140" height="140">
@@ -495,17 +495,17 @@
                   </svg>
                   <div class="gauge-center">
                     <div class="gauge-num" id="gaugeNum">99.2%</div>
-                    <div class="gauge-cap">CONFIDENCE</div>
+  <div class="gauge-cap">把握程度</div>
                   </div>
                 </div>
-                <div class="gauge-label" id="gaugeLabel">FishFreshNetV2 输出</div>
+  <div class="gauge-label" id="gaugeLabel">AI 判断</div>
               </div>
             </div>
           </div>
 
           <!-- 概率分布 -->
           <div class="panel" style="margin-bottom:16px;">
-            <p class="panel-title">三类概率分布</p>
+  <p class="panel-title">三种结果占比</p>
             <div class="prob-list">
               <div class="prob-row high">
                 <span class="prob-name">高度新鲜</span>
@@ -547,7 +547,7 @@
             <div class="compare-slider" id="compareSlider">
               <img id="compareOriginal" alt="原图" width="500" height="500" decoding="async" />
               <div class="comp-overlay" id="compOverlay" style="clip-path: inset(0 50% 0 0);">
-                <img id="compareHeatmap" alt="Grad-CAM 热力图" width="500" height="500" decoding="async" />
+  <img id="compareHeatmap" alt="AI 关注区域热力图" width="500" height="500" decoding="async" />
               </div>
               <span class="comp-label left">原图</span>
               <span class="comp-label right">热力图</span>
@@ -613,14 +613,14 @@
             </div>
             <div class="accordion-body">
               <div class="accordion-inner" id="trendBody">
-                <blockquote class="desc-quote">✅ 趋势预测：基于当前新鲜度等级与置信度，预测剩余保质时间约 <strong id="shelfLife">24–48 小时</strong>。建议在此窗口内食用以保障口感与安全。</blockquote>
+  <blockquote class="desc-quote">✅ 趋势预测：基于当前新鲜度等级与判断把握，预测剩余保质时间约 <strong id="shelfLife">24–48 小时</strong>。建议在此窗口内食用以保障口感与安全。</blockquote>
               </div>
             </div>
           </div>
 
           <div class="accordion is-open" data-acc="knowledge">
             <div class="accordion-head" role="button" tabindex="0" aria-expanded="true">
-              <span class="accordion-title">知识图谱匹配</span>
+  <span class="accordion-title">标准特征对照</span>
               <span class="accordion-arrow" aria-hidden="true">▶</span>
             </div>
             <div class="accordion-body">
@@ -757,7 +757,7 @@
           <span class="footer-brand-logo" aria-hidden="true"><span class="brand-eye"></span></span>
           <span class="footer-brand-name">FreshEye</span>
         </div>
-        <p class="footer-brand-desc">上传鱼眼照片，AI 秒级分析水产品新鲜度。轻量化模型 + Grad-CAM 可解释热力图，让每一次判断都有据可依。</p>
+  <p class="footer-brand-desc">上传鱼眼照片，AI 秒级分析水产品新鲜度。AI 智能识别 + 可解释热力图，让每一次判断都有据可依。</p>
       </div>
       <nav aria-label="页脚导航">
         <h4 class="footer-col-title">快速导航</h4>
@@ -772,11 +772,11 @@
       <div>
         <h4 class="footer-col-title">技术栈</h4>
         <div class="footer-stack">
-          <span>Python + FastAPI</span>
-          <span>PyTorch</span>
-          <span>EfficientNet-B0</span>
-          <span>Grad-CAM</span>
-          <span>推理流水线</span>
+          <span>云端 AI 服务</span>
+          <span>深度学习</span>
+          <span>轻量级 AI 模型</span>
+          <span>可解释热力图</span>
+          <span>智能分析</span>
           <span>纯 HTML/CSS/JS</span>
         </div>
       </div>
@@ -800,12 +800,35 @@
       <div class="confidence-modal-icon" aria-hidden="true">🚨</div>
       <h3 class="confidence-modal-title" id="modalTitle">输入照片可能并非鱼眼图像</h3>
       <p class="confidence-modal-desc" id="modalDesc">
-        AI 检测置信度极低（<span id="modalConf">—</span>%），这通常意味着上传的照片可能不是清晰的鱼眼特写。<br/>
+        AI 判断把握极低（<span id="modalConf">—</span>%），这通常意味着上传的照片可能不是清晰的鱼眼特写。<br/>
         建议重新拍摄一张鱼眼清晰可见的照片。
       </p>
       <div class="confidence-modal-actions">
         <button class="btn-modal-primary" id="modalRetry" type="button">📸 重新拍摄</button>
         <button class="btn-modal-secondary" id="modalView" type="button">仍要查看结果</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 相机取景框弹窗（移动端拍照） ============ -->
+  <div class="camera-modal-overlay" id="cameraModal" hidden>
+    <div class="camera-modal" role="dialog" aria-modal="true" aria-labelledby="cameraModalTitle" aria-describedby="cameraModalHint">
+      <div class="camera-modal-head">
+        <h3 class="camera-modal-title" id="cameraModalTitle">📷 拍摄鱼眼照片</h3>
+        <button class="camera-modal-close" id="cameraModalClose" type="button" aria-label="关闭相机">✕</button>
+      </div>
+      <div class="camera-viewport" id="cameraViewport">
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <div class="camera-dim" aria-hidden="true"></div>
+        <div class="camera-frame" aria-hidden="true">
+          <span class="camera-frame-pupil"></span>
+        </div>
+        <p class="camera-guide-text" id="cameraModalHint">把鱼眼对准圆圈中心，保持清晰</p>
+        <p class="camera-error" id="cameraError" hidden>无法打开相机，请允许相机权限后重试</p>
+      </div>
+      <div class="camera-modal-actions">
+        <button class="btn-ghost" id="cameraFlipBtn" type="button">🔄 切换镜头</button>
+        <button class="btn-modal-primary" id="cameraCaptureBtn" type="button">📸 拍照</button>
       </div>
     </div>
   </div>
@@ -899,18 +922,17 @@
       currentModelVersion = savedModel;
     }
 
-    /** 获取模型显示名称 */
+    /** 获取识别模式显示名称 */
     function getModelDisplayName(modelVersion = currentModelVersion) {
-      return modelVersion === "v2" ? "FishFreshNetV2" : "FishFreshNetV1";
+      return modelVersion === "v2" ? "高精度版" : "经典版";
     }
 
-    /** 更新所有静态模型版本文本 */
+    /** 更新所有静态识别模式文本 */
     function updateModelVersionText(modelVersion = currentModelVersion) {
-      const name = getModelDisplayName(modelVersion);
       const subEl = document.getElementById("resultSubText");
-      if (subEl) subEl.textContent = `基于 ${name} 深度学习模型 + Grad-CAM 可解释热力图`;
+      if (subEl) subEl.textContent = "AI 已完成鱼眼特征分析，热力图展示判断依据";
       const gaugeEl = document.getElementById("gaugeLabel");
-      if (gaugeEl) gaugeEl.textContent = `${name} 输出`;
+      if (gaugeEl) gaugeEl.textContent = "AI 判断";
     }
 
     // ============ DOM 引用 ============
@@ -1272,20 +1294,127 @@
       if (file) handleFileSelect(file);
     });
 
-    // —— 拍照检测（移动端后置摄像头，F9 功能）——
+    // —— 拍照检测：优先应用内取景框，失败时回退系统相机 ——
     const cameraInput = document.getElementById("cameraInput");
     const cameraBtn = document.getElementById("cameraBtn");
+    const cameraModal = document.getElementById("cameraModal");
+    const cameraVideo = document.getElementById("cameraVideo");
+    const cameraCaptureBtn = document.getElementById("cameraCaptureBtn");
+    const cameraCloseBtn = document.getElementById("cameraModalClose");
+    const cameraFlipBtn = document.getElementById("cameraFlipBtn");
+    const cameraError = document.getElementById("cameraError");
+    let cameraStream = null;
+    let cameraFacing = "environment";
+
+    function stopCameraStream() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((t) => t.stop());
+        cameraStream = null;
+      }
+      if (cameraVideo) cameraVideo.srcObject = null;
+    }
+
+    function closeCameraModal() {
+      stopCameraStream();
+      if (cameraModal) cameraModal.hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    async function startCameraStream(facing) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("getUserMedia unavailable");
+      }
+      if (cameraError) cameraError.hidden = true;
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      cameraStream = stream;
+      if (cameraVideo) {
+        cameraVideo.srcObject = stream;
+        await cameraVideo.play().catch(() => {});
+      }
+    }
+
+    async function openCameraViewfinder() {
+      if (!cameraModal || !cameraVideo) {
+        cameraInput?.click();
+        return;
+      }
+      cameraModal.hidden = false;
+      document.body.style.overflow = "hidden";
+      try {
+        await startCameraStream(cameraFacing);
+      } catch (err) {
+        console.warn("⚠️ 应用内相机不可用，回退系统相机:", err);
+        closeCameraModal();
+        cameraInput?.click();
+      }
+    }
+
+    function captureFromCamera() {
+      if (!cameraVideo || !cameraVideo.videoWidth) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = cameraVideo.videoWidth;
+      canvas.height = cameraVideo.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          showToast("拍照失败，请重试", "error");
+          return;
+        }
+        const file = new File([blob], "camera_" + Date.now() + ".jpg", {
+          type: "image/jpeg",
+          lastModified: Date.now()
+        });
+        closeCameraModal();
+        handleFileSelect(file);
+      }, "image/jpeg", 0.92);
+    }
+
+    async function flipCamera() {
+      const next = cameraFacing === "environment" ? "user" : "environment";
+      stopCameraStream();
+      try {
+        await startCameraStream(next);
+        cameraFacing = next;
+      } catch (err) {
+        try {
+          await startCameraStream(cameraFacing);
+        } catch (_) { /* 保持当前镜头 */ }
+        showToast("无法切换镜头", "error");
+      }
+    }
+
     if (cameraBtn) {
       cameraBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        cameraInput.click();
+        openCameraViewfinder();
       });
       cameraBtn.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           e.stopPropagation();
-          cameraInput.click();
+          openCameraViewfinder();
         }
+      });
+    }
+    if (cameraCaptureBtn) {
+      cameraCaptureBtn.addEventListener("click", captureFromCamera);
+    }
+    if (cameraCloseBtn) {
+      cameraCloseBtn.addEventListener("click", closeCameraModal);
+    }
+    if (cameraFlipBtn) {
+      cameraFlipBtn.addEventListener("click", flipCamera);
+    }
+    if (cameraModal) {
+      cameraModal.addEventListener("click", (e) => {
+        if (e.target === cameraModal) closeCameraModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !cameraModal.hidden) closeCameraModal();
       });
     }
     if (cameraInput) {
@@ -1814,7 +1943,7 @@
         storage.set(MODEL_PREF_KEY, currentModelVersion);
         memSet(MODEL_PREF_KEY, currentModelVersion);
         updateModelVersionBadge();
-        showToast(`已切换到模型 ${currentModelVersion.toUpperCase()}`, "info", 1800);
+        showToast(`已切换到${getModelDisplayName(currentModelVersion)}`, "info", 1800);
       });
       updateModelVersionBadge();
       updateModelVersionText();
@@ -1840,7 +1969,7 @@
           actions.appendChild(badge);
         }
       }
-      badge.textContent = currentModelVersion === "v2" ? "V2" : "V1";
+      badge.textContent = currentModelVersion === "v2" ? "高精度" : "经典";
       badge.classList.toggle("is-v2", currentModelVersion === "v2");
       badge.classList.toggle("is-v1", currentModelVersion === "v1");
     }
@@ -2001,15 +2130,15 @@
     function handleAnalysisError(err) {
       let msg = "";
       if (err.name === "TimeoutError") {
-        msg = "AI 服务未运行 ⏳\n分析请求超时。AI 模型服务可能正在启动或已停止运行，请稍后重试。";
+      msg = "AI 服务未运行 ⏳\n分析请求超时。AI 服务可能正在启动或已停止运行，请稍后重试。";
       } else if (err.name === "NetworkError") {
-        msg = "AI 服务未运行 🔌\n无法连接到 AI 分析服务。模型服务可能未启动或网络不可达，请稍后重试。";
+      msg = "AI 服务未运行 🔌\n无法连接到 AI 分析服务。服务可能未启动或网络不可达，请稍后重试。";
       } else if (err instanceof HttpError) {
         switch (err.status) {
           case 413: msg = "图片文件过大，请上传小于 25MB 的图片"; break;
           case 400: msg = "图片格式不支持，请上传 JPG/PNG/WebP 格式的鱼眼照片"; break;
-          case 422: msg = "模型版本参数无效，请刷新页面后重试"; break;
-          case 503: msg = "AI 服务未运行 ⏳\n模型服务正在启动中，请等待约 30 秒后重试。"; break;
+      case 422: msg = "识别模式参数无效，请刷新页面后重试"; break;
+      case 503: msg = "AI 服务未运行 ⏳\n服务正在启动中，请等待约 30 秒后重试。"; break;
           default: msg = `AI 服务返回错误（状态码 ${err.status}），请稍后重试`;
         }
       } else {
@@ -2138,13 +2267,13 @@
       if (confidence >= 0.8) {
         badge.classList.add("badge-high");
         const resultModelVersion = lastAnalysisResult?.prediction?.model_version || lastAnalysisResult?.model_version || currentModelVersion;
-        badgeLabel.textContent = `高置信度 · 鱼眼特征明确，${getModelDisplayName(resultModelVersion)} 直接输出结果`;
+      badgeLabel.textContent = "高把握 · 鱼眼特征明确，AI 直接给出结果";
       } else if (confidence >= 0.6) {
         badge.classList.add("badge-mid");
-        badgeLabel.textContent = "中置信度 · 建议结合感官指标（鳃色、气味、弹性）综合判断";
+      badgeLabel.textContent = "中把握 · 建议结合感官指标（鳃色、气味、弹性）综合判断";
       } else {
         badge.classList.add("badge-low");
-        badgeLabel.textContent = "低置信度 · 建议重新拍摄清晰鱼眼照片以获得准确结果";
+      badgeLabel.textContent = "低把握 · 建议重新拍摄清晰鱼眼照片以获得准确结果";
       }
     }
 
@@ -2206,7 +2335,7 @@
       freshnessCard.classList.add(cls);
       freshnessLabel.textContent = level;
       const pct = (confidence * 100).toFixed(1);
-      freshnessMeta.textContent = `置信度 ${pct}% · 基于 ${getModelDisplayName(modelVersion)}`;
+      freshnessMeta.textContent = `判断把握 ${pct}% · ${getModelDisplayName(modelVersion)}`;
     }
 
     /**
@@ -2350,9 +2479,9 @@
      */
     function updateDescription(desc, confidence) {
       let prefix = "";
-      if (confidence >= 0.8) prefix = "✅ 高置信度分析结果：";
-      else if (confidence >= 0.5) prefix = "⚠️ 中置信度分析结果：";
-      else prefix = "❌ 低置信度分析结果，建议重新拍摄：";
+      if (confidence >= 0.8) prefix = "✅ 高把握分析结果：";
+      else if (confidence >= 0.5) prefix = "⚠️ 中把握分析结果：";
+      else prefix = "❌ 低把握分析结果，建议重新拍摄：";
       descQuote.textContent = prefix + desc;
     }
 
@@ -2694,7 +2823,7 @@
       item.dataset.id = r.id;
       item.setAttribute("role", "button");
       item.setAttribute("tabindex", "0");
-      item.setAttribute("aria-label", `${r.freshnessLevel}，置信度 ${((r.confidenceScore || 0) * 100).toFixed(1)}%，${formatHistoryTime(r.timestamp)}`);
+      item.setAttribute("aria-label", `${r.freshnessLevel}，判断把握 ${((r.confidenceScore || 0) * 100).toFixed(1)}%，${formatHistoryTime(r.timestamp)}`);
       const cls = r.freshnessLabel === 0 ? "high" : r.freshnessLabel === 1 ? "mid" : r.freshnessLabel === 2 ? "low" : "mid";
       const conf = ((r.confidenceScore || 0) * 100).toFixed(1);
       const thumbSrc = r.thumbnail || "";
@@ -3087,7 +3216,7 @@
         ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${escapeHtml(imgSrc)}" alt="鱼眼照片" width="200" height="200"></div><div class="pdf-caption">原始视觉捕获</div></div>`
         : `<div class="pdf-img-block"><div class="pdf-img-empty">无图片</div></div>`;
       const heatBlock = heatmapSrc
-        ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${escapeHtml(heatmapSrc)}" alt="Grad-CAM 热力图" width="200" height="200"></div><div class="pdf-caption">AI 决策聚焦区域 (Grad-CAM)</div></div>`
+        ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${escapeHtml(heatmapSrc)}" alt="AI 关注区域热力图" width="200" height="200"></div><div class="pdf-caption">AI 判断依据区域</div></div>`
         : '';
 
       // 报告内常驻工具栏：显式打印 / 下载 / 关闭，覆盖自动打印被拦截的场景（移动端常见）
@@ -3197,7 +3326,7 @@
     </div>
     <div class="pdf-header-title">水产品新鲜度分析报告</div>
     <div class="pdf-header-meta">
-      <span class="pdf-meta-tag"><strong>模型</strong> ${escapeHtml(model)}</span>
+  <span class="pdf-meta-tag"><strong>AI 引擎</strong> ${escapeHtml(model)}</span>
       <span class="pdf-meta-tag"><strong>耗时</strong> ${escapeHtml(duration)}</span>
       <span class="pdf-meta-tag"><strong>时间</strong> ${escapeHtml(ts)}</span>
     </div>
@@ -3220,13 +3349,13 @@
         <div class="pdf-conf-bar-wrap">
           <div class="pdf-conf-bar"><div class="pdf-conf-bar-fill" style="width:${escapeHtml(conf)}%;background:${sc.primary};"></div></div>
         </div>
-        <div class="pdf-conf-meta">置信度 · ${escapeHtml(model)} · Grad-CAM 可解释性分析</div>
+  <div class="pdf-conf-meta">判断把握 · ${escapeHtml(model)} · AI 可解释性分析</div>
       </div>
     </div>
   </div>
 
   <div class="pdf-section">
-    <h3 class="pdf-section-title">📈 三类概率分布</h3>
+  <h3 class="pdf-section-title">📈 三种结果占比</h3>
     <div class="pdf-stacked-bar">
       ${probsHtml}
     </div>
@@ -3416,7 +3545,7 @@
         ? "✅ 标准特征：角膜略浑浊、瞳孔尚可辨认。当前样本与中等新鲜特征匹配。"
         : label === 2
         ? "✅ 标准特征：角膜浑浊、瞳孔模糊、表面失去光泽。当前样本与不新鲜特征匹配。"
-        : "暂无知识图谱数据。";
+        : "暂无标准特征对照数据。";
       if (knowledgeText) knowledgeText.textContent = knowledge;
     }
 

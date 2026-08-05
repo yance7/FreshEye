@@ -4780,3 +4780,174 @@ html, body { overscroll-behavior: contain; }
   .results-visible .panel,
   .history-item { animation: none; opacity: 1; }
 }
+
+/* ---------- 相机取景框弹窗（移动端拍照） ---------- */
+.camera-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-overlay) + 20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(2, 10, 22, 0.88);
+  animation: overlay-fade 0.25s ease;
+}
+.camera-modal-overlay[hidden] { display: none; }
+.camera-modal {
+  width: min(560px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #0a2238;
+  border: 1px solid rgba(39, 208, 196, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  animation: modalIn 0.28s ease;
+}
+.camera-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.camera-modal-title { margin: 0; font-size: 16px; color: #fff; }
+.camera-modal-close {
+  background: none;
+  border: 0;
+  color: #cbd5e1;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+.camera-modal-close:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.camera-viewport {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  max-height: 62vh;
+  overflow: hidden;
+  background: #000;
+}
+.camera-viewport video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.camera-dim {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 28%, rgba(0, 0, 0, 0.58) 29%);
+}
+.camera-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(68vw, 300px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 2px dashed rgba(39, 208, 196, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(39, 208, 196, 0.25), 0 0 24px rgba(39, 208, 196, 0.25);
+}
+.camera-frame-pupil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(39, 208, 196, 0.4);
+  background: radial-gradient(circle, #04162b 52%, rgba(39, 208, 196, 0.28) 53%);
+}
+.camera-guide-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+  z-index: 2;
+}
+.camera-error {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  text-align: center;
+  color: #fca5a5;
+  font-size: 14px;
+  z-index: 2;
+}
+.camera-modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.camera-modal-actions .btn-ghost { flex: 1; justify-content: center; }
+.camera-modal-actions .btn-modal-primary { flex: 1.4; justify-content: center; }
+
+/* ---------- 拍照指南：取景参考示意 ---------- */
+.viewfinder-guide {
+  margin: 18px 0 6px;
+  display: grid;
+  grid-template-columns: minmax(0, 300px) 1fr;
+  gap: 18px;
+  align-items: center;
+}
+.viewfinder-guide-media {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(39, 208, 196, 0.3);
+}
+.viewfinder-guide-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.viewfinder-guide-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 62%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 2px dashed rgba(39, 208, 196, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 0 0 999px rgba(4, 22, 43, 0.35);
+}
+.viewfinder-guide-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(4, 22, 43, 0.82);
+  color: #bdf6ef;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.viewfinder-guide-note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted, #94a3b8);
+  line-height: 1.8;
+}
+@media (max-width: 640px) {
+  .viewfinder-guide { grid-template-columns: 1fr; }
+  .viewfinder-guide-media { max-width: 100%; }
+  .camera-frame { width: 64vw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .camera-modal { animation: none; }
+}

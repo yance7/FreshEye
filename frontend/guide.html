@@ -105,13 +105,13 @@
           <span class="step-num" aria-hidden="true">2</span>
           <div class="user-icon" aria-hidden="true">⚡</div>
           <h3 class="user-title">AI 秒级分析</h3>
-          <p class="user-text"><strong style="color:var(--foam);">FishFreshNet</strong> 模型推理三分类概率，同步生成 <strong style="color:var(--foam);">Grad-CAM 热力图</strong> 解释模型关注区域。置信度驱动自适应分支，确保每次检测都有可靠结果。</p>
+          <p class="user-text">AI 分析鱼眼特征，给出<strong style="color:var(--foam);">高度新鲜 / 新鲜 / 不新鲜</strong>三种结果，并同步生成<strong style="color:var(--foam);">可解释热力图</strong>展示判断依据。系统还会根据判断把握自动提示是否重新拍摄。</p>
         </div>
         <div class="user-card step-card">
           <span class="step-num" aria-hidden="true">3</span>
           <div class="user-icon" aria-hidden="true">📊</div>
           <h3 class="user-title">查看分析报告</h3>
-          <p class="user-text">4-Tab 报告自由切换：<strong style="color:var(--foam);">概览</strong>（新鲜度等级 + 置信度）、<strong style="color:var(--foam);">AI 视觉</strong>（热力图滑块对比）、<strong style="color:var(--foam);">详细报告</strong>（结构化分析）、<strong style="color:var(--foam);">处理建议</strong>（5 大类建议）。</p>
+          <p class="user-text">4-Tab 报告自由切换：<strong style="color:var(--foam);">概览</strong>（新鲜度等级 + 判断把握）、<strong style="color:var(--foam);">AI 视觉</strong>（热力图滑块对比）、<strong style="color:var(--foam);">详细报告</strong>（详细分析）、<strong style="color:var(--foam);">处理建议</strong>（5 大类建议）。</p>
         </div>
       </div>
     </section>
@@ -122,6 +122,14 @@
         <h2 class="section-title">拍照教程</h2>
       </div>
       <p class="intro-sub">好的照片是准确检测的前提。请参考以下正确与错误示例对比，拍摄时遵循正确示例的要求。</p>
+      <div class="viewfinder-guide">
+        <div class="viewfinder-guide-media">
+          <img src="assets/samples/highly-fresh.webp" alt="鱼眼取景参考示例" loading="lazy" decoding="async" />
+          <span class="viewfinder-guide-ring" aria-hidden="true"></span>
+          <span class="viewfinder-guide-hint">把鱼眼对准圆圈中心</span>
+        </div>
+        <p class="viewfinder-guide-note">手机拍照时，取景画面中会出现圆形引导框。请把鱼眼完整放进圆圈内，保持正面、清晰、光线充足，这样识别更准确。</p>
+      </div>
       <div class="compare-pain">
         <div class="pain-card solution">
           <div class="pain-card-head">
@@ -185,12 +193,12 @@
 
       <div class="accordion" data-accordion>
         <div class="accordion-head" role="button" tabindex="0" aria-expanded="false">
-          <span class="accordion-title">置信度低怎么办？</span>
+          <span class="accordion-title">判断把握低怎么办？</span>
           <span class="accordion-arrow" aria-hidden="true">▶</span>
         </div>
         <div class="accordion-body">
           <div class="accordion-inner">
-            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">当置信度低于 60% 时会弹出提示。建议<strong style="color:var(--aqua);">重新拍摄</strong>：确保鱼眼清晰可见、光线充足、正面拍摄、对焦准确。若多次重拍仍低置信度，可能为少见鱼种或质量边界样本，建议结合人工判断。</p>
+          <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">当判断把握低于 60% 时会弹出提示。建议<strong style="color:var(--aqua);">重新拍摄</strong>：确保鱼眼清晰可见、光线充足、正面拍摄、对焦准确。若多次重拍把握仍低，可能为少见鱼种或质量边界样本，建议结合人工判断。</p>
           </div>
         </div>
       </div>
@@ -202,7 +210,7 @@
         </div>
         <div class="accordion-body">
           <div class="accordion-inner">
-            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">当 AI 模型服务未启动或网络不可达时，分析会失败并明确提示<strong style="color:var(--fresh-low);">"AI 服务未运行"</strong>。此时不会生成任何模拟结果，请等待服务启动后重试。历史记录仍可查看。</p>
+          <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">当 AI 服务未启动或网络不可达时，分析会失败并明确提示<strong style="color:var(--fresh-low);">"AI 服务未运行"</strong>。此时不会生成任何模拟结果，请等待服务启动后重试。历史记录仍可查看。</p>
           </div>
         </div>
       </div>
@@ -250,7 +258,7 @@
         </div>
         <div class="accordion-body">
           <div class="accordion-inner">
-            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">模型经 <strong style="color:var(--aqua);">MFED 数据集</strong>训练，支持常见<strong style="color:var(--aqua);">淡水鱼</strong>（鲫鱼、稻花鱼等）。<strong style="color:var(--aqua);">海水鱼</strong>也可参考使用——鱼眼新鲜度特征在不同鱼种间具有共性（瞳孔清澈度、角膜浑浊度等），但海水鱼结果仅供参考。</p>
+          <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">AI 经过大量真实鱼眼照片训练，支持常见<strong style="color:var(--aqua);">淡水鱼</strong>（鲫鱼、稻花鱼等）。<strong style="color:var(--aqua);">海水鱼</strong>也可参考使用——鱼眼新鲜度特征在不同鱼种间具有共性（瞳孔清澈度、角膜浑浊度等），但海水鱼结果仅供参考。</p>
           </div>
         </div>
       </div>
@@ -300,7 +308,7 @@
           <span class="footer-brand-logo" aria-hidden="true"><span class="brand-eye"></span></span>
           <span class="footer-brand-name">FreshEye</span>
         </div>
-        <p class="footer-brand-desc">上传鱼眼照片，AI 秒级分析水产品新鲜度。轻量化模型 + Grad-CAM 可解释热力图，让每一次判断都有据可依。</p>
+        <p class="footer-brand-desc">上传鱼眼照片，AI 秒级分析水产品新鲜度。AI 智能识别 + 可解释热力图，让每一次判断都有据可依。</p>
       </div>
       <nav aria-label="页脚导航">
         <h4 class="footer-col-title">快速导航</h4>
@@ -315,11 +323,11 @@
       <div>
         <h4 class="footer-col-title">技术栈</h4>
         <div class="footer-stack">
-          <span>Python + FastAPI</span>
-          <span>PyTorch</span>
-          <span>EfficientNet-B0</span>
-          <span>Grad-CAM</span>
-          <span>推理流水线</span>
+          <span>云端 AI 服务</span>
+          <span>深度学习</span>
+          <span>轻量级 AI 模型</span>
+          <span>可解释热力图</span>
+          <span>智能分析</span>
           <span>纯 HTML/CSS/JS</span>
         </div>
       </div>
