@@ -4876,17 +4876,37 @@ html, body { overscroll-behavior: contain; }
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
   z-index: 2;
 }
-.camera-error {
+.camera-error-box {
   position: absolute;
   left: 16px;
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  margin: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   text-align: center;
+  pointer-events: none;
+}
+.camera-error {
+  margin: 0;
   color: #fca5a5;
   font-size: 14px;
-  z-index: 2;
+}
+.camera-fallback-btn {
+  pointer-events: auto;
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(39, 208, 196, 0.65);
+  background: rgba(4, 22, 43, 0.92);
+  color: #bdf6ef;
+  font-size: 14px;
+  cursor: pointer;
+}
+.camera-fallback-btn:hover {
+  background: rgba(12, 46, 74, 0.95);
 }
 .camera-modal-actions {
   display: flex;

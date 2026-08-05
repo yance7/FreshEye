@@ -195,7 +195,7 @@
   <h1 class="hero-title" id="hero-title">鲜眸 · FreshEye</h1>
       <span class="hero-chip"><span class="hero-chip-dot" aria-hidden="true"></span>AI 驱动 · 非破坏式新鲜度检测</span>
       <p class="hero-tagline">一拍知鲜 · 吃得放心</p>
-  <p class="hero-desc">上传一张鱼眼照片，AI 秒级给出新鲜度等级、判断把握与可解释热力图——让每一餐都安心</p>
+  <p class="hero-desc">上传一张鱼眼照片，AI 秒级给出新鲜度等级、置信度与可解释热力图——让每一餐都安心</p>
       <div class="hero-badges" role="list">
         <span class="badge" role="listitem">
           <span class="badge-icon" aria-hidden="true">🐟</span>
@@ -394,12 +394,12 @@
         <!-- 置信度警告横幅 -->
         <div class="confidence-warning confidence-warning-mid" id="confidenceWarningMid" hidden>
           <span class="warning-icon" aria-hidden="true">⚠️</span>
-  <span class="warning-text">识别把握中等（<span id="warningMidConf">—</span>%）。建议在光线充足的环境下重新拍摄鱼眼特写照片，以获得更准确的分析结果。</span>
+  <span class="warning-text">置信度中等（<span id="warningMidConf">—</span>%）。建议在光线充足的环境下重新拍摄鱼眼特写照片，以获得更准确的分析结果。</span>
           <button class="warning-dismiss" id="warningMidDismiss" type="button" aria-label="关闭警告">✕</button>
         </div>
         <div class="confidence-warning confidence-warning-low" id="confidenceWarningLow" hidden>
           <span class="warning-icon" aria-hidden="true">🚨</span>
-  <span class="warning-text">识别把握较低（<span id="warningLowConf">—</span>%）。AI 可能无法准确判断，请确认上传的是清晰的鱼眼特写照片。</span>
+  <span class="warning-text">置信度较低（<span id="warningLowConf">—</span>%）。AI 可能无法准确判断，请确认上传的是清晰的鱼眼特写照片。</span>
           <button class="warning-dismiss" id="warningLowDismiss" type="button" aria-label="关闭警告">✕</button>
         </div>
 
@@ -431,7 +431,7 @@
               <div class="metric-val" id="metricAppearance">—</div>
             </div>
             <div class="metric-item">
-  <div class="metric-label"><span aria-hidden="true">📊</span> 判断把握</div>
+  <div class="metric-label"><span aria-hidden="true">📊</span> 置信度</div>
               <div class="metric-val" id="metricConfidence">—</div>
             </div>
             <div class="metric-item">
@@ -454,13 +454,13 @@
                 </div>
                 <div>
                   <div class="freshness-label" id="freshnessLabel">高度新鲜</div>
-  <div class="freshness-meta" id="freshnessMeta">判断把握 99.29% · 高精度版</div>
+  <div class="freshness-meta" id="freshnessMeta">置信度 99.29% · 高精度版</div>
                 </div>
               </div>
             </div>
 
             <div class="panel">
-  <p class="panel-title">判断把握</p>
+  <p class="panel-title">置信度</p>
               <div class="gauge-wrap">
                 <div class="gauge" data-confidence="0.9923" id="gaugeWrap">
                   <svg viewBox="0 0 120 120" width="140" height="140">
@@ -495,7 +495,7 @@
                   </svg>
                   <div class="gauge-center">
                     <div class="gauge-num" id="gaugeNum">99.2%</div>
-  <div class="gauge-cap">把握程度</div>
+  <div class="gauge-cap">置信度</div>
                   </div>
                 </div>
   <div class="gauge-label" id="gaugeLabel">AI 判断</div>
@@ -613,7 +613,7 @@
             </div>
             <div class="accordion-body">
               <div class="accordion-inner" id="trendBody">
-  <blockquote class="desc-quote">✅ 趋势预测：基于当前新鲜度等级与判断把握，预测剩余保质时间约 <strong id="shelfLife">24–48 小时</strong>。建议在此窗口内食用以保障口感与安全。</blockquote>
+  <blockquote class="desc-quote">✅ 趋势预测：基于当前新鲜度等级与置信度，预测剩余保质时间约 <strong id="shelfLife">24–48 小时</strong>。建议在此窗口内食用以保障口感与安全。</blockquote>
               </div>
             </div>
           </div>
@@ -800,7 +800,7 @@
       <div class="confidence-modal-icon" aria-hidden="true">🚨</div>
       <h3 class="confidence-modal-title" id="modalTitle">输入照片可能并非鱼眼图像</h3>
       <p class="confidence-modal-desc" id="modalDesc">
-        AI 判断把握极低（<span id="modalConf">—</span>%），这通常意味着上传的照片可能不是清晰的鱼眼特写。<br/>
+        AI 检测置信度极低（<span id="modalConf">—</span>%），这通常意味着上传的照片可能不是清晰的鱼眼特写。<br/>
         建议重新拍摄一张鱼眼清晰可见的照片。
       </p>
       <div class="confidence-modal-actions">
@@ -824,7 +824,10 @@
           <span class="camera-frame-pupil"></span>
         </div>
         <p class="camera-guide-text" id="cameraModalHint">把鱼眼对准圆圈中心，保持清晰</p>
-        <p class="camera-error" id="cameraError" hidden>无法打开相机，请允许相机权限后重试</p>
+        <div class="camera-error-box">
+          <p class="camera-error" id="cameraError" role="alert" hidden>无法打开相机，请允许相机权限后重试</p>
+          <button class="camera-fallback-btn" id="cameraFallbackBtn" type="button" hidden>使用系统相机</button>
+        </div>
       </div>
       <div class="camera-modal-actions">
         <button class="btn-ghost" id="cameraFlipBtn" type="button">🔄 切换镜头</button>
@@ -1303,10 +1306,13 @@
     const cameraCloseBtn = document.getElementById("cameraModalClose");
     const cameraFlipBtn = document.getElementById("cameraFlipBtn");
     const cameraError = document.getElementById("cameraError");
+    const cameraFallbackBtn = document.getElementById("cameraFallbackBtn");
     let cameraStream = null;
     let cameraFacing = "environment";
+    let cameraStreamRequestId = 0;
 
     function stopCameraStream() {
+      cameraStreamRequestId++;
       if (cameraStream) {
         cameraStream.getTracks().forEach((t) => t.stop());
         cameraStream = null;
@@ -1317,6 +1323,8 @@
     function closeCameraModal() {
       stopCameraStream();
       if (cameraModal) cameraModal.hidden = true;
+      if (cameraError) cameraError.hidden = true;
+      if (cameraFallbackBtn) cameraFallbackBtn.hidden = true;
       document.body.style.overflow = "";
     }
 
@@ -1325,10 +1333,16 @@
         throw new Error("getUserMedia unavailable");
       }
       if (cameraError) cameraError.hidden = true;
+      if (cameraFallbackBtn) cameraFallbackBtn.hidden = true;
+      const requestId = ++cameraStreamRequestId;
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } }
       });
+      if (requestId !== cameraStreamRequestId || cameraModal?.hidden) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
       cameraStream = stream;
       if (cameraVideo) {
         cameraVideo.srcObject = stream;
@@ -1343,17 +1357,24 @@
       }
       cameraModal.hidden = false;
       document.body.style.overflow = "hidden";
+      if (cameraError) cameraError.hidden = true;
+      if (cameraFallbackBtn) cameraFallbackBtn.hidden = true;
+      if (cameraCloseBtn) cameraCloseBtn.focus();
       try {
         await startCameraStream(cameraFacing);
       } catch (err) {
-        console.warn("⚠️ 应用内相机不可用，回退系统相机:", err);
-        closeCameraModal();
-        cameraInput?.click();
+        console.warn("⚠️ 应用内相机不可用，请使用系统相机:", err);
+        if (cameraError) cameraError.hidden = false;
+        if (cameraFallbackBtn) cameraFallbackBtn.hidden = false;
+        try { cameraInput?.click(); } catch (_) { /* 自动打开失败时用户可点击按钮 */ }
       }
     }
 
     function captureFromCamera() {
-      if (!cameraVideo || !cameraVideo.videoWidth) return;
+      if (!cameraVideo || !cameraVideo.videoWidth) {
+        showToast("相机尚未就绪，请稍候再试", "error");
+        return;
+      }
       const canvas = document.createElement("canvas");
       canvas.width = cameraVideo.videoWidth;
       canvas.height = cameraVideo.videoHeight;
@@ -1382,8 +1403,11 @@
       } catch (err) {
         try {
           await startCameraStream(cameraFacing);
-        } catch (_) { /* 保持当前镜头 */ }
-        showToast("无法切换镜头", "error");
+        } catch (_) {
+          if (cameraError) cameraError.hidden = false;
+          if (cameraFallbackBtn) cameraFallbackBtn.hidden = false;
+        }
+        showToast("无法切换镜头，请使用系统相机", "error");
       }
     }
 
@@ -1406,6 +1430,9 @@
     if (cameraCloseBtn) {
       cameraCloseBtn.addEventListener("click", closeCameraModal);
     }
+    if (cameraFallbackBtn) {
+      cameraFallbackBtn.addEventListener("click", () => cameraInput?.click());
+    }
     if (cameraFlipBtn) {
       cameraFlipBtn.addEventListener("click", flipCamera);
     }
@@ -1420,7 +1447,10 @@
     if (cameraInput) {
       cameraInput.addEventListener("change", (e) => {
         const file = e.target.files?.[0];
-        if (file) handleFileSelect(file);
+        if (file) {
+          closeCameraModal();
+          handleFileSelect(file);
+        }
       });
     }
 
@@ -2267,13 +2297,13 @@
       if (confidence >= 0.8) {
         badge.classList.add("badge-high");
         const resultModelVersion = lastAnalysisResult?.prediction?.model_version || lastAnalysisResult?.model_version || currentModelVersion;
-      badgeLabel.textContent = "高把握 · 鱼眼特征明确，AI 直接给出结果";
+      badgeLabel.textContent = "高置信度 · 鱼眼特征明确，AI 直接给出结果";
       } else if (confidence >= 0.6) {
         badge.classList.add("badge-mid");
-      badgeLabel.textContent = "中把握 · 建议结合感官指标（鳃色、气味、弹性）综合判断";
+      badgeLabel.textContent = "中置信度 · 建议结合感官指标（鳃色、气味、弹性）综合判断";
       } else {
         badge.classList.add("badge-low");
-      badgeLabel.textContent = "低把握 · 建议重新拍摄清晰鱼眼照片以获得准确结果";
+      badgeLabel.textContent = "低置信度 · 建议重新拍摄清晰鱼眼照片以获得准确结果";
       }
     }
 
@@ -2335,7 +2365,7 @@
       freshnessCard.classList.add(cls);
       freshnessLabel.textContent = level;
       const pct = (confidence * 100).toFixed(1);
-      freshnessMeta.textContent = `判断把握 ${pct}% · ${getModelDisplayName(modelVersion)}`;
+      freshnessMeta.textContent = `置信度 ${pct}% · ${getModelDisplayName(modelVersion)}`;
     }
 
     /**
@@ -2479,9 +2509,9 @@
      */
     function updateDescription(desc, confidence) {
       let prefix = "";
-      if (confidence >= 0.8) prefix = "✅ 高把握分析结果：";
-      else if (confidence >= 0.5) prefix = "⚠️ 中把握分析结果：";
-      else prefix = "❌ 低把握分析结果，建议重新拍摄：";
+      if (confidence >= 0.8) prefix = "✅ 高置信度分析结果：";
+      else if (confidence >= 0.5) prefix = "⚠️ 中置信度分析结果：";
+      else prefix = "❌ 低置信度分析结果，建议重新拍摄：";
       descQuote.textContent = prefix + desc;
     }
 
@@ -2823,7 +2853,7 @@
       item.dataset.id = r.id;
       item.setAttribute("role", "button");
       item.setAttribute("tabindex", "0");
-      item.setAttribute("aria-label", `${r.freshnessLevel}，判断把握 ${((r.confidenceScore || 0) * 100).toFixed(1)}%，${formatHistoryTime(r.timestamp)}`);
+      item.setAttribute("aria-label", `${r.freshnessLevel}，置信度 ${((r.confidenceScore || 0) * 100).toFixed(1)}%，${formatHistoryTime(r.timestamp)}`);
       const cls = r.freshnessLabel === 0 ? "high" : r.freshnessLabel === 1 ? "mid" : r.freshnessLabel === 2 ? "low" : "mid";
       const conf = ((r.confidenceScore || 0) * 100).toFixed(1);
       const thumbSrc = r.thumbnail || "";
@@ -3349,7 +3379,7 @@
         <div class="pdf-conf-bar-wrap">
           <div class="pdf-conf-bar"><div class="pdf-conf-bar-fill" style="width:${escapeHtml(conf)}%;background:${sc.primary};"></div></div>
         </div>
-  <div class="pdf-conf-meta">判断把握 · ${escapeHtml(model)} · AI 可解释性分析</div>
+  <div class="pdf-conf-meta">置信度 · ${escapeHtml(model)} · AI 可解释性分析</div>
       </div>
     </div>
   </div>

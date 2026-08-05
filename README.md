@@ -43,7 +43,7 @@
 - 📊 **Structured analysis** — rule-based eye appearance / clarity / color / texture / quality descriptions.
 - 📋 **Five-category recommendations** — storage / consumption / handling / safety / best practices.
 - 📄 **PDF report export** — original image, heatmap, probability distribution, and detailed analysis.
-- 📱 **PWA support** — offline caching with Service Worker.
+- 📱 **PWA support** — offline caching with Service Worker, plus an in-app camera viewfinder with a circular fish-eye guide frame on mobile.
 - 🧠 **MFED dataset** — 4800+ samples, 4 environments, 2 fish species, open-sourced on Mendeley Data.
 
 <a id="detection-workflow"></a>
@@ -162,7 +162,7 @@ MIT License — see [LICENSE](LICENSE).
 | 📊 **结构化分析** | 规则模板：鱼眼外观 / 清澈度 / 颜色 / 纹理 / 质量指标 |
 | 📋 **五大类建议** | 储存 / 食用 / 加工 / 安全 / 最佳实践 |
 | 📄 **PDF 报告** | 含原图、热力图、概率分布和详细分析 |
-| 📱 **PWA 支持** | Service Worker 离线缓存 |
+| 📱 **PWA 支持** | Service Worker 离线缓存 + 手机端拍照取景框（圆形鱼眼引导） |
 | 🧠 **MFED 数据集** | 4800+ 样本、4 种环境、2 种鱼类，开源至 Mendeley Data |
 
 <a id="检测流程"></a>
