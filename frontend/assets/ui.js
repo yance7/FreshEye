@@ -20,6 +20,7 @@
     initBubbles: function () {
       var bubblesEl = document.getElementById("bubbles");
       if (!bubblesEl) return;
+      if (bubblesEl.dataset.initialized === "true") return;
       if (reduceMotion.matches) return;
       var isMobile = window.matchMedia("(max-width: 640px)").matches;
       var COUNT = isMobile ? 6 : 12;
@@ -40,6 +41,7 @@
         frag.appendChild(b);
       }
       bubblesEl.appendChild(frag);
+      bubblesEl.dataset.initialized = "true";
     },
 
     /** 汉堡菜单：焦点陷阱 + Escape 关闭 + 焦点还原 */
@@ -47,6 +49,8 @@
       var toggle = document.getElementById("navToggle");
       var overlay = document.getElementById("navOverlay");
       if (!toggle || !overlay) return;
+      if (toggle.dataset.menuReady === "true") return;
+      toggle.dataset.menuReady = "true";
       var lastFocused = null;
 
       var openMenu = function () {
@@ -178,7 +182,7 @@
     document.addEventListener(
       "pointerover",
       function (e) {
-        if (reduceMotion.matches) return;
+        if (reduceMotion.matches || e.pointerType === "touch") return;
         var el = e.target && e.target.closest ? e.target.closest(TILT_SELECTOR) : null;
         if (el === activeEl) return;
         if (activeEl) resetTilt(activeEl);
@@ -210,6 +214,11 @@
       { passive: true }
     );
 
+    function releaseTilt() {
+      if (activeEl) resetTilt(activeEl);
+      activeEl = null;
+    }
+
     document.addEventListener(
       "pointerout",
       function (e) {
@@ -221,5 +230,7 @@
       },
       { passive: true }
     );
+    document.addEventListener("pointercancel", releaseTilt, { passive: true });
+    window.addEventListener("blur", releaseTilt, { passive: true });
   });
 })();

@@ -788,6 +788,7 @@
      */
     function initBubbles() {
       if (!bubblesEl) return;
+      if (bubblesEl.dataset.initialized === "true") return;
       // 尊重"减少动画"系统偏好 → 不生成气泡
       if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
       const isMobile = window.matchMedia?.("(max-width: 640px)").matches;
@@ -812,6 +813,7 @@
         frag.appendChild(b);
       }
       bubblesEl.appendChild(frag);
+      bubblesEl.dataset.initialized = "true";
     }
 
     // ============ 视差滚动 ============
@@ -819,13 +821,16 @@
      * 监听滚动，更新背景层 transform（rAF 节流）
      */
     function initParallax() {
+      const canParallax = window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
+      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      if (!bubblesEl || !canParallax || reducedMotion) return;
       let ticking = false;
       const onScroll = () => {
         if (!ticking) {
           requestAnimationFrame(() => {
             const y = window.scrollY || window.pageYOffset;
             // 背景气泡以 0.3 倍速反向移动（视差感）
-            if (bubblesEl) bubblesEl.style.transform = `translate3d(0, ${y * -0.15}px, 0)`;
+            bubblesEl.style.transform = `translate3d(0, ${y * -0.15}px, 0)`;
             ticking = false;
           });
           ticking = true;
@@ -887,7 +892,8 @@
       pupil.style.transition = 'transform 0.12s ease-out';
 
       // 降级：用户偏好减少动画时不启用鼠标跟随
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
       const MAX_OFFSET = 10;
       let rafId = null;
@@ -917,6 +923,7 @@
     // 瞳孔空闲随机漂移（鼠标静止或触摸设备时触发）
     (function() {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
       let lastMouseMove = Date.now();
       let driftTimeout = null;
       let returnTimeout = null;
@@ -925,8 +932,6 @@
       const eyeWrap = document.querySelector('.hero-eye-wrap');
       if (!pupil || !eyeWrap) return;
 
-      const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-
       function clearDriftTimers() {
         if (driftTimeout) { clearTimeout(driftTimeout); driftTimeout = null; }
         if (returnTimeout) { clearTimeout(returnTimeout); returnTimeout = null; }
@@ -934,7 +939,7 @@
 
       function driftPupil() {
         if (isDrifting) return;
-        if (!isTouchDevice && Date.now() - lastMouseMove < 3000) return;
+        if (Date.now() - lastMouseMove < 3000) return;
         isDrifting = true;
         const angle = Math.random() * Math.PI * 2;
         const dist = 5 + Math.random() * 3;
@@ -2442,9 +2447,11 @@
     <button type="button" class="pdf-tb-btn pdf-tb-close" id="pdfCloseBtn">关闭</button>
   </span>
 </div>`;
+      const pdfStylesheetUrl = new URL("assets/css/pdf-report.css", document.baseURI).href;
 
       let fullHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
   <title>鲜眸 · FreshEye AI 辅助评估报告</title>
+<link rel="stylesheet" href="${pdfStylesheetUrl}">
 <style>
   @page { margin: 0; size: A4; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -2559,7 +2566,7 @@
   }
   .pdf-section, .pdf-safety-banner, .pdf-advice-card, .pdf-conclusion, .pdf-overview, .pdf-scope-note { page-break-inside: avoid; break-inside: avoid; }
 </style></head><body>
-<div class="pdf-page pdf-single-page">
+<div class="pdf-page pdf-single-page" style="--pdf-primary:${sc.primary};--pdf-deep:${sc.deep};--pdf-bg:${sc.bg};--pdf-badge-bg:${sc.badgeBg};">
   <div class="pdf-header">
     <div class="pdf-header-brand">
       <div class="pdf-brand-main">鲜眸 · FreshEye</div>
@@ -2632,35 +2639,35 @@
     <div class="pdf-advice-grid">
       <div class="pdf-safety-banner ${stateLabel === 2 ? 'is-danger' : stateLabel === 1 ? 'is-warn' : 'is-safe'}" style="background:${sc.bg};">
         <div class="pdf-safety-title" style="color:${sc.deep};">
-          <svg class="pdf-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg class="pdf-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           ${stateLabel === 2 ? '谨慎提示' : stateLabel === 1 ? '进一步确认' : '视觉特征较好'}
         </div>
         <ul class="pdf-safety-list">${safetyItems}</ul>
       </div>
       <div class="pdf-advice-card">
         <h4 class="pdf-advice-title">
-          <svg class="pdf-svg-icon" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M8 6h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"/><line x1="2" y1="10" x2="6" y2="10"/><line x1="18" y1="10" x2="22" y2="10"/></svg>
+          <svg class="pdf-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M8 6h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"/><line x1="2" y1="10" x2="6" y2="10"/><line x1="18" y1="10" x2="22" y2="10"/></svg>
           ❄ 储存建议
         </h4>
         <ul>${buildRecList(recs.storage)}</ul>
       </div>
       <div class="pdf-advice-card">
         <h4 class="pdf-advice-title">
-          <svg class="pdf-svg-icon" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+          <svg class="pdf-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
           🍽 食用建议
         </h4>
         <ul>${buildRecList(recs.consumption)}</ul>
       </div>
       <div class="pdf-advice-card">
         <h4 class="pdf-advice-title">
-          <svg class="pdf-svg-icon" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+          <svg class="pdf-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
           🔪 加工建议
         </h4>
         <ul>${buildRecList(recs.handling)}</ul>
       </div>
       <div class="pdf-advice-card">
         <h4 class="pdf-advice-title">
-          <svg class="pdf-svg-icon" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <svg class="pdf-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${sc.primary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           ✓ 最佳实践
         </h4>
         <ul>${buildRecList(bestPractices)}</ul>

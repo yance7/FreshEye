@@ -1,4 +1,4 @@
-/* ============ FishFreshNetV1 模型架构样式 ============ */
+/* ============ FishFreshNetV1 / V2 模型架构样式 ============ */
 .model-arch-content { max-width: 100%; }
 
 .model-flow {
@@ -15,7 +15,8 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
-.model-flow-node {
+.model-flow-node,
+.model-flow-step {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,7 +28,45 @@
   text-align: center;
   min-width: 80px;
 }
-.model-flow-node.model-flow-core {
+.model-flow-step {
+  position: relative;
+  min-height: 94px;
+  justify-content: center;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.model-flow-step::before {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 22px;
+  line-height: 1;
+}
+.model-flow-step:nth-child(1)::before { content: "📷"; }
+.model-flow-step:nth-child(3)::before { content: "🧠"; }
+.model-flow-step:nth-child(5)::before { content: "⚡"; }
+.model-flow-step:nth-child(7)::before { content: "🎯"; }
+.model-flow-step:nth-child(9)::before { content: "📊"; }
+.model-flow-step:nth-child(11)::before { content: "🔥"; }
+.model-flow-step:nth-child(5)::after,
+.model-flow-step:nth-child(7)::after {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  color: var(--aqua);
+  background: rgba(39, 208, 196, 0.1);
+  font-size: 9px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.model-flow-step:nth-child(5)::after { content: "V2 通道优化"; }
+.model-flow-step:nth-child(7)::after { content: "V2 鱼眼先验"; }
+.model-flow-step:hover {
+  transform: translateY(-2px);
+  border-color: var(--aqua);
+  background: rgba(39, 208, 196, 0.1);
+}
+.model-flow-node.model-flow-core,
+.model-flow-step.model-flow-step-highlight {
   border-color: var(--aqua);
   background: rgba(39, 208, 196, 0.1);
 }
@@ -44,6 +83,11 @@
   flex-shrink: 0;
 }
 .model-flow-arrow-branch { color: rgba(245, 181, 74, 0.5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .model-flow-step,
+  .model-flow-step:hover { transform: none; transition: none; }
+}
 
 .model-section {
   margin-bottom: 32px;
@@ -158,7 +202,12 @@
 
 @media (max-width: 768px) {
   .model-flow { gap: 4px; padding: 16px 8px; }
-  .model-flow-node { padding: 8px 10px; min-width: 64px; }
+  .model-flow-node,
+  .model-flow-step { padding: 8px 10px; min-width: 64px; }
+  .model-flow-step { min-height: 82px; }
+  .model-flow-step::before { font-size: 19px; }
+  .model-flow-step:nth-child(5)::after,
+  .model-flow-step:nth-child(7)::after { font-size: 8px; }
   .model-flow-icon { font-size: 20px; }
   .model-flow-label { font-size: 11px; }
   .model-flow-arrow { font-size: 14px; }
@@ -169,7 +218,9 @@
   .model-stat-num { font-size: 18px; }
 }
 @media (max-width: 374px) {
-  .model-flow-node { min-width: 56px; padding: 6px 8px; }
+  .model-flow-node,
+  .model-flow-step { min-width: 56px; padding: 6px 8px; }
+  .model-flow-step { min-height: 74px; }
   .model-flow-label { font-size: 10px; }
   .model-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
 }
