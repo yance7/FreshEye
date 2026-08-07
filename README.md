@@ -7,7 +7,7 @@
 **一拍知鲜 · 吃得放心** — 基于 FishFreshNet CNN 的鱼眼新鲜度智能识别
 
 [![License](https://img.shields.io/badge/License-MIT-0a8a82?style=flat-square)](LICENSE)
-[![Accuracy](https://img.shields.io/badge/Accuracy-99.29%25-27d0c4?style=flat-square)](#models)
+[![MFED test](https://img.shields.io/badge/MFED%20test-99.29%25-27d0c4?style=flat-square)](#models)
 [![Models](https://img.shields.io/badge/Models-V1%20%2B%20V2-2f7fa0?style=flat-square)](#models)
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2B%20PyTorch-009688?style=flat-square)](#architecture)
 [![Frontend](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS-1b3a52?style=flat-square)](#architecture)
@@ -15,9 +15,19 @@
 
 **在线体验**：前端 [GitHub Pages](https://fresheye.yance777.com/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
+![FreshEye 产品预览](frontend/assets/og-cover.png)
+
 > 🐟 使用 **TRAE IDE** 全程开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
 
 </div>
+
+## 中文摘要
+
+FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系统：上传一张鱼眼照片，获得三级视觉分类、MFED 测试集最高 99.29% 的模型验证结果、置信度、Grad-CAM 判断依据、处理建议与可追溯报告。
+
+**核心链路**：上传 → AI 分析 → Grad-CAM → 结果与建议。报告仅描述视觉特征，不替代法定食品检测、质量合格证明或食用安全判断。
+
+**[在线体验](https://fresheye.yance777.com/)** · **[技术细节](frontend/about.html)** · **[公开数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)**
 
 ---
 

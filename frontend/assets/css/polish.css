@@ -1527,3 +1527,54 @@ main#architecture { max-width: 1180px; }
 @media (prefers-reduced-motion: reduce) {
   .hero-action-primary, .hero-action-secondary { transition: none; }
 }
+
+/* ============================================================ */
+/*  封版级移动端回归：窄屏不溢出、触控易操作、长内容可读             */
+/* ============================================================ */
+@media (max-width: 720px) {
+  html, body { min-width: 0; max-width: 100%; }
+  main { padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+  .section-head, .section-title, .section-hint { min-width: 0; max-width: 100%; }
+  .section-title { overflow-wrap: anywhere; }
+  .advanced-settings > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+  .advanced-settings-hint { margin-left: auto; text-align: right; }
+  .hero-actions { width: 100%; }
+  .hero-action-primary, .hero-action-secondary { flex: 1 1 0; min-width: 0; padding-inline: 12px; }
+  .hero-evidence-strip { width: 100%; flex-wrap: wrap; }
+  .hero-evidence-item { min-width: 0; }
+  .upload-cta-group { width: 100%; }
+  .upload-cta-group .upload-cta { flex: 1 1 0; min-width: 0; text-align: center; }
+  .preview-card { padding: 16px; }
+  .preview-info { gap: 8px 12px; font-size: 11px; }
+  .preview-info span { min-width: 0; max-width: 100%; }
+  .preview-info strong { max-width: 12em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .preview-actions { width: 100%; }
+  .preview-actions .btn-ghost { flex: 1 1 0; min-width: 0; justify-content: center; }
+  .report-toolbar { justify-content: stretch; }
+  .report-toolbar .btn-export { width: 100%; justify-content: center; }
+  .result-primary-card { padding: 18px 16px; gap: 18px; }
+  .result-primary-confidence { padding: 14px 10px; }
+  .result-details > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .result-details > summary span { max-width: none; text-align: right; font-size: 11px; line-height: 1.45; }
+  .metric-item, .metric-meta-item { min-width: 0; }
+  .metric-val { overflow-wrap: anywhere; }
+  .prob-name { width: 64px; flex: 0 0 64px; }
+  .prob-val { width: 54px; flex: 0 0 54px; }
+  .table-wrap { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+  .model-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+  .model-flow-arrow { display: none; }
+  .model-flow-node, .model-flow-step { min-width: 0; width: 100%; padding: 10px 6px; text-align: center; overflow-wrap: anywhere; }
+  .model-flow-label { font-size: 11px; }
+  .model-flow-label small { font-size: 9px; }
+}
+
+@media (max-width: 390px) {
+  .hero-action-primary, .hero-action-secondary { font-size: 12.5px; padding-inline: 8px; }
+  .hero-evidence-item { padding-inline: 6px; font-size: 10.5px; }
+  .result-details > summary { padding-inline: 13px; }
+  .result-details > summary span { font-size: 10px; }
+  .prob-name { width: 58px; flex-basis: 58px; font-size: 11px; }
+  .prob-val { width: 48px; flex-basis: 48px; font-size: 11px; }
+  .model-flow { gap: 6px; }
+  .model-flow-node, .model-flow-step { padding-inline: 4px; }
+}

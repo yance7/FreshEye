@@ -2435,42 +2435,26 @@
 
       // 报告内常驻工具栏：显式打印 / 下载 / 关闭，覆盖自动打印被拦截的场景（移动端常见）
       const PDF_TOOLBAR = `<div class="pdf-toolbar" id="pdfToolbar">
-  <span class="pdf-toolbar-title">🐟 鲜眸 · FreshEye · AI 辅助评估报告</span>
+  <span class="pdf-toolbar-title">鲜眸 · FreshEye · AI 辅助评估报告</span>
   <span class="pdf-toolbar-actions">
-    <button type="button" class="pdf-tb-btn pdf-tb-print" id="pdfPrintBtn">🖨 打印 / 存为 PDF</button>
-    <button type="button" class="pdf-tb-btn" id="pdfDownloadBtn">⬇ 下载报告</button>
-    <button type="button" class="pdf-tb-btn pdf-tb-close" id="pdfCloseBtn">✕ 关闭</button>
+    <button type="button" class="pdf-tb-btn pdf-tb-print" id="pdfPrintBtn">打印 / 存为 PDF</button>
+    <button type="button" class="pdf-tb-btn" id="pdfDownloadBtn">下载报告 HTML</button>
+    <button type="button" class="pdf-tb-btn pdf-tb-close" id="pdfCloseBtn">关闭</button>
   </span>
-</div>
-<script>
-  (function(){
-    var b=document.getElementById('pdfDownloadBtn');
-    var p=document.getElementById('pdfPrintBtn');
-    var c=document.getElementById('pdfCloseBtn');
-    if(p){p.addEventListener('click',function(){window.print();});}
-    if(c){c.addEventListener('click',function(){window.close();});}
-    if(b){b.addEventListener('click',function(){
-      var html='<!DOCTYPE html>'+document.documentElement.outerHTML;
-      var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');a.href=url;a.download='FreshEye_新鲜度报告.html';
-      document.body.appendChild(a);a.click();a.remove();
-      setTimeout(function(){URL.revokeObjectURL(url);},4000);
-    });}
-  })();
-<\/script>`;
+</div>`;
 
       let fullHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
   <title>鲜眸 · FreshEye AI 辅助评估报告</title>
 <style>
   @page { margin: 10mm 10mm; size: A4; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 190mm; background: #fff; }
-  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; color: #1e293b; background: #fff; font-size: 10px; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-variant-numeric: tabular-nums; }
-  .pdf-page { width: 190mm; padding: 0; }
+  html, body { width: 100%; min-width: 0; background: #e8f0f4; }
+  body { margin: 0; padding: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; color: #1e293b; font-size: 10px; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-variant-numeric: tabular-nums; }
+  .pdf-page { display: flex; flex-direction: column; width: 190mm; min-height: 277mm; margin: 16px auto; padding: 0; background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); page-break-inside: avoid; break-inside: avoid; }
   .pdf-section { margin-bottom: 11px; }
-  .pdf-section-title { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 7px; letter-spacing: 0.3px; display: flex; align-items: center; gap: 6px; }
+  .pdf-section-title { font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 7px; letter-spacing: 0.3px; display: flex; align-items: center; gap: 6px; }
   .pdf-section-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #e2e8f0, transparent); }
+  .pdf-section-mark { display: inline-grid; place-items: center; width: 22px; height: 18px; border-radius: 4px; background: ${sc.primary}; color: #fff; font-size: 8px; letter-spacing: 0.4px; }
   .pdf-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; }
   .pdf-header-brand { font-size: 15px; font-weight: 800; color: #0f172a; flex: 1; letter-spacing: -0.3px; }
   .pdf-header-title { font-size: 15px; font-weight: 600; color: #0f172a; text-align: center; flex: 1.5; letter-spacing: 0.5px; }
@@ -2520,27 +2504,49 @@
   .pdf-advice-card ul { list-style: none; padding: 0; margin: 0; }
   .pdf-advice-card li { font-size: 9px; color: #64748b; line-height: 1.55; padding-left: 9px; position: relative; margin-bottom: 1px; }
   .pdf-advice-card li::before { content: "•"; position: absolute; left: 1px; color: ${sc.primary}; font-weight: 700; font-size: 10px; }
-  .pdf-footer { margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 6px; text-align: center; }
+  .pdf-continuation { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; padding-bottom: 9px; border-bottom: 2px solid ${sc.primary}; color: #0f172a; font-size: 13px; font-weight: 700; }
+  .pdf-continuation .pdf-section-mark { width: 26px; height: 21px; }
+  .pdf-scope-note { margin-top: 12px; padding: 10px 12px; border: 1px solid #cbd5e1; border-left: 3px solid #0f766e; border-radius: 7px; background: #f8fafc; color: #475569; font-size: 9px; line-height: 1.65; }
+  .pdf-scope-note strong { color: #0f172a; }
+  .pdf-page-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 8.5px; letter-spacing: 0.3px; }
+  .pdf-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; }
   .pdf-footer-main { font-size: 8.5px; color: #94a3b8; letter-spacing: 0.3px; }
   .pdf-footer-sub { font-size: 7.5px; color: #cbd5e1; margin-top: 1px; }
-  .pdf-toolbar { position: sticky; top: 0; z-index: 999; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 14px; background: linear-gradient(90deg, #0f766e, #0e7490); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
+  .pdf-toolbar { position: sticky; top: 0; z-index: 999; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: linear-gradient(90deg, #0f766e, #0e7490); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
   .pdf-toolbar-title { font-size: 13px; font-weight: 700; }
   .pdf-toolbar-actions { display: flex; gap: 8px; }
-  .pdf-tb-btn { border: none; cursor: pointer; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 7px; color: #0f172a; background: #fff; transition: transform .15s ease, box-shadow .15s ease; }
+  .pdf-tb-btn { border: none; cursor: pointer; font-size: 12px; font-weight: 600; padding: 8px 12px; min-height: 36px; border-radius: 7px; color: #0f172a; background: #fff; transition: transform .15s ease, box-shadow .15s ease; }
   .pdf-tb-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
   .pdf-tb-print { background: #fde68a; }
   .pdf-tb-close { background: rgba(255,255,255,0.85); }
+  @media (max-width: 640px) {
+    .pdf-toolbar { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
+    .pdf-toolbar-title { text-align: center; }
+    .pdf-toolbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+    .pdf-tb-btn { min-height: 44px; padding-inline: 8px; }
+    .pdf-page { width: calc(100vw - 20px); min-height: auto; margin: 10px auto; padding: 16px; box-shadow: 0 5px 18px rgba(15, 23, 42, 0.12); }
+    .pdf-header { display: grid; grid-template-columns: 1fr; gap: 6px; align-items: start; }
+    .pdf-header-title { text-align: left; order: -1; font-size: 16px; }
+    .pdf-header-brand { font-size: 13px; }
+    .pdf-header-meta { justify-content: flex-start; text-align: left; }
+    .pdf-overview { flex-direction: column; }
+    .pdf-images { flex: initial; }
+    .pdf-advice-grid { grid-template-columns: 1fr; }
+    .pdf-conf-num { font-size: 32pt; }
+  }
   @media print {
-    body { background: #fff; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pdf-page { width: 190mm; page-break-inside: avoid; page-break-after: always; }
+    html, body { width: auto; background: #fff; }
+    body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pdf-page { width: 190mm; max-width: none; min-height: 277mm; margin: 0; padding: 0; box-shadow: none; page-break-inside: avoid; }
+    .pdf-page + .pdf-page { page-break-before: always; }
     .pdf-toolbar { display: none !important; }
   }
-  .pdf-section, .pdf-safety-banner, .pdf-advice-card, .pdf-conclusion, .pdf-overview { page-break-inside: avoid; break-inside: avoid; }
+  .pdf-section, .pdf-safety-banner, .pdf-advice-card, .pdf-conclusion, .pdf-overview, .pdf-scope-note { page-break-inside: avoid; break-inside: avoid; }
 </style></head><body>
 <div class="pdf-page">
   <div class="pdf-header">
     <div class="pdf-header-brand">
-    🐟 鲜眸 · FreshEye<span style="color:${sc.primary}"> · AI 辅助评估</span>
+    鲜眸 · FreshEye<span style="color:${sc.primary}"> · AI 辅助评估</span>
     </div>
     <div class="pdf-header-title">水产品新鲜度分析报告</div>
     <div class="pdf-header-meta">
@@ -2552,7 +2558,7 @@
   <hr class="pdf-header-divider">
 
   <div class="pdf-section">
-    <h3 class="pdf-section-title">📊 分析结果概览</h3>
+    <h3 class="pdf-section-title"><span class="pdf-section-mark">01</span>分析结果概览</h3>
     <div class="pdf-overview">
       <div class="pdf-images">
         ${imgBlock}
@@ -2573,7 +2579,7 @@
   </div>
 
   <div class="pdf-section">
-  <h3 class="pdf-section-title">📈 三种视觉分类概率</h3>
+  <h3 class="pdf-section-title"><span class="pdf-section-mark">02</span>三种视觉分类概率</h3>
     <div class="pdf-stacked-bar">
       ${probsHtml}
     </div>
@@ -2585,7 +2591,7 @@
   </div>
 
   <div class="pdf-section">
-    <h3 class="pdf-section-title">🔍 视觉特征与 AI 依据</h3>
+    <h3 class="pdf-section-title"><span class="pdf-section-mark">03</span>视觉特征与 AI 依据</h3>
     <div class="pdf-detail" style="border-left-color:${sc.primary};">
       <strong>鱼眼外观评估：</strong>${taggedDesc}
     </div>
@@ -2596,14 +2602,18 @@
       <strong>视觉特征对照：</strong>${taggedKgMatch}
     </div>
   </div>
+  <div class="pdf-page-footer">鲜眸 · FreshEye · AI 视觉新鲜度辅助评估 · 第 1 页 / 共 2 页</div>
+</div>
 
+<div class="pdf-page">
+  <div class="pdf-continuation"><span class="pdf-section-mark">04</span>处理建议与使用边界</div>
   <div class="pdf-section">
-    <h3 class="pdf-section-title">📋 延伸处置与消费指引</h3>
+    <h3 class="pdf-section-title"><span class="pdf-section-mark">04</span>延伸处置与消费指引</h3>
     <div class="pdf-advice-grid">
       <div class="pdf-safety-banner ${stateLabel === 2 ? 'is-danger' : stateLabel === 1 ? 'is-warn' : 'is-safe'}" style="background:${sc.bg};">
         <div class="pdf-safety-title" style="color:${sc.deep};">
           <svg class="pdf-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          ${stateLabel === 2 ? '⚠ 安全警示' : stateLabel === 1 ? '⚡ 安全提示' : '✓ 安全确认'}
+          ${stateLabel === 2 ? '谨慎提示' : stateLabel === 1 ? '进一步确认' : '视觉特征较好'}
         </div>
         <ul class="pdf-safety-list">${safetyItems}</ul>
       </div>
@@ -2638,8 +2648,10 @@
     </div>
   </div>
 
+  <div class="pdf-scope-note"><strong>使用边界</strong>　本报告基于单张鱼眼图像，描述的是视觉新鲜度特征。参考 GB 2733-2015 中动物性水产品感官要求，但不构成法定食品检验、质量合格证明或食用安全保证；如有异味、组织异常或储存条件不明，请结合其他感官指标与专业意见判断。</div>
+
   <div class="pdf-footer">
-    <div class="pdf-footer-main">鲜眸 · FreshEye · AI 视觉新鲜度辅助评估 · 第 1 页</div>
+    <div class="pdf-footer-main">鲜眸 · FreshEye · AI 视觉新鲜度辅助评估 · 第 2 页 / 共 2 页</div>
     <div class="pdf-footer-sub">参考 GB 2733-2015 中动物性水产品感官要求；验证范围：MFED 4800 张 / 2 种淡水鱼 / 4 种环境，FFE 81.18% · ${escapeHtml(model)} · ${escapeHtml(softwareVersion)} · ${escapeHtml(ts)}</div>
     <div class="pdf-footer-sub">本报告仅基于上传图像生成，不构成法定食品检验、质量合格证明或食用安全保证。</div>
   </div>
@@ -2669,6 +2681,43 @@
       win.location.href = blobUrl;
       win.document.title = "FreshEye_新鲜度报告_" + ts.replace(/[\s:]/g, "_");
 
+      // 报告页不内嵌 inline script，避免被严格 CSP 或移动浏览器拦截；由主窗口在 Blob 页面加载后绑定工具栏。
+      const bindReportToolbar = () => {
+        if (!win || win.closed) return;
+        try {
+          const printBtn = win.document.getElementById("pdfPrintBtn");
+          const downloadBtn = win.document.getElementById("pdfDownloadBtn");
+          const closeBtn = win.document.getElementById("pdfCloseBtn");
+          if (!printBtn || !downloadBtn || !closeBtn) {
+            setTimeout(bindReportToolbar, 120);
+            return;
+          }
+          if (printBtn.dataset.bound === "true") return;
+          printBtn.dataset.bound = "true";
+          printBtn.addEventListener("click", () => {
+            win.focus();
+            win.print();
+          });
+          downloadBtn.addEventListener("click", () => {
+            const reportBlob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
+            const reportUrl = URL.createObjectURL(reportBlob);
+            const link = document.createElement("a");
+            link.href = reportUrl;
+            link.download = "FreshEye_新鲜度报告_" + ts.replace(/[\s:]/g, "_") + ".html";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(reportUrl), 4000);
+          });
+          closeBtn.addEventListener("click", () => win.close());
+        } catch (_) {
+          setTimeout(bindReportToolbar, 120);
+        }
+      };
+      bindReportToolbar();
+
+      // 桌面端保留自动打印；触屏设备先展示报告页，避免 Safari / 移动浏览器直接弹出不可控打印面板。
+      const shouldAutoPrint = !window.matchMedia || !window.matchMedia("(pointer: coarse)").matches;
       let printed = false;
       const doPrint = () => {
         if (printed || !win || win.closed) return;
@@ -2706,11 +2755,13 @@
           }
         } catch (e) { setTimeout(doPrint, 400); }
       };
-      setTimeout(checkReady, 250);
-      setTimeout(doPrint, 6000); // 最终兜底：超时也尝试打印
+      if (shouldAutoPrint) {
+        setTimeout(checkReady, 250);
+        setTimeout(doPrint, 6000); // 最终兜底：超时也尝试打印
+      }
       setTimeout(() => { if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; } }, 60000);
 
-      showToast("PDF 报告已生成，可在弹出的报告中「打印 / 存为 PDF」", "success", 3500);
+      showToast(shouldAutoPrint ? "PDF 报告已生成，可在弹出的报告中「打印 / 存为 PDF」" : "报告已打开，请在报告页点击「打印 / 存为 PDF」", "success", 4000);
       } catch (e) {
         console.warn("PDF export error:", e);
         if (win) win.close();
