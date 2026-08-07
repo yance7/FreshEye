@@ -2523,6 +2523,12 @@
   .pdf-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #dfe9ed; text-align: center; }
   .pdf-footer-main { font-size: 8.5px; color: #94a3b8; letter-spacing: 0.3px; }
   .pdf-footer-sub { font-size: 7.5px; color: #cbd5e1; margin-top: 1px; }
+  .pdf-single-page .pdf-section { margin-bottom: 10px; }
+  .pdf-single-page .pdf-header-divider { margin-bottom: 11px; }
+  .pdf-single-page .pdf-detail { padding-block: 6px; margin-bottom: 4px; }
+  .pdf-single-page .pdf-continuation { margin-top: 1px; margin-bottom: 10px; padding-bottom: 7px; }
+  .pdf-single-page .pdf-scope-note { margin-top: 9px; padding-block: 8px; }
+  .pdf-single-page .pdf-footer { padding-top: 7px; }
   .pdf-toolbar { position: sticky; top: 0; z-index: 999; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: linear-gradient(90deg, #0f766e, #0e7490); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
   .pdf-toolbar-title { font-size: 13px; font-weight: 700; }
   .pdf-toolbar-actions { display: flex; gap: 8px; }
@@ -2549,12 +2555,11 @@
     html, body { width: auto; background: #fff; }
     body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .pdf-page { width: 210mm; max-width: none; min-height: 297mm; margin: 0; padding: 15mm 12mm 10mm; border: 0; box-shadow: none; page-break-inside: avoid; }
-    .pdf-page + .pdf-page { page-break-before: always; }
     .pdf-toolbar { display: none !important; }
   }
   .pdf-section, .pdf-safety-banner, .pdf-advice-card, .pdf-conclusion, .pdf-overview, .pdf-scope-note { page-break-inside: avoid; break-inside: avoid; }
 </style></head><body>
-<div class="pdf-page">
+<div class="pdf-page pdf-single-page">
   <div class="pdf-header">
     <div class="pdf-header-brand">
       <div class="pdf-brand-main">鲜眸 · FreshEye</div>
@@ -2620,10 +2625,6 @@
       <strong>视觉特征对照：</strong>${taggedKgMatch}
     </div>
   </div>
-  <div class="pdf-page-footer">鲜眸 · FreshEye · AI 视觉新鲜度辅助评估 · 第 1 页 / 共 2 页</div>
-</div>
-
-<div class="pdf-page">
   <div class="pdf-continuation"><span class="pdf-section-mark">04</span>处理建议与使用边界</div>
   <div class="pdf-section">
     <h3 class="pdf-section-title"><span class="pdf-section-mark">04</span>延伸处置与消费指引</h3>
@@ -2670,7 +2671,7 @@
   <div class="pdf-scope-note"><strong>使用边界</strong>　本报告基于单张鱼眼图像，描述的是视觉新鲜度特征。参考 GB 2733-2015 中动物性水产品感官要求，但不构成法定食品检验、质量合格证明或食用安全保证；如有异味、组织异常或储存条件不明，请结合其他感官指标与专业意见判断。</div>
 
   <div class="pdf-footer">
-    <div class="pdf-footer-main">鲜眸 · FreshEye · AI 视觉新鲜度辅助评估 · 第 2 页 / 共 2 页</div>
+    <div class="pdf-footer-main">鲜眸 · FreshEye · AI 视觉新鲜度辅助评估 · 第 1 页 / 共 1 页</div>
     <div class="pdf-footer-sub">参考 GB 2733-2015 中动物性水产品感官要求；验证范围：MFED 4800 张 / 2 种淡水鱼 / 4 种环境，FFE 81.18% · ${escapeHtml(model)} · ${escapeHtml(softwareVersion)} · ${escapeHtml(ts)}</div>
     <div class="pdf-footer-sub">本报告仅基于上传图像生成，不构成法定食品检验、质量合格证明或食用安全保证。</div>
   </div>
