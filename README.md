@@ -19,8 +19,6 @@
 
 **快速入口**：[开始体验](https://fresheye.yance777.com/) · [产品与模型说明](frontend/about.html) · [使用指南](frontend/guide.html) · [开放数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)
 
-![FreshEye 产品预览](frontend/assets/og-cover.png)
-
 > **能力边界**：报告描述的是鱼眼图像中的视觉新鲜度特征，不替代法定食品检验、质量合格证明或食用安全判断；如有异味、组织异常或储存条件不明，请结合其他感官指标与专业意见判断。
 
 > 🐟 使用 **TRAE IDE** 全程开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
@@ -37,7 +35,22 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 
 ---
 
-> [English](#english) | [中文](#中文) | [核心能力](#核心能力) | [检测流程](#检测流程) | [架构](#架构) | [模型](#模型) | [部署](#部署) | [仓库结构](#仓库结构)
+## Contents
+
+- [English](#english)
+  - [Key Features](#key-features)
+  - [Detection Workflow](#detection-workflow)
+  - [Architecture](#architecture)
+  - [Models](#models)
+  - [Deployment & API](#deployment--api)
+  - [Repository Structure](#repository-structure)
+- [中文说明](#中文说明)
+  - [核心能力](#核心能力)
+  - [检测流程](#检测流程)
+  - [架构](#架构)
+  - [模型](#模型)
+  - [部署](#部署)
+  - [仓库结构](#仓库结构)
 
 ---
 
@@ -61,6 +74,20 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 - 📄 **PDF report export** — original image, heatmap, probability distribution, and detailed analysis.
 - 📱 **PWA support** — offline caching with Service Worker, plus an in-app camera viewfinder with a circular fish-eye guide frame on mobile.
 - 🧠 **MFED dataset** — 4800+ samples, 4 environments, 2 fish species, open-sourced on Mendeley Data.
+
+### Quick Start
+
+1. Open the [live demo](https://fresheye.yance777.com/) and upload, drag, paste, or capture a fish-eye image.
+2. Choose FishFreshNetV1 or V2, then review the freshness class, confidence, probability distribution, and Grad-CAM evidence.
+3. Export the result as a single-page A4 report or revisit it from local history.
+
+For a local frontend preview (no build step required):
+
+```bash
+python -m http.server 8000 --directory frontend
+```
+
+Then open <http://localhost:8000> in a browser. The production API endpoint is configured in `frontend/assets/config.js`.
 
 <a id="detection-workflow"></a>
 
@@ -108,12 +135,13 @@ Both models are trained on the **MFED** dataset (4800+ samples, 4 environments, 
 
 <a id="deployment"></a>
 
-### Deployment
+### Deployment & API
 
 - **Frontend**: automatically deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to `main`.
-- **Backend**: containerized with `deploy/Dockerfile` and deployed on Hugging Face Spaces.
-- **Model weights**: place `fishfreshnet_v1.pth` and `fishfreshnet_v2.pth` under `deploy/src/storage/` (gitignored, not included in the repository).
-- **Environment variables**: `V1_MODEL_PATH`, `V2_MODEL_PATH`, `PORT`, `CORS_ORIGINS`, `FISHFRESHNET_MAX_IMAGE_MB`.
+- **Backend**: FastAPI + PyTorch service deployed separately on [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye).
+- **Health check**: `GET https://andreas777-fresheye.hf.space/health`.
+- **Analysis API**: `POST /predict_with_gradcam?model_version=v1|v2` with a multipart image field named `file`.
+- **Integration guide**: see [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md).
 
 <a id="repository-structure"></a>
 
@@ -121,14 +149,6 @@ Both models are trained on the **MFED** dataset (4800+ samples, 4 environments, 
 
 ```text
 FreshEye/
-├── deploy/                     # Production backend (FastAPI + PyTorch, HF Spaces)
-│   ├── app.py                  # API: /predict, /predict_with_gradcam, /health
-│   ├── src/
-│   │   ├── fishfreshnet_v2_model.py  # V2 model architecture
-│   │   └── storage/            # Model weights (gitignored)
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── test_app.py
 ├── frontend/                   # Production frontend (GitHub Pages)
 │   ├── index.html              # Main analysis page
 │   ├── about.html              # Tech architecture & model details
@@ -138,7 +158,6 @@ FreshEye/
 │   └── assets/                 # CSS, JS, Service Worker, samples
 ├── docs/                       # Model integration guide & banner
 ├── .github/workflows/deploy.yml
-├── AGENTS.md                   # Agent navigation guide
 └── LICENSE
 ```
 
@@ -148,9 +167,10 @@ FreshEye/
 
 | File | Description |
 | :--- | :--- |
-| [`deploy/README.md`](deploy/README.md) | Backend API & deployment guide |
-| [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md) | Model & API integration guide |
-| [`AGENTS.md`](AGENTS.md) | Repository navigation guide |
+| [`frontend/about.html`](frontend/about.html) | Product, architecture, model, and validation details |
+| [`frontend/guide.html`](frontend/guide.html) | End-user guide and result interpretation |
+| [`frontend/fish.html`](frontend/fish.html) | Fish-eye freshness reference information |
+| [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md) | Model and API integration reference |
 
 ### License
 
@@ -158,9 +178,9 @@ MIT License — see [LICENSE](LICENSE).
 
 ---
 
-<a id="中文"></a>
+<a id="中文说明"></a>
 
-## 中文
+## 中文说明
 
 鲜眸（FreshEye）是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
 
@@ -209,7 +229,7 @@ MIT License — see [LICENSE](LICENSE).
 | 部分 | 技术栈 | 说明 |
 | :--- | :--- | :--- |
 | 前端 | 纯 HTML/CSS/JS + PWA | 部署于 GitHub Pages，无需构建步骤 |
-| 后端 | FastAPI + PyTorch + OpenCV | 通过 Docker 部署于 Hugging Face Spaces |
+| 后端 | FastAPI + PyTorch + OpenCV | 独立部署于 Hugging Face Spaces |
 | 模型 | FishFreshNetV1 / FishFreshNetV2 | 进程内 CNN 推理 + Grad-CAM |
 
 前端负责格式校验、图片压缩和置信度自适应渲染；后端负责 CNN 推理与 Grad-CAM 热力图生成。整个系统不依赖外部模型服务或大语言模型。
@@ -230,9 +250,10 @@ MIT License — see [LICENSE](LICENSE).
 ### 部署
 
 - **前端**：每次推送至 `main` 分支时，由 `.github/workflows/deploy.yml` 自动部署到 GitHub Pages。
-- **后端**：使用 `deploy/Dockerfile` 容器化，部署于 Hugging Face Spaces。
-- **模型权重**：将 `fishfreshnet_v1.pth` 与 `fishfreshnet_v2.pth` 放入 `deploy/src/storage/`（已被 gitignore，不随仓库分发）。
-- **环境变量**：`V1_MODEL_PATH`、`V2_MODEL_PATH`、`PORT`、`CORS_ORIGINS`、`FISHFRESHNET_MAX_IMAGE_MB`。
+- **后端**：FastAPI + PyTorch 服务独立部署于 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)。
+- **健康检查**：`GET https://andreas777-fresheye.hf.space/health`。
+- **分析接口**：`POST /predict_with_gradcam?model_version=v1|v2`，通过 `file` 字段上传图片。
+- **接口参考**：见 [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md)。
 
 <a id="仓库结构"></a>
 
@@ -240,14 +261,6 @@ MIT License — see [LICENSE](LICENSE).
 
 ```text
 FreshEye/
-├── deploy/                     # 生产后端（FastAPI + PyTorch，HF Spaces）
-│   ├── app.py                  # API：/predict、/predict_with_gradcam、/health
-│   ├── src/
-│   │   ├── fishfreshnet_v2_model.py  # V2 模型架构
-│   │   └── storage/            # 模型权重（gitignored）
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── test_app.py
 ├── frontend/                   # 生产前端（GitHub Pages）
 │   ├── index.html              # 主分析页
 │   ├── about.html              # 技术架构与模型详情
@@ -257,7 +270,6 @@ FreshEye/
 │   └── assets/                 # CSS、JS、Service Worker、示例图
 ├── docs/                       # 模型集成指南与横幅
 ├── .github/workflows/deploy.yml
-├── AGENTS.md                   # Agent 导航指引
 └── LICENSE
 ```
 
@@ -265,9 +277,10 @@ FreshEye/
 
 | 文件 | 说明 |
 | :--- | :--- |
-| [`deploy/README.md`](deploy/README.md) | 后端 API 与部署指南 |
+| [`frontend/about.html`](frontend/about.html) | 产品、架构、模型与验证详情 |
+| [`frontend/guide.html`](frontend/guide.html) | 用户使用指南与结果解读 |
+| [`frontend/fish.html`](frontend/fish.html) | 鱼眼新鲜度参考信息 |
 | [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md) | 模型与 API 集成指南 |
-| [`AGENTS.md`](AGENTS.md) | 仓库导航指引 |
 
 ### 许可协议
 
@@ -277,7 +290,7 @@ MIT License — 详见 [LICENSE](LICENSE)。
 
 <div align="center">
 
-**鲜眸 · FreshEye** · 一拍知鲜，吃得放心 🐟
+**鲜眸 · FreshEye** · 看一眼鱼眼，判断新鲜度 🐟
 
 Made with TRAE IDE · TRAE AI Creativity Competition · Social Service Track
 
