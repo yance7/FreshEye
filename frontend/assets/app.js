@@ -2446,50 +2446,60 @@
       let fullHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
   <title>鲜眸 · FreshEye AI 辅助评估报告</title>
 <style>
-  @page { margin: 10mm 10mm; size: A4; }
+  @page { margin: 0; size: A4; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; min-width: 0; background: #e8f0f4; }
-  body { margin: 0; padding: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; color: #1e293b; font-size: 10px; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-variant-numeric: tabular-nums; }
-  .pdf-page { display: flex; flex-direction: column; width: 190mm; min-height: 277mm; margin: 16px auto; padding: 0; background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); page-break-inside: avoid; break-inside: avoid; }
-  .pdf-section { margin-bottom: 11px; }
-  .pdf-section-title { font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 7px; letter-spacing: 0.3px; display: flex; align-items: center; gap: 6px; }
+  body { margin: 0; padding: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; color: #1e293b; font-size: 10.5px; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-variant-numeric: tabular-nums; }
+  .pdf-page { position: relative; display: flex; flex-direction: column; width: 210mm; min-height: 297mm; margin: 16px auto; padding: 15mm 12mm 10mm; overflow: hidden; background: #fff; border: 1px solid #d9e4ea; box-shadow: 0 12px 34px rgba(15, 23, 42, 0.12); page-break-inside: avoid; break-inside: avoid; }
+  .pdf-page::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, ${sc.deep}, ${sc.primary}, #34d3c2 72%, #d8fbf5); }
+  .pdf-section { margin-bottom: 14px; }
+  .pdf-section-title { font-size: 12.5px; font-weight: 750; color: #1e293b; margin-bottom: 8px; letter-spacing: 0.3px; display: flex; align-items: center; gap: 7px; }
   .pdf-section-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #e2e8f0, transparent); }
-  .pdf-section-mark { display: inline-grid; place-items: center; width: 22px; height: 18px; border-radius: 4px; background: ${sc.primary}; color: #fff; font-size: 8px; letter-spacing: 0.4px; }
-  .pdf-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; }
-  .pdf-header-brand { font-size: 15px; font-weight: 800; color: #0f172a; flex: 1; letter-spacing: -0.3px; }
-  .pdf-header-title { font-size: 15px; font-weight: 600; color: #0f172a; text-align: center; flex: 1.5; letter-spacing: 0.5px; }
+  .pdf-section-mark { display: inline-grid; place-items: center; width: 24px; height: 19px; border-radius: 5px; background: ${sc.primary}; color: #fff; font-size: 8px; letter-spacing: 0.4px; box-shadow: 0 2px 5px ${sc.primary}35; }
+  .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 11px; }
+  .pdf-header-brand { flex: 1; color: #0f172a; letter-spacing: -0.3px; }
+  .pdf-brand-main { font-size: 16px; font-weight: 800; line-height: 1.25; }
+  .pdf-brand-sub { margin-top: 3px; font-size: 8.5px; color: ${sc.deep}; font-weight: 650; letter-spacing: 0.35px; }
+  .pdf-header-title { flex: 1.4; padding-top: 1px; text-align: center; color: #0f172a; letter-spacing: 0.5px; }
+  .pdf-title-kicker { display: block; margin-bottom: 3px; color: #94a3b8; font-size: 7.5px; font-weight: 700; letter-spacing: 1.4px; }
+  .pdf-title-main { display: block; font-size: 15px; font-weight: 700; line-height: 1.25; }
   .pdf-header-meta { font-size: 8px; color: #64748b; text-align: right; line-height: 1.6; flex: 1.2; display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
-  .pdf-meta-tag { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; white-space: nowrap; font-size: 8px; }
+  .pdf-meta-tag { background: #f5f9fb; border: 1px solid #e5eef2; padding: 3px 7px; border-radius: 5px; white-space: nowrap; font-size: 8px; }
   .pdf-meta-tag strong { color: #475569; font-weight: 600; }
-  .pdf-header-divider { height: 2.5px; background: linear-gradient(90deg, ${sc.primary}, ${sc.primary}40, transparent); border: none; margin: 0 0 12px 0; border-radius: 2px; }
+  .pdf-header-divider { height: 1px; background: linear-gradient(90deg, ${sc.primary}, #dbeafe, transparent); border: none; margin: 0 0 15px 0; }
   .pdf-overview { display: flex; gap: 10px; margin-bottom: 0; align-items: stretch; }
   .pdf-images { flex: 0 0 56%; display: flex; gap: 8px; }
   .pdf-img-block { flex: 1; display: flex; flex-direction: column; }
-  .pdf-img-wrap { aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; }
+  .pdf-img-wrap { aspect-ratio: 1; padding: 3px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 5px 14px rgba(15, 23, 42, 0.09); border: 1px solid #dce9ee; }
   .pdf-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .pdf-img-empty { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #94a3b8; font-size: 10px; border-radius: 8px; border: 1px dashed #e2e8f0; }
-  .pdf-caption { font-size: 8px; color: #94a3b8; text-align: center; margin-top: 3px; }
-  .pdf-conclusion { flex: 1; border-radius: 10px; padding: 12px 14px 11px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04); }
+  .pdf-caption { font-size: 8px; color: #7c93a1; text-align: center; margin-top: 5px; font-weight: 600; }
+  .pdf-conclusion { position: relative; flex: 1; border-radius: 12px; padding: 13px 15px 12px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); border: 1px solid ${sc.primary}35; overflow: hidden; }
+  .pdf-conclusion::after { content: ""; position: absolute; right: -26px; top: -32px; width: 92px; height: 92px; border: 1px solid ${sc.primary}35; border-radius: 50%; box-shadow: 0 0 0 12px ${sc.primary}10, 0 0 0 24px ${sc.primary}08; }
+  .pdf-conclusion-kicker { position: relative; z-index: 1; margin-bottom: 8px; color: #64748b; font-size: 8.5px; font-weight: 700; letter-spacing: 0.55px; }
   .pdf-level-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 6px; align-self: flex-start; letter-spacing: 0.3px; }
   .pdf-badge-icon { margin-right: 3px; }
-  .pdf-conf-num { font-size: 36pt; font-weight: 700; line-height: 1.1; margin-bottom: 6px; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+  .pdf-conf-label { position: relative; z-index: 1; margin: 1px 0 1px; color: #64748b; font-size: 8.5px; }
+  .pdf-conf-num { position: relative; z-index: 1; font-size: 36pt; font-weight: 750; line-height: 1.05; margin-bottom: 8px; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
   .pdf-conf-bar-wrap { margin-bottom: 5px; }
-  .pdf-conf-bar { height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+  .pdf-conf-bar { height: 7px; background: #e1e9ed; border-radius: 999px; overflow: hidden; }
   .pdf-conf-bar-fill { height: 100%; border-radius: 999px; }
   .pdf-conf-meta { font-size: 8.5px; color: #94a3b8; line-height: 1.4; }
-  .pdf-stacked-bar { display: flex; height: 24px; border-radius: 999px; overflow: hidden; margin-bottom: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .pdf-conclusion-foot { position: relative; z-index: 1; margin-top: 8px; padding-top: 7px; border-top: 1px solid ${sc.primary}25; color: ${sc.deep}; font-size: 8px; font-weight: 650; }
+  .pdf-stacked-bar { display: flex; height: 27px; border-radius: 999px; overflow: hidden; margin-bottom: 7px; box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08); }
   .pdf-bar-seg { display: flex; align-items: center; justify-content: center; }
   .pdf-seg-text { font-size: 9px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); white-space: nowrap; padding: 0 8px; font-variant-numeric: tabular-nums; letter-spacing: 0.2px; }
   .pdf-bar-legend { display: flex; gap: 14px; justify-content: center; font-size: 9px; color: #64748b; flex-wrap: wrap; }
   .pdf-legend-item { display: flex; align-items: center; gap: 4px; }
   .pdf-legend-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
-  .pdf-detail { background: #f8fafc; border-left: 3px solid ${sc.primary}; padding: 6px 10px; margin-bottom: 5px; border-radius: 0 6px 6px 0; font-size: 10px; line-height: 1.65; color: #475569; }
+  .pdf-section-note { margin-top: 7px; text-align: center; color: #94a3b8; font-size: 8.5px; }
+  .pdf-detail { background: #f8fafc; border: 1px solid #e7eff3; border-left: 3px solid ${sc.primary}; padding: 8px 11px; margin-bottom: 6px; border-radius: 0 8px 8px 0; font-size: 10px; line-height: 1.65; color: #475569; }
   .pdf-detail strong { color: #1e293b; font-weight: 600; }
   .pdf-tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600; margin: 0 1px; line-height: 1.5; }
   .pdf-tag-danger { background: #fee2e2; color: #991b1b; }
   .pdf-tag-warn { background: #fef3c7; color: #92400e; }
   .pdf-tag-safe { background: #d1fae5; color: #065f46; }
-  .pdf-safety-banner { grid-column: 1 / -1; border-radius: 8px; padding: 9px 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04); }
+  .pdf-safety-banner { grid-column: 1 / -1; border-radius: 10px; padding: 11px 13px; box-shadow: 0 5px 14px rgba(15, 23, 42, 0.07); border: 1px solid rgba(0,0,0,0.04); }
   .pdf-safety-banner.is-danger { border-left: 4px solid #ef4444; background-color: #fef2f2; }
   .pdf-safety-banner.is-warn { border-left: 4px solid #f59e0b; }
   .pdf-safety-banner.is-safe { border-left: 4px solid #10b981; }
@@ -2498,18 +2508,19 @@
   .pdf-safety-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 2px 16px; }
   .pdf-safety-list li { font-size: 9.5px; color: #475569; line-height: 1.55; padding-left: 10px; position: relative; }
   .pdf-safety-list li::before { content: "•"; position: absolute; left: 1px; color: ${sc.primary}; font-weight: 700; }
-  .pdf-advice-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-items: stretch; }
-  .pdf-advice-card { background: #f8fafc; border-radius: 8px; padding: 8px 11px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; display: flex; flex-direction: column; }
+  .pdf-advice-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; align-items: stretch; }
+  .pdf-advice-card { position: relative; background: linear-gradient(145deg, #fbfdfe, #f5f9fb); border-radius: 10px; padding: 12px 12px 10px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05); border: 1px solid #e3edf1; display: flex; flex-direction: column; overflow: hidden; }
+  .pdf-advice-card::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 3px; background: linear-gradient(90deg, ${sc.primary}, ${sc.primary}15); }
   .pdf-advice-title { font-size: 10.5px; font-weight: 600; color: #334155; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
   .pdf-advice-card ul { list-style: none; padding: 0; margin: 0; }
   .pdf-advice-card li { font-size: 9px; color: #64748b; line-height: 1.55; padding-left: 9px; position: relative; margin-bottom: 1px; }
   .pdf-advice-card li::before { content: "•"; position: absolute; left: 1px; color: ${sc.primary}; font-weight: 700; font-size: 10px; }
-  .pdf-continuation { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; padding-bottom: 9px; border-bottom: 2px solid ${sc.primary}; color: #0f172a; font-size: 13px; font-weight: 700; }
+  .pdf-continuation { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid #dbe7ec; color: #0f172a; font-size: 13px; font-weight: 700; }
   .pdf-continuation .pdf-section-mark { width: 26px; height: 21px; }
-  .pdf-scope-note { margin-top: 12px; padding: 10px 12px; border: 1px solid #cbd5e1; border-left: 3px solid #0f766e; border-radius: 7px; background: #f8fafc; color: #475569; font-size: 9px; line-height: 1.65; }
-  .pdf-scope-note strong { color: #0f172a; }
-  .pdf-page-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 8.5px; letter-spacing: 0.3px; }
-  .pdf-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; }
+  .pdf-scope-note { margin-top: 14px; padding: 11px 13px; border: 1px solid #cbdde3; border-left: 4px solid #0f766e; border-radius: 9px; background: linear-gradient(135deg, #f7fbfc, #f1f7f8); color: #475569; font-size: 9px; line-height: 1.65; }
+  .pdf-scope-note strong { display: block; margin-bottom: 3px; color: #0f172a; font-size: 10px; }
+  .pdf-page-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #dfe9ed; text-align: center; color: #94a3b8; font-size: 8.5px; letter-spacing: 0.3px; }
+  .pdf-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #dfe9ed; text-align: center; }
   .pdf-footer-main { font-size: 8.5px; color: #94a3b8; letter-spacing: 0.3px; }
   .pdf-footer-sub { font-size: 7.5px; color: #cbd5e1; margin-top: 1px; }
   .pdf-toolbar { position: sticky; top: 0; z-index: 999; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: linear-gradient(90deg, #0f766e, #0e7490); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
@@ -2524,10 +2535,10 @@
     .pdf-toolbar-title { text-align: center; }
     .pdf-toolbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
     .pdf-tb-btn { min-height: 44px; padding-inline: 8px; }
-    .pdf-page { width: calc(100vw - 20px); min-height: auto; margin: 10px auto; padding: 16px; box-shadow: 0 5px 18px rgba(15, 23, 42, 0.12); }
+    .pdf-page { width: calc(100vw - 20px); min-height: auto; margin: 10px auto; padding: 20px 16px 16px; box-shadow: 0 5px 18px rgba(15, 23, 42, 0.12); }
     .pdf-header { display: grid; grid-template-columns: 1fr; gap: 6px; align-items: start; }
     .pdf-header-title { text-align: left; order: -1; font-size: 16px; }
-    .pdf-header-brand { font-size: 13px; }
+    .pdf-brand-main { font-size: 14px; }
     .pdf-header-meta { justify-content: flex-start; text-align: left; }
     .pdf-overview { flex-direction: column; }
     .pdf-images { flex: initial; }
@@ -2537,7 +2548,7 @@
   @media print {
     html, body { width: auto; background: #fff; }
     body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pdf-page { width: 190mm; max-width: none; min-height: 277mm; margin: 0; padding: 0; box-shadow: none; page-break-inside: avoid; }
+    .pdf-page { width: 210mm; max-width: none; min-height: 297mm; margin: 0; padding: 15mm 12mm 10mm; border: 0; box-shadow: none; page-break-inside: avoid; }
     .pdf-page + .pdf-page { page-break-before: always; }
     .pdf-toolbar { display: none !important; }
   }
@@ -2546,9 +2557,13 @@
 <div class="pdf-page">
   <div class="pdf-header">
     <div class="pdf-header-brand">
-    鲜眸 · FreshEye<span style="color:${sc.primary}"> · AI 辅助评估</span>
+      <div class="pdf-brand-main">鲜眸 · FreshEye</div>
+      <div class="pdf-brand-sub">AI 视觉新鲜度辅助评估</div>
     </div>
-    <div class="pdf-header-title">水产品新鲜度分析报告</div>
+    <div class="pdf-header-title">
+      <span class="pdf-title-kicker">VISION FRESHNESS REPORT</span>
+      <strong class="pdf-title-main">水产品新鲜度分析报告</strong>
+    </div>
     <div class="pdf-header-meta">
   <span class="pdf-meta-tag"><strong>模型版本</strong> ${escapeHtml(model)}</span>
       <span class="pdf-meta-tag"><strong>耗时</strong> ${escapeHtml(duration)}</span>
@@ -2565,15 +2580,17 @@
         ${heatBlock}
       </div>
       <div class="pdf-conclusion" style="background:${sc.bg};">
-        <div style="width:100%;height:3px;border-radius:999px;background:${sc.primary};margin-bottom:8px;"></div>
+        <div class="pdf-conclusion-kicker">本次分析结论</div>
         <div class="pdf-level-badge" style="background:${sc.badgeBg};color:${sc.deep};">
           <span class="pdf-badge-icon">${sc.icon}</span> ${escapeHtml(level)}
         </div>
+        <div class="pdf-conf-label">视觉新鲜度置信度</div>
         <div class="pdf-conf-num" style="color:${sc.primary};">${escapeHtml(conf)}<span style="font-size:18pt;font-weight:600;vertical-align:super;">%</span></div>
         <div class="pdf-conf-bar-wrap">
           <div class="pdf-conf-bar"><div class="pdf-conf-bar-fill" style="width:${escapeHtml(conf)}%;background:${sc.primary};"></div></div>
         </div>
-  <div class="pdf-conf-meta">模型分数 · ${escapeHtml(model)} · AI 可解释性分析</div>
+        <div class="pdf-conf-meta">模型分数 · ${escapeHtml(model)} · AI 可解释性分析</div>
+        <div class="pdf-conclusion-foot">基于单张鱼眼图像的视觉辅助判断</div>
       </div>
     </div>
   </div>
@@ -2588,6 +2605,7 @@
       <span class="pdf-legend-item"><span class="pdf-legend-dot" style="background:${stateColors[1].primary};"></span>新鲜 ${midPct}%</span>
       <span class="pdf-legend-item"><span class="pdf-legend-dot" style="background:${stateColors[2].primary};"></span>不新鲜 ${lowPct}%</span>
     </div>
+    <div class="pdf-section-note">概率表示模型对本次图像的相对判断，不等同于食品安全概率</div>
   </div>
 
   <div class="pdf-section">
@@ -2609,6 +2627,7 @@
   <div class="pdf-continuation"><span class="pdf-section-mark">04</span>处理建议与使用边界</div>
   <div class="pdf-section">
     <h3 class="pdf-section-title"><span class="pdf-section-mark">04</span>延伸处置与消费指引</h3>
+    <p class="pdf-section-note" style="margin: -2px 0 9px; text-align: left;">以下内容用于辅助记录与后续复核，请结合实际气味、组织状态和储存条件判断。</p>
     <div class="pdf-advice-grid">
       <div class="pdf-safety-banner ${stateLabel === 2 ? 'is-danger' : stateLabel === 1 ? 'is-warn' : 'is-safe'}" style="background:${sc.bg};">
         <div class="pdf-safety-title" style="color:${sc.deep};">
