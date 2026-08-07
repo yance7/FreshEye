@@ -126,6 +126,9 @@
     const freshnessLabel = document.getElementById("freshnessLabel");
     const freshnessMeta = document.getElementById("freshnessMeta");
     const resultAction = document.getElementById("resultAction");
+    const resultDetails = document.getElementById("resultDetails");
+    const showResultDetailsBtn = document.getElementById("showResultDetailsBtn");
+    const showAdviceBtn = document.getElementById("showAdviceBtn");
     const gaugeWrap = document.getElementById("gaugeWrap");
     const gaugeProgress = document.getElementById("gaugeProgress");
     const gaugeNum = document.getElementById("gaugeNum");
@@ -777,48 +780,6 @@
       clearImage();
       openFileDialog();
     });
-
-    // ============ Hero 数字 countUp 动画 ============
-    /**
-     * 对元素执行数字滚动动画
-     * @param {HTMLElement} el
-     * @param {number} target
-     * @param {string} suffix
-     */
-    function countUp(el, target, suffix) {
-      const duration = 1400;
-      const start = performance.now();
-      const isFloat = !Number.isInteger(target);
-      function tick(now) {
-        const progress = Math.min((now - start) / duration, 1);
-        // easeOutCubic
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const current = target * eased;
-        el.textContent = (isFloat ? current.toFixed(2) : Math.round(current)) + suffix;
-        if (progress < 1) requestAnimationFrame(tick);
-        else el.textContent = (isFloat ? target.toFixed(2) : target) + suffix;
-      }
-      requestAnimationFrame(tick);
-    }
-
-    function initCountUp() {
-      const badges = document.querySelectorAll(".badge-num");
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const el = entry.target;
-              const target = parseFloat(el.dataset.count || "0");
-              const suffix = el.dataset.suffix || "";
-              countUp(el, target, suffix);
-              observer.unobserve(el);
-            }
-          });
-        },
-        { threshold: 0.4 }
-      );
-      badges.forEach((b) => observer.observe(b));
-    }
 
     // ============ 深海气泡生成 ============
     /**
@@ -1766,6 +1727,18 @@
 
     const MAX_HISTORY = 50;
     let analysisStartTime = 0;
+
+    // ---- 结果快捷操作 ----
+    function initResultShortcuts() {
+      showResultDetailsBtn?.addEventListener("click", () => {
+        if (!resultDetails) return;
+        resultDetails.open = true;
+        requestAnimationFrame(() => resultDetails.scrollIntoView({ behavior: "smooth", block: "start" }));
+      });
+      showAdviceBtn?.addEventListener("click", () => {
+        document.querySelector('.report-tab[data-tab="advice"]')?.click();
+      });
+    }
 
     // ---- Tab 切换 ----
     function initTabs() {
@@ -2899,7 +2872,7 @@
 
     // ============ 初始化 ============
     document.addEventListener("DOMContentLoaded", () => {
-      initCountUp();
+      initResultShortcuts();
       initBubbles();
       initParallax();
       initReveal();
