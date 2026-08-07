@@ -92,7 +92,10 @@
   overflow: hidden;
   background: var(--ink);
   user-select: none;
+  touch-action: none;
+  -webkit-user-select: none;
 }
+.compare-slider .comp-handle { touch-action: none; }
 .compare-slider img {
   position: absolute;
   inset: 0;
@@ -165,6 +168,30 @@
 }
 .comp-label.left { left: 10px; }
 .comp-label.right { right: 10px; }
+.compare-slider-hint {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 9px 0 0;
+  color: var(--aqua);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+.compare-slider-hint span { font-size: 17px; line-height: 1; }
+
+@media (max-width: 640px) {
+  .compare-slider-hint { display: flex; }
+  .compare-slider:not(.is-interacted) .comp-handle-knob { animation: compare-hint-pulse 1.8s ease-in-out infinite; }
+}
+@keyframes compare-hint-pulse {
+  0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); }
+  50% { box-shadow: 0 0 0 7px rgba(39, 208, 196, 0.14), 0 4px 16px rgba(0, 0, 0, 0.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .compare-slider:not(.is-interacted) .comp-handle-knob { animation: none; }
+}
 
 /* ============ 手风琴折叠 ============ */
 .accordion {

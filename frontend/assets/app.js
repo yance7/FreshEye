@@ -1640,16 +1640,22 @@
     function initCompareSlider() {
       if (!compareSlider || !compHandle) return;
       let dragging = false;
+      let activePointerId = null;
       const onMove = (e) => {
-        if (!dragging) return;
+        if (!dragging || (activePointerId !== null && e.pointerId !== activePointerId)) return;
         const rect = compareSlider.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const pct = (x / rect.width) * 100;
         setSliderPos(pct);
       };
-      const stopDrag = () => {
+      const stopDrag = (e) => {
         if (!dragging) return;
+        if (activePointerId !== null && e?.pointerId !== activePointerId) return;
         dragging = false;
+        if (activePointerId !== null && compareSlider.releasePointerCapture) {
+          try { compareSlider.releasePointerCapture(activePointerId); } catch (_) { /* pointer 已结束 */ }
+        }
+        activePointerId = null;
         compHandle.classList.remove("is-active");
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", stopDrag);
@@ -1657,8 +1663,14 @@
       };
       const startDrag = (e) => {
         if (dragging) return;
+        if (e.pointerType === "mouse" && e.button !== 0) return;
         dragging = true;
+        activePointerId = typeof e.pointerId === "number" ? e.pointerId : null;
         compHandle.classList.add("is-active");
+        compareSlider.classList.add("is-interacted");
+        if (activePointerId !== null && compareSlider.setPointerCapture) {
+          try { compareSlider.setPointerCapture(activePointerId); } catch (_) { /* 浏览器不支持时由 window 监听兜底 */ }
+        }
         const rect = compareSlider.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const pct = (x / rect.width) * 100;
@@ -2522,8 +2534,6 @@
   .pdf-advice-card ul { list-style: none; padding: 0; margin: 0; }
   .pdf-advice-card li { font-size: 9px; color: #64748b; line-height: 1.55; padding-left: 9px; position: relative; margin-bottom: 1px; }
   .pdf-advice-card li::before { content: "•"; position: absolute; left: 1px; color: ${sc.primary}; font-weight: 700; font-size: 10px; }
-  .pdf-continuation { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid #dbe7ec; color: #0f172a; font-size: 13px; font-weight: 700; }
-  .pdf-continuation .pdf-section-mark { width: 26px; height: 21px; }
   .pdf-scope-note { margin-top: 14px; padding: 11px 13px; border: 1px solid #cbdde3; border-left: 4px solid #0f766e; border-radius: 9px; background: linear-gradient(135deg, #f7fbfc, #f1f7f8); color: #475569; font-size: 9px; line-height: 1.65; }
   .pdf-scope-note strong { display: block; margin-bottom: 3px; color: #0f172a; font-size: 10px; }
   .pdf-page-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #dfe9ed; text-align: center; color: #94a3b8; font-size: 8.5px; letter-spacing: 0.3px; }
@@ -2533,7 +2543,6 @@
   .pdf-single-page .pdf-section { margin-bottom: 10px; }
   .pdf-single-page .pdf-header-divider { margin-bottom: 11px; }
   .pdf-single-page .pdf-detail { padding-block: 6px; margin-bottom: 4px; }
-  .pdf-single-page .pdf-continuation { margin-top: 1px; margin-bottom: 10px; padding-bottom: 7px; }
   .pdf-single-page .pdf-scope-note { margin-top: 9px; padding-block: 8px; }
   .pdf-single-page .pdf-footer { padding-top: 7px; }
   .pdf-toolbar { position: sticky; top: 0; z-index: 999; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: linear-gradient(90deg, #0f766e, #0e7490); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
@@ -2632,7 +2641,6 @@
       <strong>视觉特征对照：</strong>${taggedKgMatch}
     </div>
   </div>
-  <div class="pdf-continuation"><span class="pdf-section-mark">04</span>处理建议与使用边界</div>
   <div class="pdf-section">
     <h3 class="pdf-section-title"><span class="pdf-section-mark">04</span>延伸处置与消费指引</h3>
     <p class="pdf-section-note" style="margin: -2px 0 9px; text-align: left;">以下内容用于辅助记录与后续复核，请结合实际气味、组织状态和储存条件判断。</p>
@@ -2921,6 +2929,7 @@
         compHandle.addEventListener("keydown", (e) => {
           if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
           e.preventDefault();
+          compareSlider?.classList.add("is-interacted");
           const cur = parseInt(compHandle.getAttribute("aria-valuenow") || "50", 10);
           const step = e.shiftKey ? 10 : 1;
           setSliderPos(e.key === "ArrowLeft" ? cur - step : cur + step);

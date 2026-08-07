@@ -140,8 +140,6 @@ svg.pdf-svg-icon { display: inline-block; flex: 0 0 14px; width: 14px !important
 .pdf-advice-card ul { margin: 0; padding: 0; list-style: none; }
 .pdf-advice-card li { position: relative; margin-bottom: 1px; padding-left: 9px; color: #64748b; font-size: 9px; line-height: 1.55; }
 .pdf-advice-card li::before { content: "•"; position: absolute; left: 1px; color: var(--pdf-primary); font-size: 10px; font-weight: 700; }
-.pdf-continuation { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid #dbe7ec; color: #0f172a; font-size: 13px; font-weight: 700; }
-.pdf-continuation .pdf-section-mark { width: 26px; height: 21px; }
 .pdf-scope-note { margin-top: 14px; padding: 11px 13px; border: 1px solid #cbdde3; border-left: 4px solid #0f766e; border-radius: 9px; background: linear-gradient(135deg, #f7fbfc, #f1f7f8); color: #475569; font-size: 9px; line-height: 1.65; }
 .pdf-scope-note strong { display: block; margin-bottom: 3px; color: #0f172a; font-size: 10px; }
 .pdf-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #dfe9ed; text-align: center; }
@@ -151,7 +149,6 @@ svg.pdf-svg-icon { display: inline-block; flex: 0 0 14px; width: 14px !important
 .pdf-single-page .pdf-section { margin-bottom: 10px; }
 .pdf-single-page .pdf-header-divider { margin-bottom: 11px; }
 .pdf-single-page .pdf-detail { margin-bottom: 4px; padding-block: 6px; }
-.pdf-single-page .pdf-continuation { margin-top: 1px; margin-bottom: 10px; padding-bottom: 7px; }
 .pdf-single-page .pdf-scope-note { margin-top: 9px; padding-block: 8px; }
 .pdf-single-page .pdf-footer { padding-top: 7px; }
 

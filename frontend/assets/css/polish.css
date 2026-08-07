@@ -1568,6 +1568,46 @@ main#architecture { max-width: 1180px; }
   .model-flow-label small { font-size: 9px; }
 }
 
+/* ---------- 移动端结果主卡：先读结论，再看紧凑置信度 ---------- */
+@media (max-width: 720px) {
+  .result-primary-card { grid-template-columns: minmax(0, 1fr); }
+  .result-primary-copy { order: 0; }
+  .result-primary-confidence {
+    order: 1;
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: 4px 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+  }
+  .result-primary-confidence .panel-title { grid-column: 1 / -1; margin-bottom: 1px; }
+  .result-primary-confidence .gauge-wrap {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+  .result-primary-confidence .gauge {
+    width: clamp(96px, 28vw, 116px);
+    height: clamp(96px, 28vw, 116px);
+  }
+  .result-primary-confidence .gauge-label { margin-top: 0; max-width: 18em; font-size: 12px; line-height: 1.5; text-align: left; }
+  .result-primary-confidence .gauge-num { font-size: clamp(21px, 6vw, 26px); }
+}
+
+@media (max-width: 374px) {
+  .result-primary-confidence { padding: 11px 12px; }
+  .result-primary-confidence .gauge-wrap { gap: 10px; }
+  .result-primary-confidence .gauge { width: clamp(90px, 28vw, 104px); height: clamp(90px, 28vw, 104px); }
+  .result-primary-confidence .gauge-label { font-size: 11.5px; }
+}
+
 @media (max-width: 390px) {
   .hero-action-primary, .hero-action-secondary { font-size: 12.5px; padding-inline: 8px; }
   .hero-evidence-item { padding-inline: 6px; font-size: 10.5px; }
