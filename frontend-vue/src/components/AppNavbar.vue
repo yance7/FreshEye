@@ -9,6 +9,8 @@ const isScrolled = ref(false)
 const menuOpen = ref(false)
 const toggleBtn = ref<HTMLElement | null>(null)
 const overlayFirstLink = ref<HTMLElement | null>(null)
+const lastFocused = ref<HTMLElement | null>(null)
+let previousBodyOverflow = ''
 
 /** 滚动监听：超过 8px 添加 is-scrolled */
 function onScroll(): void {
@@ -17,22 +19,40 @@ function onScroll(): void {
 
 /** 打开/关闭移动端菜单 */
 async function toggleMenu(open: boolean): Promise<void> {
+  if (open) {
+    lastFocused.value = document.activeElement as HTMLElement | null
+    previousBodyOverflow = document.body.style.overflow
+  }
   menuOpen.value = open
   if (open) {
     document.body.style.overflow = 'hidden'
     await nextTick()
     overlayFirstLink.value?.focus()
   } else {
-    document.body.style.overflow = ''
-    toggleBtn.value?.focus()
+    document.body.style.overflow = previousBodyOverflow
+    const target = lastFocused.value ?? toggleBtn.value
+    lastFocused.value = null
+    target?.focus()
   }
 }
 
-/** 遮罩内键盘处理：Escape 关闭 */
+/** 遮罩内键盘处理：Escape 关闭，Tab 在菜单内循环 */
 function onOverlayKeydown(e: KeyboardEvent): void {
   if (e.key === 'Escape') {
     e.preventDefault()
     toggleMenu(false)
+    return
+  }
+  if (e.key !== 'Tab') return
+  const focusable = Array.from(document.querySelectorAll<HTMLElement>('#navOverlay a, #navOverlay button'))
+  if (focusable.length === 0) return
+  const index = focusable.indexOf(document.activeElement as HTMLElement)
+  if (e.shiftKey && index === 0) {
+    e.preventDefault()
+    focusable[focusable.length - 1].focus()
+  } else if (!e.shiftKey && index === focusable.length - 1) {
+    e.preventDefault()
+    focusable[0].focus()
   }
 }
 

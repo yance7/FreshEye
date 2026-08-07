@@ -5,6 +5,8 @@ const en = {
     hero: {
       title: 'AI Fish Eye Freshness Detection',
       subtitle: 'Upload a fish eye photo, analyze freshness in seconds',
+      chip: 'AI-powered · Non-destructive freshness detection',
+      tagline: 'One shot to know freshness · Eat with confidence',
       badge1: '99%+ Accuracy',
       badge2: '2s Response',
       badge3: '3-Level',
@@ -143,7 +145,33 @@ const en = {
     steps_title: '3-Step Workflow',
     photo_title: 'Photo Tutorial',
     faq_title: 'FAQ',
+    tips_title: 'Best Practices',
+    photo_intro: 'A good photo is essential for accurate detection. Compare the correct and incorrect examples below and follow the correct setup.',
+    photo_hint: 'Center the fish eye in the circle',
     photo_text: 'A good photo is essential for accurate detection. Shoot the fish eye frontally with adequate lighting, moderate distance (10–30cm), and clear focus. Dry the eye surface before shooting to avoid glare. Avoid side angles, dim environments, extreme distances, blur, and glare obstruction.',
+    correct_title: 'Correct Example',
+    incorrect_title: 'Incorrect Example',
+    correct_checks: [
+      { title: 'Frontal angle', text: 'Point the camera at the eye and avoid side angles' },
+      { title: 'Enough light', text: 'Use daylight or white light evenly across the eye' },
+      { title: 'Moderate distance', text: '10–30cm, with the eye covering at least 30% of the image' },
+      { title: 'Sharp focus', text: 'Tap to focus and keep pupil/cornea details visible' },
+      { title: 'Dry surface', text: 'Dry the eye before shooting to prevent reflections' }
+    ],
+    incorrect_checks: [
+      { title: 'Side angle', text: 'The eye is distorted and key features are missing' },
+      { title: 'Insufficient light', text: 'Dim scenes create noise and lose detail' },
+      { title: 'Extreme distance', text: 'The eye is too small or out of focus' },
+      { title: 'Blurred focus', text: 'Camera shake or missed focus hides pupil edges' },
+      { title: 'Glare obstruction', text: 'Direct light or droplets cover the cornea' }
+    ],
+    tips: [
+      { icon: '💧', title: 'Dry the surface', text: 'Gently dry the eye before shooting so droplets do not hide cornea features.' },
+      { icon: '☀️', title: 'Choose good light', text: 'Use daylight or white light and avoid yellow lighting that changes color perception.' },
+      { icon: '🎯', title: 'Fill the frame', text: 'Make the eye at least 30% of the image so enough detail can be extracted.' },
+      { icon: '🚫', title: 'Avoid glare', text: 'Avoid direct light and shadows; adjust the angle to remove reflections.' },
+      { icon: '🧹', title: 'Maintain history', text: 'Clear old records periodically to free localStorage and keep the app smooth.' }
+    ],
     steps: [
       { num: '1', icon: '📷', title: 'Upload Fish Eye Photo', text: 'Click to upload, drag-and-drop, or paste from clipboard. Mobile devices can use the camera directly. JPG/PNG/WebP, max 25MB.' },
       { num: '2', icon: '⚡', title: 'AI Instant Analysis', text: 'AI analyzes fish eye features and classifies into Highly Fresh / Fresh / Not Fresh, with an explainable Grad-CAM heatmap.' },
@@ -166,6 +194,12 @@ const en = {
     species_intro: 'Quick reference for eye features, shooting angles, and cooking tips of common freshwater and seawater fish.',
     best_angle: 'Best Angle',
     recommended_cook: 'Cooking',
+    timeline_title: 'Freshness Change Timeline',
+    timeline_intro: 'Typical visual changes under room-temperature storage (for reference only; GB 2733-2015 remains the standard for freshness judgment).',
+    standard_title: 'GB 2733-2015 Standard',
+    standard_intro: 'The national standard referenced by FreshEye’s three-level classification.',
+    buying_title: 'Buying Tips',
+    buying_intro: 'Alongside a FreshEye scan, combine these sensory checks when choosing fish.',
     levels: [
       { icon: '🐟', title: 'Highly Fresh', text: 'Cornea almost clear, pupil bright and distinct, lens transparent. Eye plump and protruding — optimal for consumption.', color: 'high' },
       { icon: '🐠', title: 'Fresh', text: 'Cornea slightly cloudy, pupil visible but slightly blurred, lens beginning to whiten. Eye still protruding — meets national freshness standard.', color: 'mid' },
@@ -178,6 +212,28 @@ const en = {
       { icon: '🐠', name: 'Common Carp', tag: '淡水', tag_en: 'freshwater', desc: 'Round protruding eyes, clear pupil, color lightens when cloudy.', angle: 'Side', cook: 'Braised, Sweet & Sour' },
       { icon: '🐟', name: 'Sea Bass', tag: '海水', tag_en: 'seawater', desc: 'Bright alert eyes, clear cornea, freshness holds well.', angle: 'Side', cook: 'Steam' },
       { icon: '🐠', name: 'Hairtail', tag: '海水', tag_en: 'seawater', desc: 'Small eyes, thin cornea, clouding changes are significant.', angle: 'Front', cook: 'Braised, Pan-fry' }
+    ],
+    timeline: [
+      { icon: '0', color: 'aqua', title: 'Initial · Just caught/dead', text: 'The cornea is fully transparent, the pupil deep black, and the lens clear. The eye is plump and protruding.' },
+      { icon: '1', color: 'aqua', title: 'Early stage', text: 'The cornea begins to change slightly while the pupil and lens remain clear; it still meets the fresh standard.' },
+      { icon: '2', color: 'green', title: 'Highly fresh stage', text: 'The cornea is slightly cloudy, the pupil lighter, and the lens beginning to change; still highly fresh.' },
+      { icon: '3', color: 'gold', title: 'Fresh stage', text: 'The cornea is visibly cloudy, the pupil lighter, and the lens whitening; consume soon.' },
+      { icon: '4', color: 'gold', title: 'Freshness threshold', text: 'Clouding increases, the pupil blurs, and the lens deepens in white; judgment requires caution.' },
+      { icon: '!', color: 'red', title: 'Not fresh · Beyond the standard', text: 'The cornea is severely cloudy, the pupil deformed or gone, and the eye flat and sunken. Do not eat.' }
+    ],
+    standards: [
+      { icon: '📜', title: 'Standard name', text: 'GB 2733-2015, the Food Safety National Standard for fresh and frozen animal aquatic products, is a key mandatory reference.' },
+      { icon: '🧪', title: 'Judgment method', text: 'The standard uses laboratory physicochemical tests; FreshEye focuses on the most visible eye features for quick purchase-time reference.' },
+      { icon: '👁', title: 'Sensory signs', text: 'Fresh fish have plump protruding eyes and clear corneas; spoiled fish have flat sunken eyes, cloudy corneas, and soft flesh.' },
+      { icon: '🗂', title: 'Training data', text: 'FreshEye was trained on 4,800+ real fish-eye photos across four environments labeled against the national standard.' }
+    ],
+    buying_tips: [
+      { icon: '👀', title: 'Check the eyes', text: 'Prefer plump protruding eyes with clear corneas; avoid flat sunken eyes and cloudiness.' },
+      { icon: '🐟', title: 'Check the gills', text: 'Bright red is preferred; dark red or gray-white usually indicates poor quality.' },
+      { icon: '👆', title: 'Press the flesh', text: 'Fresh flesh springs back quickly; lasting dents or softness indicate staleness.' },
+      { icon: '👃', title: 'Smell it', text: 'Fresh fish smell naturally of water; sour or rotten odors indicate spoilage.' },
+      { icon: '✨', title: 'Check the skin', text: 'Intact shiny scales and clear slime suggest freshness; dull, dry skin does not.' },
+      { icon: '📸', title: 'Use FreshEye', text: 'Shoot the eye from the front/side without glare, then combine AI output with sensory judgment.' }
     ]
   },
   about: {
@@ -229,6 +285,65 @@ const en = {
       { model: 'EfficientNet-B0', params: '4.01', flops: '0.41', mfed: '98.96%', ffe: '81.64%', highlight: false },
       { model: 'FishFreshNetV1 (Baseline)', params: '4.22', flops: '0.41', mfed: '98.88%', ffe: '81.78%', highlight: true },
       { model: 'FishFreshNetV2 (Ours)', params: '4.10', flops: '0.41', mfed: '99.29%', ffe: '81.18%', highlight: true }
+    ],
+    users_title: 'Three User Groups',
+    users: [
+      { icon: '🛒', title: 'Consumers', text: 'Scan fish while shopping and avoid relying on guesswork or touch alone.' },
+      { icon: '🐟', title: 'Vendors & Buyers', text: 'Check incoming batches, keep local history, and reduce return disputes.' },
+      { icon: '📋', title: 'Inspectors', text: 'Create traceable reports with the result, confidence, advice, and timestamp.' }
+    ],
+    models_title: 'FishFreshNet Architecture',
+    models_intro: 'A lightweight and explainable vision framework designed to extract key features from the circular structure of fish eyes.',
+    flow_input: 'Fish-eye image',
+    flow_backbone: 'Feature backbone',
+    flow_attention: 'Attention',
+    flow_attention_sub: 'Focus on key regions',
+    flow_classifier: 'Classifier',
+    flow_classes: 'freshness classes',
+    flow_explain: 'Explainable heatmap',
+    v1_title: 'FishFreshNetV1 · Baseline',
+    v1_cards: [
+      { icon: '🧠', title: 'EfficientNet-B0', text: 'MBConv and compound scaling provide efficient feature extraction at 4.22M parameters and 0.41G FLOPs.' },
+      { icon: '🎯', title: 'CBAM Attention', text: 'Channel and spatial attention suppress background noise and focus the model on the pupil and cornea.' },
+      { icon: '📊', title: 'Three-class output', text: 'A custom head returns probabilities for Highly Fresh, Fresh, and Not Fresh with a Grad-CAM heatmap.' }
+    ],
+    v2_title: 'FishFreshNetV2 · Upgrade',
+    v2_cards: [
+      { icon: '⚡', title: 'ECA channel attention', text: 'A lightweight 1D convolution replaces the shared MLP to reduce overhead while preserving local channel interaction.' },
+      { icon: '🎯', title: 'Light CRA', text: 'A circular prior divides pupil, cornea, and orbit into three rings to strengthen regional features.' },
+      { icon: '📈', title: 'Accuracy gain', text: 'MFED accuracy rises from 98.88% in V1 to 99.29% while keeping the model lightweight.' }
+    ],
+    workflow_title: 'Detection Workflow',
+    workflow_intro: 'Frontend validation and compression → FastAPI/PyTorch inference → Grad-CAM visualization → confidence-aware guidance.',
+    workflow_steps: ['Upload', 'Quality check', 'Preprocess', 'API request', 'Inference', 'Report & advice'],
+    journey_title: 'Creation Journey',
+    journey: [
+      { icon: '💡', title: 'The idea', text: 'A real market experience led to the insight that fish eyes are an important visual signal of freshness.' },
+      { icon: '🔬', title: 'Independent research', text: 'Designed EfficientNet-B0 + CBAM, built the MFED dataset, and labeled it against GB 2733-2015.' },
+      { icon: '⚙️', title: 'Backend', text: 'Deployed FastAPI + PyTorch inference on Hugging Face Spaces with V1/V2 and Grad-CAM support.' },
+      { icon: '🎨', title: 'Frontend iteration', text: 'Built the deep-sea visual theme, four-tab report, mobile adaptation, and PWA offline cache.' },
+      { icon: '🚀', title: 'Product polish', text: 'Evolved from a working demo into a product with history, low-confidence guidance, and explainable reports.' }
+    ],
+    social_title: 'Social Value',
+    social_value: [
+      { icon: '👥', title: 'Accessible expertise', text: 'A phone and browser provide low-cost, non-destructive preliminary judgment.' },
+      { icon: '🛡️', title: 'Lower the experience barrier', text: 'Consumers can reference the visual cues normally associated with expert fish buyers.' },
+      { icon: '🏥', title: 'Reduce food-safety risk', text: 'Identify questionable products before purchase or consumption and reduce hidden hazards.' },
+      { icon: '🔄', title: 'Transferable approach', text: 'CPU inference and standardized deployment can extend to meat, fruit, vegetables, and seafood.' }
+    ],
+    iteration_title: 'Roadmap',
+    iteration: [
+      { title: 'Short term (1–3 months)', items: ['Quantify inference confidence', 'Controlled confounder training', 'Expand dataset to 10k+ images', 'Batch analysis'] },
+      { title: 'Mid term (3–12 months)', items: ['Species + freshness + cooking advice', 'Market inspection integration', 'ONNX offline SDK', 'WeChat mini program'] },
+      { title: 'Long term (1+ year)', items: ['Real-world validation', 'B2B SaaS', 'Government inspection platform', 'Image + odor + texture + temperature fusion'] }
+    ],
+    references_title: 'References',
+    references: [
+      'Prasetyo et al. (2022), fish-eye freshness classification with MobileNetV1, Information Processing in Agriculture.',
+      'Yildiz et al. (2024), fisheye freshness detection with deep learning, European Food Research and Technology.',
+      'Tan & Le (2019), EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks.',
+      'Woo et al. (2018), CBAM: Convolutional Block Attention Module.',
+      'Selvaraju et al. (2017), Grad-CAM: Visual Explanations from Deep Networks.'
     ]
   },
   notfound: {

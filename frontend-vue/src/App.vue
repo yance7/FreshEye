@@ -13,30 +13,62 @@ const { t } = useI18n()
 const scrollProgress = ref(0)
 const showBackTop = ref(false)
 const progressEl = ref<HTMLElement | null>(null)
+let revealObserver: IntersectionObserver | null = null
+let revealMutations: MutationObserver | null = null
 
 /** 滚动监听：更新进度条与回到顶部按钮可见性 */
 function onScroll(): void {
   const doc = document.documentElement
   const scrollTop = window.scrollY || doc.scrollTop
-  const max = doc.scrollHeight - doc.clientHeight
-  scrollProgress.value = max > 0 ? scrollTop / max : 0
+  const max = doc.scrollHeight - window.innerHeight
+  scrollProgress.value = max > 0 ? Math.min(1, scrollTop / max) : 0
   if (progressEl.value) {
     progressEl.value.style.transform = `scaleX(${scrollProgress.value})`
   }
-  showBackTop.value = scrollTop > 400
+  showBackTop.value = scrollTop > window.innerHeight * 0.6
 }
 
 /** 回到顶部 */
 function backToTop(): void {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+}
+
+/** 为路由懒加载后的 .reveal 节点补上原版 initReveal 行为。 */
+function observeRevealNodes(): void {
+  const nodes = document.querySelectorAll<HTMLElement>('.reveal:not(.revealed)')
+  if (!revealObserver) {
+    nodes.forEach((node) => node.classList.add('revealed'))
+    return
+  }
+  nodes.forEach((node) => revealObserver?.observe(node))
 }
 
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed')
+          revealObserver?.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' })
+  }
+  observeRevealNodes()
+  revealMutations = new MutationObserver(observeRevealNodes)
+  revealMutations.observe(document.body, { childList: true, subtree: true })
 })
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
+  revealObserver?.disconnect()
+  revealMutations?.disconnect()
+  revealObserver = null
+  revealMutations = null
 })
 </script>
 

@@ -9,7 +9,16 @@ const pains = computed<string[]>(() => tm<string[]>('about.pains'))
 const solutions = computed<string[]>(() => tm<string[]>('about.solutions'))
 
 interface CompareRow { model: string; params: string; flops: string; mfed: string; ffe: string; highlight: boolean }
+interface InfoCard { icon: string; title: string; text: string }
+interface Phase { title: string; items: string[] }
 const compareRows = computed<CompareRow[]>(() => tm<CompareRow[]>('about.compare_rows'))
+const users = computed<InfoCard[]>(() => tm<InfoCard[]>('about.users'))
+const v1Cards = computed<InfoCard[]>(() => tm<InfoCard[]>('about.v1_cards'))
+const v2Cards = computed<InfoCard[]>(() => tm<InfoCard[]>('about.v2_cards'))
+const journey = computed<InfoCard[]>(() => tm<InfoCard[]>('about.journey'))
+const socialValue = computed<InfoCard[]>(() => tm<InfoCard[]>('about.social_value'))
+const iteration = computed<Phase[]>(() => tm<Phase[]>('about.iteration'))
+const references = computed<string[]>(() => tm<string[]>('about.references'))
 </script>
 
 <template>
@@ -46,6 +55,18 @@ const compareRows = computed<CompareRow[]>(() => tm<CompareRow[]>('about.compare
           <div class="arch-branch arch-branch-mid">{{ t('about.arch_branch_mid') }}</div>
           <div class="arch-branch arch-branch-low">{{ t('about.arch_branch_low') }}</div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 三类用户 -->
+  <section class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.users_title') }}</h2></div>
+    <div class="users-grid">
+      <div v-for="card in users" :key="card.title" class="user-card">
+        <div class="user-icon" aria-hidden="true">{{ card.icon }}</div>
+        <h3 class="user-title">{{ card.title }}</h3>
+        <p class="user-text">{{ card.text }}</p>
       </div>
     </div>
   </section>
@@ -108,6 +129,62 @@ const compareRows = computed<CompareRow[]>(() => tm<CompareRow[]>('about.compare
     <p class="intro-sub" style="margin-top: 16px;">
       {{ t('about.compare_footer') }}
     </p>
+  </section>
+
+  <!-- 模型架构与可解释性 -->
+  <section class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.models_title') }}</h2></div>
+    <p class="intro-sub">{{ t('about.models_intro') }}</p>
+    <div class="model-flow">
+      <div class="model-flow-node"><span class="model-flow-icon">📷</span><span class="model-flow-label">{{ t('about.flow_input') }}<br /><small>224×224</small></span></div>
+      <div class="model-flow-arrow" aria-hidden="true">→</div>
+      <div class="model-flow-node model-flow-core"><span class="model-flow-icon">🧠</span><span class="model-flow-label">EfficientNet-B0<br /><small>{{ t('about.flow_backbone') }}</small></span></div>
+      <div class="model-flow-arrow" aria-hidden="true">→</div>
+      <div class="model-flow-node model-flow-core"><span class="model-flow-icon">🎯</span><span class="model-flow-label">{{ t('about.flow_attention') }}<br /><small>{{ t('about.flow_attention_sub') }}</small></span></div>
+      <div class="model-flow-arrow" aria-hidden="true">→</div>
+      <div class="model-flow-node"><span class="model-flow-icon">📊</span><span class="model-flow-label">{{ t('about.flow_classifier') }}<br /><small>3 {{ t('about.flow_classes') }}</small></span></div>
+      <div class="model-flow-arrow model-flow-arrow-branch" aria-hidden="true">→</div>
+      <div class="model-flow-node model-flow-aux"><span class="model-flow-icon">🔥</span><span class="model-flow-label">Grad-CAM<br /><small>{{ t('about.flow_explain') }}</small></span></div>
+    </div>
+    <div class="model-card-grid">
+      <div class="model-card glass-card">
+        <h3>{{ t('about.v1_title') }}</h3>
+        <div v-for="card in v1Cards" :key="card.title" class="model-feature"><strong>{{ card.icon }} {{ card.title }}</strong><p>{{ card.text }}</p></div>
+      </div>
+      <div class="model-card glass-card">
+        <h3>{{ t('about.v2_title') }}</h3>
+        <div v-for="card in v2Cards" :key="card.title" class="model-feature"><strong>{{ card.icon }} {{ card.title }}</strong><p>{{ card.text }}</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 检测流程与创作历程 -->
+  <section class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.workflow_title') }}</h2></div>
+    <p class="intro-sub">{{ t('about.workflow_intro') }}</p>
+    <div class="workflow-strip">
+      <span v-for="(step, i) in tm<string[]>('about.workflow_steps')" :key="step" class="workflow-step"><b>{{ i + 1 }}</b>{{ step }}</span>
+    </div>
+  </section>
+  <section class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.journey_title') }}</h2></div>
+    <div class="journey-list">
+      <div v-for="card in journey" :key="card.title" class="journey-item"><span class="journey-icon" aria-hidden="true">{{ card.icon }}</span><div><h3>{{ card.title }}</h3><p>{{ card.text }}</p></div></div>
+    </div>
+  </section>
+
+  <!-- 社会价值与迭代规划 -->
+  <section class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.social_title') }}</h2></div>
+    <div class="info-grid"><div v-for="card in socialValue" :key="card.title" class="info-card"><div class="info-card-icon">{{ card.icon }}</div><h3>{{ card.title }}</h3><p>{{ card.text }}</p></div></div>
+  </section>
+  <section class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.iteration_title') }}</h2></div>
+    <div class="iteration-grid"><div v-for="phase in iteration" :key="phase.title" class="iteration-card"><h3>{{ phase.title }}</h3><ul><li v-for="item in phase.items" :key="item">{{ item }}</li></ul></div></div>
+  </section>
+  <section class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.references_title') }}</h2></div>
+    <ol class="reference-list"><li v-for="reference in references" :key="reference">{{ reference }}</li></ol>
   </section>
 </template>
 
@@ -227,9 +304,42 @@ const compareRows = computed<CompareRow[]>(() => tm<CompareRow[]>('about.compare
 .compare-table-highlight { background: rgba(39, 208, 196, 0.08); }
 .compare-table .highlight { color: var(--aqua); font-weight: 600; }
 
+.model-flow { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-5); margin-bottom: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.model-flow-node { display: flex; align-items: center; gap: 8px; min-width: 120px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: rgba(255,255,255,0.03); color: var(--foam); text-align: center; }
+.model-flow-core { border-color: rgba(39, 208, 196, 0.45); background: rgba(39, 208, 196, 0.08); }
+.model-flow-aux { border-color: rgba(245, 181, 74, 0.4); background: rgba(245, 181, 74, 0.08); }
+.model-flow-icon { font-size: 22px; }
+.model-flow-label { font-size: 12px; line-height: 1.4; }
+.model-flow-label small { color: var(--muted); font-size: 10px; }
+.model-flow-arrow { color: var(--aqua); font-size: 18px; }
+.model-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+.model-card h3 { margin: 0 0 var(--space-4); color: var(--aqua); font-size: 17px; }
+.model-feature { padding: 12px 0; border-top: 1px solid var(--border); }
+.model-feature strong { color: var(--foam); font-size: 13px; }
+.model-feature p { margin: 6px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+.workflow-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+.workflow-step { display: inline-flex; align-items: center; gap: 8px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 999px; color: var(--foam); background: var(--card); font-size: 12px; }
+.workflow-step b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(39,208,196,.18); color: var(--aqua); }
+.journey-list { display: grid; gap: var(--space-3); }
+.journey-item { display: flex; gap: var(--space-4); align-items: flex-start; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.journey-icon { font-size: 24px; }
+.journey-item h3 { margin: 0 0 6px; color: var(--white); font-size: 15px; }
+.journey-item p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.75; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+.info-card { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.info-card-icon { font-size: 26px; margin-bottom: 8px; }
+.info-card h3 { margin: 0 0 6px; color: var(--white); font-size: 15px; }
+.info-card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+.iteration-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.iteration-card { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.iteration-card h3 { margin: 0 0 10px; color: var(--aqua); font-size: 15px; }
+.iteration-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.8; }
+.reference-list { margin: 0; padding-left: 22px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+
 @media (max-width: 768px) {
   .compare-pain { grid-template-columns: 1fr; }
   .arch-branches { flex-direction: column; }
+  .model-card-grid, .iteration-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .arch-boxes { flex-direction: column; }

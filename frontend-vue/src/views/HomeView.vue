@@ -7,18 +7,19 @@ import { useI18n } from '@/i18n'
 import { useToast } from '@/composables/useToast'
 import { useHistory } from '@/composables/useHistory'
 import { useApi, ApiError } from '@/composables/useApi'
+import { LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY } from '@/config'
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 
 const { t, tm, locale } = useI18n()
 const { toast } = useToast()
-const { history, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
+const { history, initHistory, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
 const { checkApiHealth, callPredictApi } = useApi()
 
 // ============ 模型版本（持久化） ============
 const MODEL_KEY = 'fresheye_model_version'
 const modelVersion = ref<'v1' | 'v2'>('v2')
 try {
-  const saved = localStorage.getItem(MODEL_KEY)
+  const saved = localStorage.getItem(MODEL_KEY) ?? localStorage.getItem(LEGACY_MODEL_KEY)
   if (saved === 'v1' || saved === 'v2') modelVersion.value = saved
 } catch { /* ignore */ }
 watch(modelVersion, (v) => {
@@ -35,6 +36,7 @@ const uploadDataUrl = ref<string>('')    // 上传压缩（1280px JPEG q=0.9）
 const dragging = ref(false)
 
 const MAX_SIZE = 25 * 1024 * 1024 // 25MB
+const COMPRESS_THRESHOLD = 2 * 1024 * 1024
 const ACCEPT_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
 // ============ 分析状态 ============
@@ -75,7 +77,7 @@ const filteredHistory = computed(() => {
       if (level !== expected) return false
     }
     if (q) {
-      const label = (r.prediction?.freshness_label || '').toLowerCase()
+      const label = String(r.prediction?.freshness_label ?? '').toLowerCase()
       if (!label.includes(q) && !r.id.includes(q)) return false
     }
     return true
@@ -170,6 +172,10 @@ function fileToDataUrl(file: File): Promise<string> {
 // ============ 文件校验 & 处理 ============
 function validateFile(file: File): boolean {
   const type = file.type.toLowerCase()
+  if (file.size === 0) {
+    toast.error(t('home.errors.format'))
+    return false
+  }
   if (!ACCEPT_TYPES.includes(type)) {
     toast.error(t('home.errors.format'))
     return false
@@ -185,17 +191,18 @@ async function handleFile(file: File): Promise<void> {
   if (!validateFile(file)) return
   errorMsg.value = ''
   lastResult.value = null
+  lastHeatmap.value = ''
+  lastOriginalImage.value = ''
+  activeTab.value = 0
   selectedFile.value = file
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   previewUrl.value = URL.createObjectURL(file)
   try {
     const full = await fileToDataUrl(file)
-    const [preview, upload] = await Promise.all([
-      compressImage(full, 1600, 0.9),
-      compressImage(full, 1280, 0.9)
-    ])
-    previewDataUrl.value = preview
-    uploadDataUrl.value = upload
+    previewDataUrl.value = full
+    uploadDataUrl.value = file.size > COMPRESS_THRESHOLD
+      ? await compressImage(full, 1280, 0.9)
+      : full
   } catch {
     previewDataUrl.value = ''
     uploadDataUrl.value = ''
@@ -259,37 +266,18 @@ function openCamera(): void {
   cameraInput.value?.click()
 }
 
-// ============ 示例图片（内联 SVG data URI，模拟三种新鲜度鱼眼） ============
-function sampleEyeSvg(irisColor: string, deepColor: string, clarity: number): string {
-  const opacity = (0.4 + clarity * 0.5).toFixed(2)
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300'>
-    <defs>
-      <radialGradient id='i' cx='50%' cy='45%' r='55%'>
-        <stop offset='0%' stop-color='${deepColor}'/>
-        <stop offset='60%' stop-color='${irisColor}'/>
-        <stop offset='100%' stop-color='#bdf6ef'/>
-      </radialGradient>
-    </defs>
-    <rect width='300' height='300' fill='#0a2030'/>
-    <circle cx='150' cy='150' r='120' fill='#eaf4f9' opacity='${opacity}'/>
-    <circle cx='150' cy='150' r='100' fill='url(#i)'/>
-    <circle cx='150' cy='150' r='45' fill='#000814'/>
-    <ellipse cx='115' cy='110' rx='30' ry='22' fill='#ffffff' opacity='0.6' transform='rotate(-22 115 110)'/>
-  </svg>`
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-}
-
 const samples = computed(() => [
-  { name: 'sample-1', src: sampleEyeSvg('#10b981', '#0a3a2a', 0.95), label: t('home.result.high') },
-  { name: 'sample-2', src: sampleEyeSvg('#d97706', '#3a2a0a', 0.7), label: t('home.result.mid') },
-  { name: 'sample-3', src: sampleEyeSvg('#ef4444', '#3a0a0a', 0.3), label: t('home.result.low') }
+  { name: 'highly-fresh', src: './assets/samples/highly-fresh.webp', thumb: './assets/samples/highly-fresh_thumb.webp', label: t('home.result.high') },
+  { name: 'fresh', src: './assets/samples/fresh.webp', thumb: './assets/samples/fresh_thumb.webp', label: t('home.result.mid') },
+  { name: 'not-fresh', src: './assets/samples/not-fresh.webp', thumb: './assets/samples/not-fresh_thumb.webp', label: t('home.result.low') }
 ])
 
 async function loadSample(src: string): Promise<void> {
   try {
     const res = await fetch(src)
     const blob = await res.blob()
-    const file = new File([blob], 'sample.webp', { type: 'image/webp' })
+    const extension = src.endsWith('.png') ? 'png' : 'webp'
+    const file = new File([blob], `sample.${extension}`, { type: blob.type || `image/${extension}` })
     handleFile(file)
   } catch {
     toast.error(t('home.errors.network'))
@@ -384,18 +372,23 @@ function onToggleFavorite(id: string, e: Event): void {
 // ============ Tab 键盘导航 ============
 function onTabKeydown(e: KeyboardEvent): void {
   const count = tabs.value.length
+  let next = activeTab.value
   if (e.key === 'ArrowRight') {
-    activeTab.value = (activeTab.value + 1) % count
+    next = (activeTab.value + 1) % count
     e.preventDefault()
   } else if (e.key === 'ArrowLeft') {
-    activeTab.value = (activeTab.value - 1 + count) % count
+    next = (activeTab.value - 1 + count) % count
     e.preventDefault()
   } else if (e.key === 'Home') {
-    activeTab.value = 0
+    next = 0
     e.preventDefault()
   } else if (e.key === 'End') {
-    activeTab.value = count - 1
+    next = count - 1
     e.preventDefault()
+  }
+  if (next !== activeTab.value) {
+    activeTab.value = next
+    nextTick(() => document.getElementById(`tab-${next}`)?.focus())
   }
 }
 
@@ -411,6 +404,8 @@ function onComparePointerMove(e: PointerEvent): void {
 }
 function onComparePointerUp(e: PointerEvent): void {
   draggingSlider = false
+  const target = e.currentTarget as HTMLElement
+  if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId)
 }
 function updateCompareFromEvent(e: PointerEvent): void {
   if (!compareWrap.value) return
@@ -680,6 +675,7 @@ function exportPDF(): void {
 let mouseMoveHandler: ((e: MouseEvent) => void) | null = null
 
 onMounted(() => {
+  initHistory()
   // 静默 API 健康检查（预热 HF Spaces）
   checkApiHealth().then((ok) => { apiHealthy.value = ok }).catch(() => { apiHealthy.value = false })
   // 鼠标追踪
@@ -694,7 +690,7 @@ onMounted(() => {
   historyTimer = window.setInterval(() => { historyRefreshKey.value++ }, 60000)
   // 新手引导
   try {
-    if (!localStorage.getItem(GUIDE_KEY)) showGuide.value = true
+    if (!localStorage.getItem(GUIDE_KEY) && !localStorage.getItem(LEGACY_GUIDE_KEY)) showGuide.value = true
   } catch { /* ignore */ }
 })
 
@@ -754,23 +750,71 @@ function dismissGuide(): void {
             <stop offset="60%" stop-color="#000814" />
             <stop offset="100%" stop-color="#000000" />
           </radialGradient>
+          <radialGradient id="corneaGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0" />
+            <stop offset="76%" stop-color="#ffffff" stop-opacity="0" />
+            <stop offset="90%" :stop-color="eyeColors.aqua" stop-opacity="0.16" />
+            <stop offset="100%" stop-color="#04162b" stop-opacity="0.5" />
+          </radialGradient>
+          <radialGradient id="blushGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ff9eb5" stop-opacity="0.55" />
+            <stop offset="100%" stop-color="#ff9eb5" stop-opacity="0" />
+          </radialGradient>
           <radialGradient id="hlGrad" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stop-color="#ffffff" stop-opacity="0.98" />
             <stop offset="55%" stop-color="#ffffff" stop-opacity="0.45" />
             <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
           </radialGradient>
+          <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" :stop-color="eyeColors.aqua" stop-opacity="0.6" />
+            <stop offset="100%" :stop-color="eyeColors.aqua" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id="scleraGrad" cx="50%" cy="42%" r="62%">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="70%" stop-color="#eaf4f9" />
+            <stop offset="100%" stop-color="#cfe2ec" />
+          </radialGradient>
+          <clipPath id="eyeClip"><circle cx="120" cy="120" r="78" /></clipPath>
         </defs>
-        <circle cx="120" cy="120" r="118" fill="#eaf4f9" />
-        <circle cx="120" cy="120" r="100" fill="url(#irisGrad)" />
-        <g :transform="`translate(${pupilX} ${pupilY})`">
-          <circle cx="120" cy="120" r="50" fill="url(#pupilGrad)" />
-          <ellipse cx="92" cy="86" rx="34" ry="26" fill="url(#hlGrad)" transform="rotate(-22 92 86)" />
-          <circle cx="98" cy="80" r="5" fill="#ffffff" opacity="0.95" />
-          <circle cx="150" cy="150" r="9" fill="#ffffff" opacity="0.65" />
+        <circle cx="120" cy="120" r="120" fill="url(#glowGrad)" opacity="0.6" />
+        <circle cx="120" cy="120" r="114" fill="#0c2236" />
+        <circle cx="120" cy="120" r="106" fill="none" :stroke="eyeColors.aqua" stroke-width="3" opacity="0.55" />
+        <g :fill="eyeColors.aqua" opacity="0.85">
+          <circle cx="120" cy="14" r="4.5" /><circle cx="177" cy="30" r="4.5" />
+          <circle cx="218" cy="71" r="4.5" /><circle cx="230" cy="120" r="4.5" />
+          <circle cx="218" cy="169" r="4.5" /><circle cx="177" cy="210" r="4.5" />
+          <circle cx="120" cy="226" r="4.5" /><circle cx="63" cy="210" r="4.5" />
+          <circle cx="22" cy="169" r="4.5" /><circle cx="10" cy="120" r="4.5" />
+          <circle cx="22" cy="71" r="4.5" /><circle cx="63" cy="30" r="4.5" />
         </g>
+        <circle cx="120" cy="120" r="92" fill="url(#scleraGrad)" />
+        <circle cx="120" cy="120" r="92" fill="none" stroke="#9fc1d4" stroke-width="1" opacity="0.5" />
+        <circle cx="120" cy="120" r="78" fill="url(#irisGrad)" />
+        <g clip-path="url(#eyeClip)" opacity="0.2" stroke="#0a2a3a" stroke-width="0.6" fill="none">
+          <line x1="120" y1="42" x2="120" y2="198" /><line x1="42" y1="120" x2="198" y2="120" />
+          <line x1="65" y1="65" x2="175" y2="175" /><line x1="175" y1="65" x2="65" y2="175" />
+        </g>
+        <circle cx="120" cy="120" r="55" fill="none" :stroke="eyeColors.aqua" stroke-width="1.5" opacity="0.3" />
+        <g :transform="`translate(${pupilX} ${pupilY})`">
+          <circle cx="120" cy="120" r="41" fill="url(#pupilGrad)" />
+        </g>
+        <circle cx="120" cy="120" r="78" fill="url(#corneaGrad)" />
+        <ellipse cx="92" cy="83" rx="27" ry="22" fill="url(#hlGrad)" transform="rotate(-22 92 83)" />
+        <circle cx="96" cy="80" r="4" fill="#ffffff" opacity="0.95" />
+        <circle cx="150" cy="150" r="7" fill="#ffffff" opacity="0.65" />
+        <circle cx="150" cy="150" r="3.5" fill="#ffffff" />
+        <ellipse cx="68" cy="153" rx="17" ry="10" fill="url(#blushGrad)" />
+        <ellipse cx="172" cy="153" rx="17" ry="10" fill="url(#blushGrad)" />
+        <path d="M 70 92 Q 120 64 170 92" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.3" stroke-linecap="round" />
+        <path d="M 196 70 l 2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2 z" fill="#bdf6ef" opacity="0.9" />
       </svg>
+      <span class="hero-sparkle hero-sparkle--1" aria-hidden="true">✦</span>
+      <span class="hero-sparkle hero-sparkle--2" aria-hidden="true">✧</span>
+      <span class="hero-sparkle hero-sparkle--3" aria-hidden="true">✦</span>
     </div>
     <h1 id="hero-title" class="hero-title">{{ t('home.hero.title') }}</h1>
+    <span class="hero-chip"><span class="hero-chip-dot" aria-hidden="true"></span>{{ t('home.hero.chip') }}</span>
+    <p class="hero-tagline">{{ t('home.hero.tagline') }}</p>
     <p class="hero-desc">{{ t('home.hero.subtitle') }}</p>
     <div class="hero-badges">
       <span v-for="(b, i) in badgeDisplay" :key="i" class="badge">
@@ -778,9 +822,9 @@ function dismissGuide(): void {
         <span class="count">{{ b.num }}</span>{{ b.suffix }}
       </span>
     </div>
-    <a href="#uploadZone" class="scroll-hint" aria-hidden="true">
+    <a href="#upload-title" class="hero-scroll-cue">
       <span>{{ t('home.hero.scroll_hint') }}</span>
-      <span class="scroll-arrow">↓</span>
+      <span class="hero-scroll-cue-arrow" aria-hidden="true">⌄</span>
     </a>
   </section>
 
@@ -836,7 +880,7 @@ function dismissGuide(): void {
         :aria-label="s.label"
         @click="loadSample(s.src)"
       >
-        <img :src="s.src" :alt="s.label" />
+        <img :src="s.thumb" :alt="s.label" loading="lazy" decoding="async" />
         <span class="sample-tag">{{ s.label }}</span>
       </button>
     </div>
@@ -991,6 +1035,7 @@ function dismissGuide(): void {
           @pointermove="onComparePointerMove"
           @pointerup="onComparePointerUp"
           @pointercancel="onComparePointerUp"
+          @pointerleave="onComparePointerUp"
         >
           <img :src="lastHeatmap" class="compare-img" alt="heatmap" />
           <img
@@ -1153,6 +1198,16 @@ function dismissGuide(): void {
   aspect-ratio: 1;
   margin-bottom: var(--space-2);
 }
+.hero-eye-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(39, 208, 196, 0.35), transparent 70%);
+  filter: blur(12px);
+  z-index: -1;
+  animation: pulseGlow 4s ease-in-out infinite;
+}
 .hero-eye {
   width: 100%; height: 100%;
   border-radius: 50%;
@@ -1160,8 +1215,53 @@ function dismissGuide(): void {
   box-shadow: 0 0 50px rgba(39, 208, 196, 0.3), inset 0 0 40px rgba(4, 22, 43, 0.5);
   animation: floatEye 6s ease-in-out infinite;
   transition: filter 0.6s var(--ease-decel);
+  overflow: hidden;
 }
+.hero-pupil { transform-origin: 120px 120px; transform-box: fill-box; }
 @keyframes floatEye { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.hero-chip {
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 18px;
+  border-radius: 999px; background: rgba(39, 208, 196, 0.08);
+  border: 1px solid rgba(39, 208, 196, 0.3); color: var(--aqua);
+  font-size: 13px; font-weight: 600; letter-spacing: 0.8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 18px rgba(39, 208, 196, 0.1);
+  animation: fadeUp 0.9s ease 0.15s both;
+}
+.hero-chip-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--aqua);
+  box-shadow: 0 0 8px var(--aqua); animation: blink 2.2s ease-in-out infinite;
+}
+.hero-tagline {
+  position: relative; display: inline-block; font-size: clamp(18px, 2.5vw, 22px);
+  font-weight: 600; color: var(--foam); margin: 0 0 var(--space-3); letter-spacing: 2px;
+}
+.hero-tagline::after {
+  content: ""; position: absolute; left: 50%; bottom: -6px; width: 46px; height: 2px;
+  border-radius: 2px; background: linear-gradient(90deg, transparent, var(--aqua), transparent);
+  transform: translateX(-50%); opacity: 0.8;
+}
+.hero-scroll-cue {
+  margin-top: var(--space-5); display: inline-flex; flex-direction: column;
+  align-items: center; gap: 4px; color: var(--muted); font-size: 12px;
+  letter-spacing: 1.5px; text-decoration: none; transition: color var(--transition);
+  animation: fadeUp 0.9s ease 0.6s both;
+}
+.hero-scroll-cue:hover { color: var(--aqua); }
+.hero-scroll-cue:focus-visible { outline: 2px solid var(--aqua); outline-offset: 4px; border-radius: 6px; }
+.hero-scroll-cue-arrow { font-size: 16px; animation: bounce 2s ease-in-out infinite; }
+.hero-sparkle {
+  position: absolute; color: #bdf6ef; line-height: 1; pointer-events: none;
+  text-shadow: 0 0 8px rgba(39, 208, 196, 0.8); opacity: 0;
+  animation: sparkleTwinkle 3.2s ease-in-out infinite; z-index: 2;
+}
+.hero-sparkle--1 { top: 4%; right: 8%; font-size: 18px; }
+.hero-sparkle--2 { bottom: 12%; left: 4%; font-size: 13px; animation-delay: 1.1s; }
+.hero-sparkle--3 { top: 16%; left: 2%; font-size: 12px; animation-delay: 2.1s; }
+@keyframes sparkleTwinkle {
+  0%, 100% { opacity: 0; transform: scale(0.6) rotate(0deg); }
+  50% { opacity: 0.9; transform: scale(1) rotate(20deg); }
+}
+@keyframes pulseGlow { 0%, 100% { opacity: 0.65; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
 .hero-title {
   font-family: var(--font-display);
   font-size: clamp(40px, 8vw, 72px);
@@ -1606,12 +1706,17 @@ function dismissGuide(): void {
   .preview-actions .btn { width: 100%; }
   .compare-handle { width: 30px; height: 30px; font-size: 14px; }
   .guide-modal { padding: var(--space-5); }
+  .hero-chip { font-size: 12px; padding: 6px 14px; }
+  .hero-scroll-cue { margin-top: var(--space-4); }
 }
 
 /* ============ 减少动画偏好 ============ */
 @media (prefers-reduced-motion: reduce) {
   .hero-eye, .scroll-arrow, .scan-line, .preview-img-wrap.scanning::after,
   .skeleton, .spinner, .tab-panel { animation: none !important; }
+  .hero-chip, .hero-scroll-cue, .hero-sparkle { animation: none !important; opacity: 1 !important; }
+  .hero-chip-dot { animation: none !important; }
+  .hero-eye-wrap::before { animation: none !important; opacity: 0.6 !important; }
   .gauge-arc, .prob-fill { transition: none !important; }
 }
 </style>

@@ -4,11 +4,17 @@ import { ref, computed, watchEffect } from 'vue'
 import { useI18n } from '@/i18n'
 
 const { t, tm } = useI18n()
+const sampleImage = `${import.meta.env.BASE_URL}assets/samples/highly-fresh.webp`
 
 interface Step { num: string; icon: string; title: string; text: string }
 interface Faq { q: string; a: string; open: boolean }
+interface PhotoCheck { title: string; text: string }
+interface Tip { icon: string; title: string; text: string }
 
 const steps = computed<Step[]>(() => tm<Step[]>('guide.steps'))
+const correctChecks = computed<PhotoCheck[]>(() => tm<PhotoCheck[]>('guide.correct_checks'))
+const incorrectChecks = computed<PhotoCheck[]>(() => tm<PhotoCheck[]>('guide.incorrect_checks'))
+const tips = computed<Tip[]>(() => tm<Tip[]>('guide.tips'))
 
 const faqs = ref<Faq[]>([])
 
@@ -51,10 +57,28 @@ function toggleFaq(idx: number): void {
     <div class="section-head">
       <h2 class="section-title">{{ t('guide.photo_title') }}</h2>
     </div>
-    <div class="glass-card">
-      <p class="upload-meta" style="color: var(--foam); line-height: 1.8;">
-        {{ t('guide.photo_text') }}
-      </p>
+    <p class="intro-sub">{{ t('guide.photo_intro') }}</p>
+    <div class="viewfinder-guide glass-card">
+      <div class="viewfinder-guide-media">
+        <img :src="sampleImage" :alt="t('guide.photo_title')" loading="lazy" decoding="async" />
+        <span class="viewfinder-guide-ring" aria-hidden="true"></span>
+        <span class="viewfinder-guide-hint">{{ t('guide.photo_hint') }}</span>
+      </div>
+      <p class="viewfinder-guide-note">{{ t('guide.photo_text') }}</p>
+    </div>
+    <div class="compare-pain photo-check-grid">
+      <div class="pain-card solution">
+        <div class="pain-card-head"><span class="pain-icon" aria-hidden="true">✓</span><span>{{ t('guide.correct_title') }}</span></div>
+        <ul class="pain-list">
+          <li v-for="item in correctChecks" :key="item.title"><strong>{{ item.title }}</strong>：{{ item.text }}</li>
+        </ul>
+      </div>
+      <div class="pain-card pain">
+        <div class="pain-card-head"><span class="pain-icon" aria-hidden="true">!</span><span>{{ t('guide.incorrect_title') }}</span></div>
+        <ul class="pain-list">
+          <li v-for="item in incorrectChecks" :key="item.title"><strong>{{ item.title }}</strong>：{{ item.text }}</li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -77,6 +101,7 @@ function toggleFaq(idx: number): void {
           :aria-expanded="f.open"
           @click="toggleFaq(i)"
           @keydown.enter.prevent="toggleFaq(i)"
+          @keydown.space.prevent="toggleFaq(i)"
         >
           <span class="accordion-title">{{ f.q }}</span>
           <span class="accordion-arrow" aria-hidden="true">▶</span>
@@ -86,6 +111,20 @@ function toggleFaq(idx: number): void {
             <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">{{ f.a }}</p>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 最佳实践 -->
+  <section class="reveal">
+    <div class="section-head">
+      <h2 class="section-title">{{ t('guide.tips_title') }}</h2>
+    </div>
+    <div class="tips-grid">
+      <div v-for="tip in tips" :key="tip.title" class="tip-card">
+        <div class="tip-icon" aria-hidden="true">{{ tip.icon }}</div>
+        <h3>{{ tip.title }}</h3>
+        <p>{{ tip.text }}</p>
       </div>
     </div>
   </section>
@@ -128,6 +167,20 @@ function toggleFaq(idx: number): void {
 .user-title { font-size: 17px; font-weight: 700; color: var(--white); margin: 0 0 var(--space-2); }
 .user-text { font-size: 13px; color: var(--muted); line-height: 1.7; margin: 0; }
 
+.viewfinder-guide { display: grid; grid-template-columns: minmax(220px, 360px) 1fr; gap: var(--space-5); align-items: center; margin-bottom: var(--space-5); }
+.viewfinder-guide-media { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--ink); }
+.viewfinder-guide-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.viewfinder-guide-ring { position: absolute; width: 48%; aspect-ratio: 1; left: 26%; top: 17%; border: 2px solid var(--aqua); border-radius: 50%; box-shadow: 0 0 0 999px rgba(4, 16, 29, 0.16), 0 0 24px rgba(39, 208, 196, 0.45); }
+.viewfinder-guide-hint { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; color: var(--white); font-size: 12px; text-shadow: 0 1px 4px #00111f; }
+.viewfinder-guide-note { margin: 0; color: var(--foam); line-height: 1.8; font-size: 13.5px; }
+.photo-check-grid { margin-bottom: var(--space-5); }
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-4); }
+.tip-card { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); transition: transform var(--transition), border-color var(--transition); }
+.tip-card:hover { transform: translateY(-3px); border-color: var(--border-hover); }
+.tip-icon { font-size: 28px; margin-bottom: var(--space-2); }
+.tip-card h3 { margin: 0 0 var(--space-2); color: var(--white); font-size: 15px; }
+.tip-card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+
 .faq-list { display: flex; flex-direction: column; gap: var(--space-3); }
 .accordion {
   border: 1px solid var(--border);
@@ -162,5 +215,6 @@ function toggleFaq(idx: number): void {
 
 @media (max-width: 640px) {
   .users-grid { grid-template-columns: 1fr; }
+  .viewfinder-guide { grid-template-columns: 1fr; }
 }
 </style>

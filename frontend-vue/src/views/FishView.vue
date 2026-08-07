@@ -7,9 +7,14 @@ const { t, tm, locale } = useI18n()
 
 interface Level { icon: string; title: string; text: string; color: string }
 interface Species { icon: string; name: string; tag: string; tag_en: string; desc: string; angle: string; cook: string }
+interface InfoCard { icon: string; title: string; text: string }
+interface TimelineItem { icon: string; title: string; text: string; color: string }
 
 const levels = computed<Level[]>(() => tm<Level[]>('fish.levels'))
 const species = computed<Species[]>(() => tm<Species[]>('fish.species'))
+const timeline = computed<TimelineItem[]>(() => tm<TimelineItem[]>('fish.timeline'))
+const standards = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.standards'))
+const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips'))
 </script>
 
 <template>
@@ -57,6 +62,52 @@ const species = computed<Species[]>(() => tm<Species[]>('fish.species'))
         <p class="species-meta">
           📷 {{ t('fish.best_angle') }}：{{ s.angle }}<br />🍳 {{ t('fish.recommended_cook') }}：{{ s.cook }}
         </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 鱼眼新鲜度变化参考时序 -->
+  <section class="reveal">
+    <div class="section-head">
+      <h2 class="section-title">{{ t('fish.timeline_title') }}</h2>
+    </div>
+    <p class="intro-sub">{{ t('fish.timeline_intro') }}</p>
+    <div class="timeline">
+      <div v-for="item in timeline" :key="item.title" class="timeline-item">
+        <div class="timeline-dot" :class="`dot-${item.color}`" aria-hidden="true">{{ item.icon }}</div>
+        <div class="timeline-content">
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.text }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 国标解读 -->
+  <section class="reveal">
+    <div class="section-head">
+      <h2 class="section-title">{{ t('fish.standard_title') }}</h2>
+    </div>
+    <p class="intro-sub">{{ t('fish.standard_intro') }}</p>
+    <div class="info-grid">
+      <div v-for="card in standards" :key="card.title" class="info-card">
+        <div class="info-card-icon" aria-hidden="true">{{ card.icon }}</div>
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.text }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 选购建议 -->
+  <section class="reveal">
+    <div class="section-head">
+      <h2 class="section-title">{{ t('fish.buying_title') }}</h2>
+    </div>
+    <p class="intro-sub">{{ t('fish.buying_intro') }}</p>
+    <div class="buying-grid">
+      <div v-for="card in buyingTips" :key="card.title" class="buying-card">
+        <h3>{{ card.icon }} {{ card.title }}</h3>
+        <p>{{ card.text }}</p>
       </div>
     </div>
   </section>
@@ -139,7 +190,28 @@ const species = computed<Species[]>(() => tm<Species[]>('fish.species'))
 .species-desc { font-size: 13px; color: var(--foam); line-height: 1.7; margin: 0 0 var(--space-2); }
 .species-meta { font-size: 12px; color: var(--muted); line-height: 1.8; margin: 0; }
 
+.timeline { position: relative; margin: 0 auto; max-width: 820px; padding-left: 36px; }
+.timeline::before { content: ""; position: absolute; left: 12px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--aqua), rgba(39, 208, 196, 0.1)); }
+.timeline-item { position: relative; margin-bottom: var(--space-4); }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot { position: absolute; left: -36px; top: 16px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); font-size: 12px; font-weight: 800; border: 2px solid var(--bg); box-shadow: 0 0 0 1px var(--border); background: linear-gradient(135deg, var(--aqua), var(--sea)); }
+.dot-green { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+.dot-gold { background: linear-gradient(135deg, #f5b54a, #ffd06a); }
+.dot-red { background: linear-gradient(135deg, #ef4444, #f87171); }
+.timeline-content { padding: var(--space-4) var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.timeline-content h3 { margin: 0 0 var(--space-2); color: var(--white); font-size: 15px; }
+.timeline-content p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.75; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+.info-card, .buying-card { padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.info-card-icon { font-size: 28px; margin-bottom: var(--space-2); }
+.info-card h3, .buying-card h3 { margin: 0 0 var(--space-2); color: var(--white); font-size: 15px; }
+.info-card p, .buying-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.75; }
+.buying-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+.buying-card { border-color: rgba(39, 208, 196, 0.22); }
+
 @media (max-width: 640px) {
   .levels-grid { grid-template-columns: 1fr; }
+  .timeline { padding-left: 30px; }
+  .timeline-dot { left: -30px; width: 22px; height: 22px; font-size: 10px; }
 }
 </style>

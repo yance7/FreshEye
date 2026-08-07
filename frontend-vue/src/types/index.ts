@@ -8,10 +8,10 @@ export type ProbabilityMap = Record<FreshnessLabel, number>
 
 /** 模型预测结果 */
 export interface PredictionResult {
-  /** 新鲜度等级（0/1/2） */
+  /** 新鲜度等级（0=高度新鲜，1=新鲜，2=不新鲜） */
   freshness_level: FreshnessLabel
-  /** 新鲜度文本标签（高度新鲜 / 新鲜 / 不新鲜） */
-  freshness_label: string
+  /** 新鲜度数字标签（后端契约为 0/1/2） */
+  freshness_label: FreshnessLabel
   /** 置信度分数（0-1） */
   confidence_score: number
   /** 三分类完整概率分布 */
