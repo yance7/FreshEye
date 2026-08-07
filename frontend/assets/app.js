@@ -1957,12 +1957,31 @@
     /**
      * 删除一条历史记录
      */
+    function findHistoryItemElement(id) {
+      if (!historyList) return null;
+      return Array.from(historyList.querySelectorAll(".history-item"))
+        .find((item) => item.dataset.id === id) || null;
+    }
+
+    function showHistoryEmptyState() {
+      if (!historyList || historyList.querySelector(".history-item")) return;
+      const searchTerm = (document.getElementById("historySearch")?.value || "").trim();
+      const filterVal = document.getElementById("historyFilter")?.value || "all";
+      historyList.innerHTML = `<div class="history-empty">${searchTerm || filterVal !== "all" ? "未找到匹配的记录" : "暂无历史记录，上传第一张鱼眼照片开始分析吧！"}</div>`;
+    }
+
     function deleteHistory(id) {
       const hist = loadHistory().filter((r) => r.id !== id);
       saveHistory(hist);
       const favs = loadFavorites().filter((fid) => fid !== id);
       saveFavorites(favs);
-      renderHistory();
+      // 只移除当前 DOM 节点，保留列表、滚动位置和其余图片，避免整列表闪烁/刷新。
+      const item = findHistoryItemElement(id);
+      if (item) {
+        if (_swipeOpenItem === item) _collapseSwipeItem();
+        item.remove();
+      }
+      showHistoryEmptyState();
     }
 
     /**
@@ -1988,7 +2007,23 @@
         favs.push(id);
       }
       saveFavorites(favs);
-      renderHistory();
+      const item = findHistoryItemElement(id);
+      if (!item) return;
+      const isFav = favs.includes(id);
+      const btn = item.querySelector('[data-act="fav"]');
+      if (btn) {
+        btn.classList.toggle("is-fav", isFav);
+        btn.textContent = isFav ? "★" : "☆";
+        btn.setAttribute("aria-label", isFav ? "取消收藏" : "收藏");
+        btn.setAttribute("aria-pressed", String(isFav));
+        btn.title = isFav ? "取消收藏" : "收藏记录";
+      }
+      // 收藏筛选下取消收藏时，仅将这一项移出当前视图。
+      if (!isFav && document.getElementById("historyFilter")?.value === "favorite") {
+        if (_swipeOpenItem === item) _collapseSwipeItem();
+        item.remove();
+        showHistoryEmptyState();
+      }
     }
 
     /**
@@ -2075,8 +2110,8 @@
           </div>
         </div>
         <div class="history-actions">
-          <button class="history-btn fav ${favClass}" aria-label="${favAriaLabel}" data-act="fav">${favText}</button>
-          <button class="history-btn del" aria-label="删除此记录" data-act="del">🗑</button>
+          <button class="history-btn fav ${favClass}" aria-label="${favAriaLabel}" aria-pressed="${isFav}" title="${isFav ? "取消收藏" : "收藏记录"}" data-act="fav">${favText}</button>
+          <button class="history-btn del" aria-label="删除此记录" title="删除记录" data-act="del">🗑</button>
         </div>
       `;
       return item;
@@ -2449,6 +2484,7 @@
       const heatBlock = heatmapSrc
         ? `<div class="pdf-img-block"><div class="pdf-img-wrap"><img src="${escapeHtml(heatmapSrc)}" alt="AI 关注区域热力图" width="200" height="200"></div><div class="pdf-caption">AI 判断依据区域</div></div>`
         : '';
+      const imageLayoutClass = heatmapSrc ? '' : ' pdf-images-single';
 
       // 报告内常驻工具栏：显式打印 / 下载 / 关闭，覆盖自动打印被拦截的场景（移动端常见）
       const PDF_TOOLBAR = `<div class="pdf-toolbar" id="pdfToolbar">
@@ -2462,10 +2498,11 @@
       const pdfStylesheetUrl = new URL("assets/css/pdf-report.css", document.baseURI).href;
 
       let fullHtml = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>鲜眸 · FreshEye AI 辅助评估报告</title>
 <link rel="stylesheet" href="${pdfStylesheetUrl}">
 <style>
-  @page { margin: 0; size: A4; }
+  @page { margin: 0; size: A4 portrait; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; min-width: 0; background: #e8f0f4; }
   body { margin: 0; padding: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; color: #1e293b; font-size: 10.5px; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-variant-numeric: tabular-nums; }
@@ -2488,6 +2525,8 @@
   .pdf-header-divider { height: 1px; background: linear-gradient(90deg, ${sc.primary}, #dbeafe, transparent); border: none; margin: 0 0 15px 0; }
   .pdf-overview { display: flex; gap: 10px; margin-bottom: 0; align-items: stretch; }
   .pdf-images { flex: 0 0 56%; display: flex; gap: 8px; }
+  .pdf-images-single { justify-content: flex-start; }
+  .pdf-images-single .pdf-img-block { flex: 0 0 48%; max-width: 48%; }
   .pdf-img-block { flex: 1; display: flex; flex-direction: column; }
   .pdf-img-wrap { aspect-ratio: 1; padding: 3px; border-radius: 10px; overflow: hidden; background: #fff; box-shadow: 0 5px 14px rgba(15, 23, 42, 0.09); border: 1px solid #dce9ee; }
   .pdf-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -2568,9 +2607,9 @@
     .pdf-conf-num { font-size: 32pt; }
   }
   @media print {
-    html, body { width: auto; background: #fff; }
+    html, body { width: 210mm !important; min-width: 210mm !important; max-width: 210mm !important; background: #fff; }
     body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .pdf-page { width: 210mm; max-width: none; min-height: 297mm; margin: 0; padding: 15mm 12mm 10mm; border: 0; box-shadow: none; page-break-inside: avoid; }
+    .pdf-page { width: 210mm !important; min-width: 210mm !important; max-width: 210mm !important; min-height: 297mm; margin: 0; padding: 15mm 12mm 10mm; border: 0; box-shadow: none; page-break-inside: avoid; }
     .pdf-toolbar { display: none !important; }
   }
   .pdf-section, .pdf-safety-banner, .pdf-advice-card, .pdf-conclusion, .pdf-overview, .pdf-scope-note { page-break-inside: avoid; break-inside: avoid; }
@@ -2596,7 +2635,7 @@
   <div class="pdf-section">
     <h3 class="pdf-section-title"><span class="pdf-section-mark">01</span>分析结果概览</h3>
     <div class="pdf-overview">
-      <div class="pdf-images">
+      <div class="pdf-images${imageLayoutClass}">
         ${imgBlock}
         ${heatBlock}
       </div>
@@ -2730,8 +2769,9 @@
           if (printBtn.dataset.bound === "true") return;
           printBtn.dataset.bound = "true";
           printBtn.addEventListener("click", () => {
-            win.focus();
-            win.print();
+            // 移动端要等同源报告样式、字体和图片全部就绪后再调用打印，
+            // 否则部分浏览器会按当前视口生成 A3/左半页布局。
+            prepareReportPrint(win).then(() => setTimeout(doPrint, 120));
           });
           downloadBtn.addEventListener("click", () => {
             const reportBlob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
@@ -2780,11 +2820,29 @@
           setTimeout(finish, 4000); // 超时兜底
         } catch (_) { resolve(); }
       });
+      const prepareReportPrint = async (w) => {
+        try {
+          const links = w.document ? Array.from(w.document.querySelectorAll('link[rel="stylesheet"]')) : [];
+          await Promise.all(links.map((link) => {
+            if (link.sheet) return Promise.resolve();
+            return new Promise((resolve) => {
+              let settled = false;
+              const finish = () => { if (!settled) { settled = true; resolve(); } };
+              link.addEventListener("load", finish, { once: true });
+              link.addEventListener("error", finish, { once: true });
+              setTimeout(finish, 2500);
+            });
+          }));
+          if (w.document?.fonts?.ready) await w.document.fonts.ready;
+          await imagesReady(w);
+          await new Promise((resolve) => w.requestAnimationFrame ? w.requestAnimationFrame(() => resolve()) : setTimeout(resolve, 40));
+        } catch (_) { /* 打印本身仍可作为最终兜底 */ }
+      };
       const checkReady = () => {
         if (printed || !win || win.closed) return;
         try {
           if (win.document && win.document.readyState === "complete") {
-            imagesReady(win).then(() => setTimeout(doPrint, 300));
+            prepareReportPrint(win).then(() => setTimeout(doPrint, 300));
           } else {
             setTimeout(checkReady, 150);
           }

@@ -1,7 +1,7 @@
 /* ============ 鲜眸（FreshEye） Service Worker ============ */
 /* 缓存策略：HTML 网络优先；静态资源 stale-while-revalidate（缓存立即返回 + 后台更新） */
 
-const CACHE_NAME = 'fresheye-v21';
+const CACHE_NAME = 'fresheye-v22';
 const CORE_URLS = [
   './',
   './index.html',

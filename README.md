@@ -2,9 +2,11 @@
 
 <img src="docs/banner.svg" alt="鲜眸 · FreshEye" width="720"/>
 
-# 鲜眸 · FreshEye · 水产品新鲜度智能评估系统
+# 鲜眸 · FreshEye
 
-**一拍知鲜 · 吃得放心** — 基于 FishFreshNet CNN 的鱼眼新鲜度智能识别
+**看一眼鱼眼，判断新鲜度**
+
+基于 FishFreshNet CNN 的水产品视觉新鲜度辅助评估系统：上传一张鱼眼照片，获得清晰的结果、置信度、AI 关注区域与可追溯报告。
 
 [![License](https://img.shields.io/badge/License-MIT-0a8a82?style=flat-square)](LICENSE)
 [![MFED test](https://img.shields.io/badge/MFED%20test-99.29%25-27d0c4?style=flat-square)](#models)
@@ -15,7 +17,11 @@
 
 **在线体验**：前端 [GitHub Pages](https://fresheye.yance777.com/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
+**快速入口**：[开始体验](https://fresheye.yance777.com/) · [产品与模型说明](frontend/about.html) · [使用指南](frontend/guide.html) · [开放数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)
+
 ![FreshEye 产品预览](frontend/assets/og-cover.png)
+
+> **能力边界**：报告描述的是鱼眼图像中的视觉新鲜度特征，不替代法定食品检验、质量合格证明或食用安全判断；如有异味、组织异常或储存条件不明，请结合其他感官指标与专业意见判断。
 
 > 🐟 使用 **TRAE IDE** 全程开发 · TRAE AI 创造力大赛 · 社会服务赛道 · 作者：祈雨柒
 
