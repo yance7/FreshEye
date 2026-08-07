@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; style-src-elem 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space; base-uri 'self'; form-action 'self';" />
   <meta name="theme-color" content="#04162b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -27,11 +27,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='i' cx='50%' cy='45%' r='55%'%3E%3Cstop offset='0%' stop-color='%230f5666'/%3E%3Cstop offset='52%' stop-color='%231185b8'/%3E%3Cstop offset='80%' stop-color='%2327d0c4'/%3E%3Cstop offset='100%' stop-color='%23bdf6ef'/%3E%3C/radialGradient%3E%3CradialGradient id='p' cx='38%' cy='32%' r='68%'%3E%3Cstop offset='0%' stop-color='%231a2238'/%3E%3Cstop offset='60%' stop-color='%23000814'/%3E%3Cstop offset='100%' stop-color='%23000000'/%3E%3C/radialGradient%3E%3CradialGradient id='s' cx='50%' cy='42%' r='62%'%3E%3Cstop offset='0%' stop-color='%23ffffff'/%3E%3Cstop offset='70%' stop-color='%23eaf4f9'/%3E%3Cstop offset='100%' stop-color='%23cfe2ec'/%3E%3C/radialGradient%3E%3CradialGradient id='h' cx='50%' cy='50%' r='50%'%3E%3Cstop offset='0%' stop-color='%23ffffff' stop-opacity='0.98'/%3E%3Cstop offset='55%' stop-color='%23ffffff' stop-opacity='0.45'/%3E%3Cstop offset='100%' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230c2236'/%3E%3Ccircle cx='32' cy='32' r='28' fill='none' stroke='%2327d0c4' stroke-width='1.5' opacity='0.55'/%3E%3Cg fill='%231fd3c6' opacity='0.85'%3E%3Ccircle cx='32' cy='6' r='1.2'/%3E%3Ccircle cx='50' cy='14' r='1.2'/%3E%3Ccircle cx='58' cy='32' r='1.2'/%3E%3Ccircle cx='50' cy='50' r='1.2'/%3E%3Ccircle cx='32' cy='58' r='1.2'/%3E%3Ccircle cx='14' cy='50' r='1.2'/%3E%3Ccircle cx='6' cy='32' r='1.2'/%3E%3Ccircle cx='14' cy='14' r='1.2'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='24' fill='url(%23s)'/%3E%3Ccircle cx='32' cy='32' r='20' fill='url(%23i)'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%2327d0c4' stroke-width='0.8' opacity='0.3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='url(%23p)'/%3E%3Cellipse cx='25' cy='22' rx='7' ry='5.5' fill='url(%23h)' transform='rotate(-22 25 22)'/%3E%3Ccircle cx='26' cy='21' r='1' fill='%23ffffff' opacity='0.95'/%3E%3Ccircle cx='40' cy='40' r='2' fill='%23ffffff' opacity='0.65'/%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="./assets/icon-180.png" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/style.css">
   <link rel="manifest" href="./assets/manifest.json">
   <script src="assets/ui.js" defer></script>
+  <script src="assets/site.js" defer></script>
 </head>
 <body>
   <a href="#architecture" class="skip-link">跳到主内容</a>
@@ -169,7 +169,7 @@
           </div>
           <ul class="pain-list">
             <li>鱼眼照片一键上传，<strong>零成本非破坏式</strong>检测</li>
-            <li>FishFreshNetV1（EfficientNet-B0 + CBAM）三分类，准确率 <strong>99%+</strong>；V2（EfficientNet-B0 + ECA + Light CRA）提升至 <strong>99.29%</strong></li>
+            <li>FishFreshNetV1（EfficientNet-B0 + CBAM）与 V2（EfficientNet-B0 + ECA + Light CRA）均支持三分类；V2 在 <strong>MFED 测试集达到 99.29%</strong></li>
             <li>Grad-CAM 热力图解释"为什么"，结构化报告给出"怎么办"</li>
             <li>置信度驱动自适应分支，低置信度主动提示重拍</li>
           </ul>
@@ -208,7 +208,7 @@
       </div>
       <div id="compareContent">
         <h3 class="section-subtitle">FishFreshNetV1 vs 主流模型</h3>
-        <p class="intro-sub">在 MFED（自建数据集）与 FFE（公开数据集<sup>[1]</sup>，Yildiz 等<sup>[2]</sup>同期研究亦使用该数据集）上的全面性能对比</p>
+        <p class="intro-sub">以下结果分别来自 MFED 自建测试集与 FFE 公开数据集<sup>[1]</sup>；它们反映的是数据集内验证表现，不等同于现实环境的食品安全准确率。</p>
 
         <div class="table-wrap">
           <table class="compare-table">
@@ -269,9 +269,28 @@
         </div>
 
         <p class="intro-sub" style="margin-top:16px;">
-          V2 相对 V1 提升 0.41 个百分点（98.88% → 99.29%），以 VGG16 约 3% 的参数量实现更高准确率。
+          V2 在 MFED 上相对 V1 提升 0.41 个百分点（98.88% → 99.29%），但在 FFE 上为 81.18%；以 VGG16 约 3% 的参数量实现轻量化部署。
           数据集已开源：<a href="https://data.mendeley.com/datasets/67nmx3mhwh/2" target="_blank" rel="noopener noreferrer">Mendeley Data</a>
         </p>
+      </div>
+    </section>
+
+    <!-- ============ Model Card 与验证范围 ============ -->
+    <section id="model-card" class="reveal">
+      <div class="section-head">
+        <h2 class="section-title">Model Card · 模型说明卡</h2>
+      </div>
+      <p class="intro-sub">把模型能做什么、在哪些条件下验证过，以及哪些事情不能由一张鱼眼照片证明，说清楚再使用结果。</p>
+      <div class="model-card model-card-public">
+        <div class="model-card-grid">
+          <div class="model-card-item"><strong>模型能做什么</strong><span>鱼眼视觉新鲜度三级分类：高度新鲜 / 新鲜 / 不新鲜。</span></div>
+          <div class="model-card-item"><strong>验证结果</strong><span>FishFreshNetV2：MFED 99.29%；FFE 81.18%。</span></div>
+          <div class="model-card-item"><strong>训练与验证范围</strong><span>MFED 约 4800 张、2 种淡水鱼、4 种受控环境；清晰鱼眼、主体占比较大、光线充足时更适合使用。</span></div>
+          <div class="model-card-item"><strong>已知限制</strong><span>其他鱼种、极端光线、模糊或反光图片，以及病原微生物、污染物、毒素、兽药残留等，均不在本视觉结果的证明范围内。</span></div>
+          <div class="model-card-item"><strong>食品安全边界</strong><span>本工具是 AI 辅助评估，不适合作为法定食品检测报告、质量合格证明或食用安全保证。</span></div>
+          <div class="model-card-item"><strong>混淆矩阵</strong><span>当前仓库只公开汇总准确率，未公开逐样本预测记录，因此不从汇总指标推导混淆矩阵。</span></div>
+        </div>
+        <p class="model-card-disclaimer">参考 GB 2733-2015 中动物性水产品感官要求，并结合鱼眼视觉特征与项目实验数据建立三级视觉新鲜度分类；这不是对完整国标食品安全项目的替代。</p>
       </div>
     </section>
 
@@ -281,7 +300,7 @@
         <h2 class="section-title">FishFreshNetV1 模型架构</h2>
       </div>
       <div class="model-arch-content">
-        <p class="intro-sub">FishFreshNetV1 是一个轻量级且可解释的深度学习框架，专为鱼眼新鲜度分类任务设计。模型仅 <strong>4.22M</strong> 参数、<strong>0.41G</strong> FLOPs，在 MFED 数据集上达到 <strong>99%+</strong> 准确率。</p>
+        <p class="intro-sub">FishFreshNetV1 是一个轻量级且可解释的深度学习框架，专为鱼眼新鲜度分类任务设计。模型仅 <strong>4.22M</strong> 参数、<strong>0.41G</strong> FLOPs，在 MFED 测试集达到 <strong>98.88%</strong> 准确率。</p>
 
         <!-- 架构总览 -->
         <div class="model-flow">
@@ -398,7 +417,7 @@
       <div class="section-head">
         <h2 class="section-title">FishFreshNetV2 模型架构</h2>
       </div>
-      <p class="intro-sub">FishFreshNetV2 是在 V1 基础上完成的学术升级版本。V2 的核心目标是在保持轻量化的前提下进一步提升精度与可解释性，关键改动有两点：用 <strong>ECA</strong> 替代 CBAM 作为通道注意力，并新增 <strong>Light CRA</strong>（Light Circular Region Attention）鱼眼专用区域注意力。模型仅 <strong>4.095M</strong> 参数、<strong>0.414G</strong> FLOPs，在 MFED 数据集上达到 <strong>99.29%</strong> 准确率。</p>
+        <p class="intro-sub">FishFreshNetV2 是在 V1 基础上完成的学术升级版本。V2 的核心目标是在保持轻量化的前提下进一步提升精度与可解释性，关键改动有两点：用 <strong>ECA</strong> 替代 CBAM 作为通道注意力，并新增 <strong>Light CRA</strong>（Light Circular Region Attention）鱼眼专用区域注意力。模型仅 <strong>4.095M</strong> 参数、<strong>0.414G</strong> FLOPs，在 MFED 测试集达到 <strong>99.29%</strong>，FFE 公开数据集为 <strong>81.18%</strong>。</p>
 
       <!-- 模型前向流程图 -->
       <div class="model-flow">
@@ -447,7 +466,7 @@
       <!-- Light CRA 鱼眼专用区域注意力 -->
       <div class="model-card">
         <h3 class="model-h3"><span class="model-h3-icon" aria-hidden="true">🎯</span> Light CRA 环形区域注意力</h3>
-        <p>这是 V2 引入的<strong>原创模块</strong>，利用鱼眼近似圆形的几何先验，将特征图划分为 N=3 个同心环（瞳孔 / 角膜 / 眼眶）并分别施加注意力。原始 CRA 参数高达 13.846M，Light CRA 通过"掩码分区 + 共享深度卷积"压缩到仅 <strong>0.083M</strong>，却带来 +0.37% 准确率提升（98.88% → 99.25%）。</p>
+        <p>这是 V2 引入的<strong>原创模块</strong>，利用鱼眼近似圆形的几何先验，将特征图划分为 N=3 个同心环（瞳孔 / 角膜 / 眼眶）并分别施加注意力。原始 CRA 参数高达 13.846M，Light CRA 通过"掩码分区 + 共享深度卷积"压缩到仅 <strong>0.083M</strong>；MFED 测试集准确率由 98.88% 提升至 99.29%。</p>
         <div class="model-features">
           <div class="model-feature">
             <strong>三环语义结构</strong>：N=3 对应鱼眼的三段语义结构——内环（瞳孔）、中环（角膜）、外环（眼眶），每个环独立生成注意力权重，使模型聚焦于不同半径区域的新鲜度特征。
@@ -496,7 +515,7 @@
             </tbody>
           </table>
         </div>
-        <p style="margin-top: 12px; font-size: 14px; color: var(--muted);">V2 相对 V1 的关键提升：准确率 +0.41 个百分点（98.88% → 99.29%），参数量 -0.121M（4.216M → 4.095M），模型大小 -0.46MB——在精度显著提升的同时实现了参数量与模型体积的双下降。</p>
+        <p style="margin-top: 12px; font-size: 14px; color: var(--muted);">MFED 测试集上，V2 相对 V1 的准确率提升 0.41 个百分点（98.88% → 99.29%）；参数量 -0.121M（4.216M → 4.095M），模型大小 -0.46MB。FFE 公开数据集结果另见上方验证范围。</p>
       </div>
 
       <!-- 关键数据 -->
@@ -670,7 +689,7 @@
             <div class="timeline-dot dot-aqua" aria-hidden="true">🔬</div>
             <div class="timeline-content">
               <h3>独立研究</h3>
-              <p>独立设计 <strong>EfficientNet-B0 + CBAM</strong> 架构（FishFreshNetV1），构建 MFED 数据集（4800 张 / 4 环境 / GB 2733-2015 国标<sup>[11]</sup>），达成 <strong>99%+ 准确率</strong>。数据集开源至 Mendeley Data。</p>
+              <p>独立设计 <strong>EfficientNet-B0 + CBAM</strong> 架构（FishFreshNetV1），构建 MFED 数据集（约 4800 张 / 2 种淡水鱼 / 4 种受控环境），在 MFED 测试集达到 <strong>98.88%</strong>。数据集开源至 Mendeley Data。</p>
             </div>
           </div>
           <div class="timeline-item">
@@ -823,7 +842,7 @@
           <span class="footer-brand-logo" aria-hidden="true"><span class="brand-eye"></span></span>
           <span class="footer-brand-name">FreshEye</span>
         </div>
-        <p class="footer-brand-desc">上传鱼眼照片，AI 秒级分析水产品新鲜度。轻量化模型 + Grad-CAM 可解释热力图，让每一次判断都有据可依。</p>
+        <p class="footer-brand-desc">上传鱼眼照片，AI 辅助分析视觉新鲜度。轻量化模型 + Grad-CAM 可解释热力图，让每一次判断都有据可依。</p>
       </div>
       <nav aria-label="页脚导航">
         <h4 class="footer-col-title">快速导航</h4>
@@ -857,21 +876,5 @@
     </div>
   </footer>
 
-  <script>
-    // 初始化（气泡 / 汉堡菜单 / 入场动画统一由 FreshUI 共享库提供）
-    document.addEventListener("DOMContentLoaded", () => {
-      FreshUI.initBubbles();
-      FreshUI.initHamburgerMenu();
-      FreshUI.initReveal();
-    });
-
-    // ============ Service Worker 注册 ============
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./assets/sw.js')
-          .catch((err) => console.warn('📦 PWA: SW 注册失败', err));
-      });
-    }
-  </script>
 </body>
 </html>

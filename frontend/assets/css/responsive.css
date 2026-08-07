@@ -1,0 +1,481 @@
+/* ============ 全局焦点样式 ============ */
+/* :focus-visible 基础规则见顶部重置区块 */
+/* touch-action: manipulation 统一规则见下方触摸优化区块（含完整选择器） */
+/* 最小触摸尺寸保障 */
+.btn-analyze, .btn-export, .history-btn, .nav-toggle {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ============ 汉堡菜单 ============ */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px; height: 44px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 10px;
+}
+.nav-toggle-bar {
+  display: block;
+  width: 100%; height: 2px;
+  background: var(--foam);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.nav-toggle.is-open .nav-toggle-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.is-open .nav-toggle-bar:nth-child(2) { opacity: 0; }
+.nav-toggle.is-open .nav-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 22, 43, 0.97);
+  backdrop-filter: blur(14px);
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlay-fade 0.25s ease;
+  overscroll-behavior: contain;
+}
+@keyframes overlay-fade { from { opacity: 0; } to { opacity: 1; } }
+.nav-overlay[hidden] { display: none; }
+.nav-overlay-links {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  text-align: center;
+}
+.nav-overlay-links a {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--foam);
+  text-decoration: none;
+  padding: 12px 24px;
+  transition: color var(--transition);
+}
+.nav-overlay-links a:hover { color: var(--aqua); }
+
+/* ============ 焦点可见样式 ============ */
+.btn-ghost:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.btn-analyze:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.report-tab:focus-visible { outline: 2px solid var(--aqua); outline-offset: -2px; border-radius: 4px; }
+.accordion-head:focus-visible { outline: 2px solid var(--aqua); outline-offset: -2px; }
+.btn-export:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.history-btn:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.nav-toggle:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.warning-dismiss:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.btn-modal-primary:focus-visible, .btn-modal-secondary:focus-visible { outline: 2px solid var(--foam); outline-offset: 2px; }
+.nav-overlay-links a:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+
+/* ============ 触控反馈 ============ */
+.badge:active, .btn-ghost:active, .btn-export:active, .accordion-head:active, .nav-toggle:active, .pain-card:active, .social-card:active, .user-card:active { transform: scale(0.97); }
+
+
+/* ============ 比赛页脚 ============ */
+.competition-footer {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  border-top: 1px solid var(--border);
+  background: rgba(4, 22, 43, 0.5);
+}
+.competition-info, .tech-stack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: var(--space-3);
+}
+.competition-footer .badge,
+.tech-stack span {
+  font-size: 12.5px;
+  padding: 5px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+}
+.competition-info .badge { color: var(--aqua); }
+.footer-copy {
+  margin-top: var(--space-3);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* ============ 移动端深度适配 ============ */
+@media (max-width: 1024px) {
+  .nav-links { gap: 18px; }
+}
+@media (max-width: 640px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: flex; }
+  .hero-title { font-size: clamp(26px, 8vw, 42px); }
+  .upload-zone { width: 100%; min-height: 140px; }
+  .preview-img { max-width: 100%; }
+  .compare-slider { aspect-ratio: 1 / 1; }
+  .advice-grid { grid-template-columns: 1fr; }
+  .results-grid { grid-template-columns: 1fr; }
+  .toast {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 420px;
+  }
+  .report-tabs { gap: 2px; }
+  .report-tab { padding: 10px 12px; font-size: 13px; }
+  .competition-info, .tech-stack { gap: 6px; }
+  .competition-footer .badge,
+  .tech-stack span { font-size: 11px; padding: 4px 10px; }
+}
+
+/* ============ 减少动画偏好 ============ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .bubble, .wave, .glow { display: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .hero { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .hero-eye-wrap::before { animation: none !important; opacity: 0.6 !important; }
+  .upload-icon::before { animation: none !important; opacity: 0 !important; }
+  .freshness-indicator::before { animation: none !important; opacity: 0.4 !important; }
+  .upload-zone-pulse::before { animation: none !important; box-shadow: none !important; }
+  .onboarding-tip { animation: none !important; }
+  .topo-node[data-tip]::after { animation: none !important; }
+  .workflow-badge { animation: none !important; }
+  /* 处理建议卡片动画降级为即时切换 */
+  .advice-card-expandable,
+  .advice-card-expandable .advice-body,
+  .advice-card-expandable .advice-expand-icon {
+    transition: none !important;
+  }
+}
+
+/* ============ 介绍区说明文本 ============ */
+.intro-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 var(--space-5);
+  padding-left: 17px;
+}
+
+/* 板块 1：痛点 vs 解法 双栏 */
+.compare-pain {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.pain-card {
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform var(--transition), border-color var(--transition);
+}
+.pain-card:hover {
+  transform: translateY(-3px);
+}
+.pain-card.pain {
+  background: rgba(239, 91, 91, 0.07);
+  border-color: rgba(239, 91, 91, 0.25);
+}
+.pain-card.pain:hover { border-color: rgba(239, 91, 91, 0.5); }
+.pain-card.solution {
+  background: rgba(39, 208, 196, 0.07);
+  border-color: rgba(39, 208, 196, 0.25);
+}
+.pain-card.solution:hover { border-color: rgba(39, 208, 196, 0.5); }
+.pain-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--space-4);
+  font-size: 16px;
+  font-weight: 700;
+}
+.pain-card.pain .pain-card-head { color: var(--bad); }
+.pain-card.solution .pain-card-head { color: var(--aqua); }
+.pain-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.pain-card.pain .pain-icon { background: rgba(239, 91, 91, 0.18); }
+.pain-card.solution .pain-icon { background: rgba(39, 208, 196, 0.18); }
+.pain-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pain-list li {
+  font-size: 13.5px;
+  color: var(--foam);
+  line-height: 1.6;
+  padding-left: 20px;
+  position: relative;
+}
+.pain-list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 8px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.pain-card.pain .pain-list li::before { background: var(--bad); }
+.pain-card.solution .pain-list li::before { background: var(--aqua); }
+.pain-list li strong { color: var(--white); font-weight: 600; }
+
+/* 板块 2：三类用户卡片 */
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+.user-card {
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+.user-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+}
+.user-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  font-size: 22px;
+  margin-bottom: var(--space-3);
+  background: rgba(39, 208, 196, 0.12);
+  border: 1px solid var(--border-hover);
+}
+.user-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0 0 6px;
+}
+.user-text {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* 板块 3：方案对比表格 */
+.table-wrap {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+.compare-table th,
+.compare-table td {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.compare-table thead th {
+  background: rgba(39, 208, 196, 0.08);
+  color: var(--aqua);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.compare-table tbody td:first-child {
+  color: var(--muted);
+  font-weight: 600;
+}
+.compare-table tbody td {
+  color: var(--foam);
+}
+.compare-table tbody td.highlight {
+  color: var(--aqua);
+  font-weight: 600;
+}
+.compare-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.compare-table tbody tr:last-child td { border-bottom: none; }
+
+/* 介绍区移动端适配 */
+@media (max-width: 768px) {
+  .compare-pain { grid-template-columns: 1fr; }
+  .users-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================ */
+/* 移动端深度适配 + PWA + 渲染性能优化                           */
+/* ============================================================ */
+
+/* ============ 渲染性能：contain 隔离 ============ */
+.bg-layer {
+  contain: layout style paint;
+  will-change: transform;
+}
+.results, .skeleton-wrap, .preview-card {
+  contain: layout style;
+}
+
+/* ============ 渲染性能：content-visibility 延迟渲染 ============ */
+.history-section, .competition-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* ============ 渲染性能：动画层隔离 ============ */
+.bubble, .glow, .wave, .scan-line {
+  will-change: transform, opacity;
+  contain: layout style paint;
+}
+
+/* ============ 触摸优化：禁用双击缩放 ============ */
+button, a, .upload-zone, .report-tab, .history-item,
+.accordion-head, .comp-handle, .btn-analyze, .btn-export,
+.advice-head, .history-btn, .model-select,
+.history-search-input, .history-filter-select, .warning-dismiss,
+.nav-toggle, .sample-tag, .btn-modal-primary, .btn-modal-secondary,
+select, input[type="file"],
+.pain-card, .user-card, .social-card, .iter-phase, .timeline-content, .topo-node, .arch-box, .model-flow-node, .workflow-badge {
+  touch-action: manipulation;
+}
+
+/* ============ 触摸优化：iOS 惯性滚动 + snap ============ */
+.report-tabs, .history-list, .table-wrap, .workflow-topology {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.report-tab {
+  scroll-snap-align: start;
+}
+
+/* ============ 触摸目标尺寸 ≥ 44px ============ */
+@media (max-width: 640px) {
+  .nav-links a,
+  .report-tab,
+  .badge,
+  .history-item,
+  .accordion-head {
+    min-height: 44px;
+  }
+  .history-item .history-actions button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  /* 图像对比滑块加大手柄 */
+  .comp-handle-knob {
+    width: 48px; height: 48px;
+    font-size: 18px;
+  }
+  .comp-handle { width: 4px; }
+
+  /* 上传区视觉强化 */
+  .upload-zone {
+    border-width: 3px;
+    min-height: 160px;
+  }
+  .upload-zone-pulse::before {
+    animation-duration: 1.5s;
+  }
+  .upload-icon { width: 60px; height: 60px; }
+  .upload-cta {
+    padding: 12px 28px;
+    font-size: 15px;
+  }
+
+  /* Toast 定位优化 */
+  .toast-container {
+    top: calc(var(--navbar-h, 64px) + env(safe-area-inset-top, 0px) + 8px);
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: auto;
+    max-width: none;
+  }
+  .toast {
+    width: 100%;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  /* backdrop-filter 移动端降级 */
+  .navbar, .panel, .upload-zone, .preview-card, .badge,
+  .metric-item, .advice-card, .compare-slider, .accordion,
+  .pain-card, .user-card, .table-wrap {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* 移动端隐藏光晕和次要水纹，减少渲染层 */
+  .glow { display: none; }
+  .wave-2 { display: none; }
+}
+
+/* ============ 断点 1：< 375px（小屏手机）============ */
+@media (max-width: 374px) {
+  .hero-title { font-size: clamp(24px, 7vw, 36px); }
+  .hero-tagline { font-size: 16px; }
+  .upload-zone { padding: 24px 12px; min-height: 180px; }
+  .upload-text { font-size: 14px; }
+  .upload-meta { font-size: 11px; }
+  .section-title { font-size: 17px; }
+  .section-subtitle { font-size: 15px; }
+  .metric-val { font-size: 13px; }
+  .metric-label { font-size: 10px; }
+  .gauge { width: 100px; height: 100px; margin: 0 auto; }
+  .gauge-num { font-size: 18px; }
+  .freshness-label { font-size: 18px; }
+  .prob-name { width: 52px; font-size: 11px; }
+  .prob-val { width: 44px; font-size: 11px; }
+  .report-tab { padding: 8px 10px; font-size: 12px; }
+  .history-thumb { width: 44px; height: 44px; }
+  .badge { padding: 6px 10px; font-size: 11px; }
+  .nav-links a:nth-child(3) { display: none; }
+  footer, .competition-footer { padding: 16px 12px; font-size: 11px; }
+}
+
+/* ============ 断点 2：375px – 640px（主流手机竖屏）============ */
+/* 已由上方 @media (max-width: 640px) 覆盖 */
+
+/* ============ 断点 3：640px – 1024px（平板）============ */
+@media (min-width: 641px) and (max-width: 1024px) {
+  main { max-width: 720px; }
+  .results-grid { grid-template-columns: 1fr 1fr; }
+  .advice-grid { grid-template-columns: repeat(2, 1fr); }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .nav-links { gap: 20px; }
+}
+
+/* ============ 断点 4：> 1024px（桌面）============ */
+/* 已由默认样式覆盖 */
+

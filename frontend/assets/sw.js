@@ -1,7 +1,7 @@
 /* ============ 鲜眸（FreshEye） Service Worker ============ */
 /* 缓存策略：HTML 网络优先；静态资源 stale-while-revalidate（缓存立即返回 + 后台更新） */
 
-const CACHE_NAME = 'fresheye-v19';
+const CACHE_NAME = 'fresheye-v20';
 const CORE_URLS = [
   './',
   './index.html',
@@ -10,7 +10,16 @@ const CORE_URLS = [
   './fish.html',
   './404.html',
   './assets/style.css',
+  './assets/css/base.css',
+  './assets/css/components.css',
+  './assets/css/results.css',
+  './assets/css/responsive.css',
+  './assets/css/technical.css',
+  './assets/css/polish.css',
+  './assets/css/page-404.css',
   './assets/ui.js',
+  './assets/site.js',
+  './assets/app.js',
   './assets/config.js',
   './assets/manifest.json'
 ];

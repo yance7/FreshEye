@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'unsafe-inline'; style-src-elem 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://andreas777-fresheye.hf.space; base-uri 'self'; form-action 'self';" />
   <meta name="theme-color" content="#04162b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -27,11 +27,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='i' cx='50%' cy='45%' r='55%'%3E%3Cstop offset='0%' stop-color='%230f5666'/%3E%3Cstop offset='52%' stop-color='%231185b8'/%3E%3Cstop offset='80%' stop-color='%2327d0c4'/%3E%3Cstop offset='100%' stop-color='%23bdf6ef'/%3E%3C/radialGradient%3E%3CradialGradient id='p' cx='38%' cy='32%' r='68%'%3E%3Cstop offset='0%' stop-color='%231a2238'/%3E%3Cstop offset='60%' stop-color='%23000814'/%3E%3Cstop offset='100%' stop-color='%23000000'/%3E%3C/radialGradient%3E%3CradialGradient id='s' cx='50%' cy='42%' r='62%'%3E%3Cstop offset='0%' stop-color='%23ffffff'/%3E%3Cstop offset='70%' stop-color='%23eaf4f9'/%3E%3Cstop offset='100%' stop-color='%23cfe2ec'/%3E%3C/radialGradient%3E%3CradialGradient id='h' cx='50%' cy='50%' r='50%'%3E%3Cstop offset='0%' stop-color='%23ffffff' stop-opacity='0.98'/%3E%3Cstop offset='55%' stop-color='%23ffffff' stop-opacity='0.45'/%3E%3Cstop offset='100%' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230c2236'/%3E%3Ccircle cx='32' cy='32' r='28' fill='none' stroke='%2327d0c4' stroke-width='1.5' opacity='0.55'/%3E%3Cg fill='%231fd3c6' opacity='0.85'%3E%3Ccircle cx='32' cy='6' r='1.2'/%3E%3Ccircle cx='50' cy='14' r='1.2'/%3E%3Ccircle cx='58' cy='32' r='1.2'/%3E%3Ccircle cx='50' cy='50' r='1.2'/%3E%3Ccircle cx='32' cy='58' r='1.2'/%3E%3Ccircle cx='14' cy='50' r='1.2'/%3E%3Ccircle cx='6' cy='32' r='1.2'/%3E%3Ccircle cx='14' cy='14' r='1.2'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='24' fill='url(%23s)'/%3E%3Ccircle cx='32' cy='32' r='20' fill='url(%23i)'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%2327d0c4' stroke-width='0.8' opacity='0.3'/%3E%3Ccircle cx='32' cy='32' r='10' fill='url(%23p)'/%3E%3Cellipse cx='25' cy='22' rx='7' ry='5.5' fill='url(%23h)' transform='rotate(-22 25 22)'/%3E%3Ccircle cx='26' cy='21' r='1' fill='%23ffffff' opacity='0.95'/%3E%3Ccircle cx='40' cy='40' r='2' fill='%23ffffff' opacity='0.65'/%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="./assets/icon-180.png" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/style.css">
   <link rel="manifest" href="./assets/manifest.json">
   <script src="assets/ui.js" defer></script>
+  <script src="assets/site.js" defer></script>
 </head>
 <body>
   <a href="#guide-main" class="skip-link">跳到主内容</a>
@@ -104,7 +104,7 @@
         <div class="user-card step-card">
           <span class="step-num" aria-hidden="true">2</span>
           <div class="user-icon" aria-hidden="true">⚡</div>
-          <h3 class="user-title">AI 秒级分析</h3>
+          <h3 class="user-title">AI 服务分析</h3>
           <p class="user-text">AI 分析鱼眼特征，给出<strong style="color:var(--foam);">高度新鲜 / 新鲜 / 不新鲜</strong>三种结果，并同步生成<strong style="color:var(--foam);">可解释热力图</strong>展示判断依据。系统还会根据置信度自动提示是否重新拍摄。</p>
         </div>
         <div class="user-card step-card">
@@ -222,7 +222,7 @@
         </div>
         <div class="accordion-body">
           <div class="accordion-inner">
-            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">历史记录保存在<strong style="color:var(--aqua);">本地浏览器 localStorage</strong>，最多 <strong style="color:var(--aqua);">50 条</strong>，<strong style="color:var(--aqua);">不会上传服务器</strong>。清除浏览器数据或更换设备后记录将丢失。建议定期清理以释放存储空间。</p>
+            <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">照片会通过 HTTPS 发送至 FreshEye AI 服务用于即时分析；分析完成后的历史记录保存在<strong style="color:var(--aqua);">本地浏览器 localStorage</strong>，最多 <strong style="color:var(--aqua);">50 条</strong>，不会同步到历史记录服务器。清除浏览器数据或更换设备后记录将丢失。</p>
           </div>
         </div>
       </div>
@@ -258,7 +258,7 @@
         </div>
         <div class="accordion-body">
           <div class="accordion-inner">
-          <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">AI 经过大量真实鱼眼照片训练，支持常见<strong style="color:var(--aqua);">淡水鱼</strong>（鲫鱼、稻花鱼等）。<strong style="color:var(--aqua);">海水鱼</strong>也可参考使用——鱼眼新鲜度特征在不同鱼种间具有共性（瞳孔清澈度、角膜浑浊度等），但海水鱼结果仅供参考。</p>
+          <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">MFED 验证覆盖<strong style="color:var(--aqua);">两种淡水鱼</strong>（鲫鱼、稻花鱼）。其他鱼种、极端光线与异常场景未被充分验证，结果只能作为视觉参考，不能替代食品安全检测。</p>
           </div>
         </div>
       </div>
@@ -308,7 +308,7 @@
           <span class="footer-brand-logo" aria-hidden="true"><span class="brand-eye"></span></span>
           <span class="footer-brand-name">FreshEye</span>
         </div>
-        <p class="footer-brand-desc">上传鱼眼照片，AI 秒级分析水产品新鲜度。AI 智能识别 + 可解释热力图，让每一次判断都有据可依。</p>
+        <p class="footer-brand-desc">上传鱼眼照片，AI 辅助分析视觉新鲜度。AI 智能识别 + 可解释热力图，让每一次判断都有据可依。</p>
       </div>
       <nav aria-label="页脚导航">
         <h4 class="footer-col-title">快速导航</h4>
@@ -342,43 +342,5 @@
     </div>
   </footer>
 
-  <script>
-    // FAQ 手风琴折叠（页面特有逻辑，保留本地）
-    function initAccordion() {
-      const accordions = document.querySelectorAll("[data-accordion]");
-      accordions.forEach(acc => {
-        const head = acc.querySelector(".accordion-head");
-        if (!head) return;
-        const toggle = () => {
-          const isOpen = acc.classList.toggle("is-open");
-          head.setAttribute("aria-expanded", String(isOpen));
-        };
-        head.addEventListener("click", toggle);
-        // 键盘支持：Enter / Space 切换
-        head.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            toggle();
-          }
-        });
-      });
-    }
-
-    // 初始化（气泡 / 汉堡菜单 / 入场动画统一由 FreshUI 共享库提供）
-    document.addEventListener("DOMContentLoaded", () => {
-      FreshUI.initBubbles();
-      FreshUI.initHamburgerMenu();
-      FreshUI.initReveal();
-      initAccordion();
-    });
-
-    // ============ Service Worker 注册 ============
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./assets/sw.js')
-          .catch((err) => console.warn('📦 PWA: SW 注册失败', err));
-      });
-    }
-  </script>
 </body>
 </html>
