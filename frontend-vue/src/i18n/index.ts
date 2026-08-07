@@ -65,10 +65,28 @@ function t(key: string): string {
   return typeof cur === 'string' ? cur : key
 }
 
+/**
+ * 原始消息函数：返回任意类型的语言包值（字符串、数组、对象等）。
+ * 用于访问 steps、faqs、species 等数组结构数据。
+ */
+function tm<T = unknown>(key: string): T {
+  const parts = key.split('.')
+  let cur: unknown = messagePack.value
+  for (const part of parts) {
+    if (cur && typeof cur === 'object' && part in (cur as Record<string, unknown>)) {
+      cur = (cur as Record<string, unknown>)[part]
+    } else {
+      return [] as unknown as T
+    }
+  }
+  return cur as T
+}
+
 /** i18n 上下文：注入给后代组件使用 */
 export interface I18nContext {
   locale: Ref<Locale>
   t: (key: string) => string
+  tm: <T = unknown>(key: string) => T
   setLocale: (lang: Locale) => void
   toggleLocale: () => void
 }
@@ -77,12 +95,12 @@ export const I18N_KEY = Symbol('fresheye-i18n')
 
 /** 在应用根组件 setup 中调用，向全局注入 i18n 上下文 */
 export function provideI18n(app: App): void {
-  app.provide(I18N_KEY, { locale, t, setLocale, toggleLocale })
+  app.provide(I18N_KEY, { locale, t, tm, setLocale, toggleLocale })
 }
 
 /** 在任意组件中获取 i18n 上下文（优先注入，回退到模块单例） */
 export function useI18n(): I18nContext {
   const injected = inject<I18nContext>(I18N_KEY, null as unknown as I18nContext)
   if (injected) return injected
-  return { locale, t, setLocale, toggleLocale }
+  return { locale, t, tm, setLocale, toggleLocale }
 }

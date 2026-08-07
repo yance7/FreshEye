@@ -1,34 +1,15 @@
 <script setup lang="ts">
-// 关于视图：页头 + 技术架构 + 痛点vs解法 + 方案对比表占位
+// 关于视图：页头 + 技术架构 + 痛点vs解法 + 方案对比表
+import { computed } from 'vue'
 import { useI18n } from '@/i18n'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
-// 痛点 vs 解法
-const pains = [
-  '肉眼判别依赖个人经验，新手难以掌握',
-  '化学检测成本高、周期长，且破坏样品',
-  '现有工具只给结论，不告诉"为什么"与"怎么办"',
-  '便携式仪器单价 5000-20000 元，基层摊位难以普及',
-  '传统感官评估存在评估者间变异性，结论可能不一致'
-]
-const solutions = [
-  '鱼眼照片一键上传，零成本非破坏式检测',
-  'FishFreshNetV1（EfficientNet-B0 + CBAM）准确率 99%+',
-  'FishFreshNetV2（ECA + Light CRA）提升至 99.29%',
-  'Grad-CAM 热力图解释"为什么"，结构化报告给出"怎么办"',
-  '置信度驱动自适应分支，低置信度主动提示重拍'
-]
+const pains = computed<string[]>(() => tm<string[]>('about.pains'))
+const solutions = computed<string[]>(() => tm<string[]>('about.solutions'))
 
-// 方案对比表
-const compareRows = [
-  { model: 'VGG16', params: '134.27', flops: '15.47', mfed: '98.08%', ffe: '77.40%', highlight: false },
-  { model: 'ResNet18', params: '11.18', flops: '1.82', mfed: '98.67%', ffe: '79.36%', highlight: false },
-  { model: 'MobileNetV2', params: '2.23', flops: '0.33', mfed: '98.54%', ffe: '79.59%', highlight: false },
-  { model: 'EfficientNet-B0', params: '4.01', flops: '0.41', mfed: '98.96%', ffe: '81.64%', highlight: false },
-  { model: 'FishFreshNetV1（基线）', params: '4.22', flops: '0.41', mfed: '98.88%', ffe: '81.78%', highlight: true },
-  { model: 'FishFreshNetV2（本作品）', params: '4.10', flops: '0.41', mfed: '99.29%', ffe: '81.18%', highlight: true }
-]
+interface CompareRow { model: string; params: string; flops: string; mfed: string; ffe: string; highlight: boolean }
+const compareRows = computed<CompareRow[]>(() => tm<CompareRow[]>('about.compare_rows'))
 </script>
 
 <template>
@@ -42,28 +23,28 @@ const compareRows = [
   <!-- 技术架构 -->
   <section class="reveal">
     <div class="section-head">
-      <h2 class="section-title">技术架构</h2>
+      <h2 class="section-title">{{ t('about.arch_title') }}</h2>
     </div>
     <div class="arch-diagram glass-card">
       <div class="arch-layer">
-        <div class="arch-layer-title">用户浏览器（GitHub Pages 静态托管）</div>
+        <div class="arch-layer-title">{{ t('about.arch_layer_frontend') }}</div>
         <div class="arch-boxes">
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">🏠</span><span>首页<br /><small>检测主页</small></span></div>
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">📖</span><span>指南<br /><small>使用指南</small></span></div>
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">🐟</span><span>百科<br /><small>鱼种图鉴</small></span></div>
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">📋</span><span>关于<br /><small>技术细节</small></span></div>
+          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">🏠</span><span>{{ t('about.arch_boxes.home') }}<br /><small>{{ t('about.arch_boxes.home_sub') }}</small></span></div>
+          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">📖</span><span>{{ t('about.arch_boxes.guide') }}<br /><small>{{ t('about.arch_boxes.guide_sub') }}</small></span></div>
+          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">🐟</span><span>{{ t('about.arch_boxes.fish') }}<br /><small>{{ t('about.arch_boxes.fish_sub') }}</small></span></div>
+          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">📋</span><span>{{ t('about.arch_boxes.about') }}<br /><small>{{ t('about.arch_boxes.about_sub') }}</small></span></div>
         </div>
       </div>
       <div class="arch-arrow">↓ HTTPS POST /predict_with_gradcam</div>
       <div class="arch-layer arch-layer-backend">
-        <div class="arch-layer-title">HF Spaces 后端（FastAPI + PyTorch）</div>
+        <div class="arch-layer-title">{{ t('about.arch_layer_backend') }}</div>
         <div class="arch-boxes">
-          <div class="arch-box arch-box-wide"><span>FishFreshNetV1/V2 推理 → 三类概率分布 + Grad-CAM</span></div>
+          <div class="arch-box arch-box-wide"><span>{{ t('about.arch_inference') }}</span></div>
         </div>
         <div class="arch-branches">
-          <div class="arch-branch arch-branch-high">置信度 ≥ 80% → 高置信度直出</div>
-          <div class="arch-branch arch-branch-mid">60–80% → 建议结合感官判断</div>
-          <div class="arch-branch arch-branch-low">＜60% → 提示重新拍摄</div>
+          <div class="arch-branch arch-branch-high">{{ t('about.arch_branch_high') }}</div>
+          <div class="arch-branch arch-branch-mid">{{ t('about.arch_branch_mid') }}</div>
+          <div class="arch-branch arch-branch-low">{{ t('about.arch_branch_low') }}</div>
         </div>
       </div>
     </div>
@@ -72,13 +53,13 @@ const compareRows = [
   <!-- 痛点 vs 解法 -->
   <section class="reveal">
     <div class="section-head">
-      <h2 class="section-title">痛点 vs 解法</h2>
+      <h2 class="section-title">{{ t('about.pain_title') }}</h2>
     </div>
     <div class="compare-pain">
       <div class="pain-card pain">
         <div class="pain-card-head">
           <span class="pain-icon" aria-hidden="true">!</span>
-          <span>当前痛点</span>
+          <span>{{ t('about.pain_head') }}</span>
         </div>
         <ul class="pain-list">
           <li v-for="(p, i) in pains" :key="i">{{ p }}</li>
@@ -87,7 +68,7 @@ const compareRows = [
       <div class="pain-card solution">
         <div class="pain-card-head">
           <span class="pain-icon" aria-hidden="true">✓</span>
-          <span>鲜眸（FreshEye）解法</span>
+          <span>{{ t('about.solution_head') }}</span>
         </div>
         <ul class="pain-list">
           <li v-for="(s, i) in solutions" :key="i">{{ s }}</li>
@@ -99,18 +80,18 @@ const compareRows = [
   <!-- 方案对比表 -->
   <section class="reveal">
     <div class="section-head">
-      <h2 class="section-title">方案对比</h2>
+      <h2 class="section-title">{{ t('about.compare_title') }}</h2>
     </div>
-    <p class="intro-sub">在 MFED（自建数据集）与 FFE（公开数据集）上的全面性能对比</p>
+    <p class="intro-sub">{{ t('about.compare_intro') }}</p>
     <div class="table-wrap">
       <table class="compare-table">
         <thead>
           <tr>
-            <th>模型</th>
-            <th>参数/M</th>
-            <th>FLOPs/G</th>
-            <th>MFED 准确率</th>
-            <th>FFE 准确率</th>
+            <th>{{ t('about.table_headers.model') }}</th>
+            <th>{{ t('about.table_headers.params') }}</th>
+            <th>{{ t('about.table_headers.flops') }}</th>
+            <th>{{ t('about.table_headers.mfed') }}</th>
+            <th>{{ t('about.table_headers.ffe') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -125,7 +106,7 @@ const compareRows = [
       </table>
     </div>
     <p class="intro-sub" style="margin-top: 16px;">
-      V2 相对 V1 提升 0.41 个百分点（98.88% → 99.29%），以 VGG16 约 3% 的参数量实现更高准确率。
+      {{ t('about.compare_footer') }}
     </p>
   </section>
 </template>

@@ -1,56 +1,22 @@
 <script setup lang="ts">
-// 使用指南视图：页头 + 三步流程 + 拍照教程占位 + FAQ 占位
-// 完整内容将在后续迭代中按需补充，当前保证结构与样式一致
-import { ref } from 'vue'
+// 使用指南视图：页头 + 三步流程 + 拍照教程 + FAQ
+import { ref, computed, watchEffect } from 'vue'
 import { useI18n } from '@/i18n'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
-// 三步使用流程数据
-const steps = [
-  {
-    num: '1',
-    icon: '📷',
-    title: '上传鱼眼照片',
-    text: '支持点击上传、拖拽、剪贴板粘贴三种方式，移动端还可直接调用相机拍照。JPG/PNG/WebP 格式，最大 25MB。'
-  },
-  {
-    num: '2',
-    icon: '⚡',
-    title: 'AI 秒级分析',
-    text: 'AI 分析鱼眼特征，给出高度新鲜 / 新鲜 / 不新鲜 三种结果，并同步生成可解释热力图展示判断依据。'
-  },
-  {
-    num: '3',
-    icon: '📊',
-    title: '查看分析报告',
-    text: '4-Tab 报告自由切换：概览（新鲜度等级 + 置信度）、AI 视觉（热力图对比）、详细报告、处理建议。'
-  }
-]
+interface Step { num: string; icon: string; title: string; text: string }
+interface Faq { q: string; a: string; open: boolean }
 
-// FAQ 折叠面板状态
-const faqs = ref([
-  {
-    q: '支持哪些图片格式？',
-    a: '支持 JPG / PNG / WebP 三种常见图片格式，单张图片最大 25MB。建议使用原图上传，避免过度压缩导致鱼眼细节丢失。',
-    open: true
-  },
-  {
-    q: '分析需要多长时间？',
-    a: '通常 3–10 秒即可完成分析。首次使用可能需要 20–30 秒唤醒 AI 服务（Hugging Face Spaces 冷启动），后续检测会显著加快。',
-    open: false
-  },
-  {
-    q: '置信度低怎么办？',
-    a: '当置信度低于 60% 时会弹出提示。建议重新拍摄：确保鱼眼清晰可见、光线充足、正面拍摄、对焦准确。若多次重拍置信度仍低，可能为少见鱼种或质量边界样本，建议结合人工判断。',
-    open: false
-  },
-  {
-    q: 'AI 服务未运行怎么办？',
-    a: '当 AI 服务未启动或网络不可达时，分析会失败并明确提示"AI 服务未运行"。此时不会生成任何模拟结果，请等待服务启动后重试。历史记录仍可查看。',
-    open: false
-  }
-])
+const steps = computed<Step[]>(() => tm<Step[]>('guide.steps'))
+
+const faqs = ref<Faq[]>([])
+
+// 初始化 FAQ，标记第一个为展开
+watchEffect(() => {
+  const raw = tm<{ q: string; a: string }[]>('guide.faqs')
+  faqs.value = raw.map((f, i) => ({ ...f, open: i === 0 }))
+})
 
 function toggleFaq(idx: number): void {
   faqs.value[idx].open = !faqs.value[idx].open
@@ -68,7 +34,7 @@ function toggleFaq(idx: number): void {
   <!-- 三步使用流程 -->
   <section class="reveal">
     <div class="section-head">
-      <h2 class="section-title">三步使用流程</h2>
+      <h2 class="section-title">{{ t('guide.steps_title') }}</h2>
     </div>
     <div class="users-grid">
       <div v-for="s in steps" :key="s.num" class="user-card step-card">
@@ -80,15 +46,14 @@ function toggleFaq(idx: number): void {
     </div>
   </section>
 
-  <!-- 拍照教程占位 -->
+  <!-- 拍照教程 -->
   <section class="reveal">
     <div class="section-head">
-      <h2 class="section-title">拍照教程</h2>
+      <h2 class="section-title">{{ t('guide.photo_title') }}</h2>
     </div>
     <div class="glass-card">
       <p class="upload-meta" style="color: var(--foam); line-height: 1.8;">
-        好的照片是准确检测的前提。请正面拍摄鱼眼，保持光线充足、距离适中（10–30cm）、对焦清晰，
-        拍照前擦干鱼眼表面水分避免反光。避免侧面角度、昏暗环境、距离过远/过近、模糊失焦与反光遮挡。
+        {{ t('guide.photo_text') }}
       </p>
     </div>
   </section>
@@ -96,7 +61,7 @@ function toggleFaq(idx: number): void {
   <!-- 常见问题 FAQ -->
   <section class="reveal">
     <div class="section-head">
-      <h2 class="section-title">常见问题 FAQ</h2>
+      <h2 class="section-title">{{ t('guide.faq_title') }}</h2>
     </div>
     <div class="faq-list">
       <div

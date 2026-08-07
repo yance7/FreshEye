@@ -9,7 +9,7 @@ import { useHistory } from '@/composables/useHistory'
 import { useApi, ApiError } from '@/composables/useApi'
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 
-const { t, locale } = useI18n()
+const { t, tm, locale } = useI18n()
 const { toast } = useToast()
 const { history, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
 const { checkApiHealth, callPredictApi } = useApi()
@@ -491,11 +491,10 @@ function relativeTime(iso: string): string {
   const min = Math.floor(sec / 60)
   const hr = Math.floor(min / 60)
   const day = Math.floor(hr / 24)
-  const isZh = locale.value === 'zh'
-  if (sec < 60) return isZh ? '刚刚' : 'just now'
-  if (min < 60) return isZh ? `${min}分钟前` : `${min}m ago`
-  if (hr < 24) return isZh ? `${hr}小时前` : `${hr}h ago`
-  if (day < 30) return isZh ? `${day}天前` : `${day}d ago`
+  if (sec < 60) return t('home.rel_time.now')
+  if (min < 60) return `${min}${t('home.rel_time.min_ago')}`
+  if (hr < 24) return `${hr}${t('home.rel_time.hr_ago')}`
+  if (day < 30) return `${day}${t('home.rel_time.day_ago')}`
   return new Date(iso).toLocaleDateString(locale.value === 'zh' ? 'zh-CN' : 'en-US')
 }
 
@@ -522,42 +521,29 @@ const probEntries = computed(() => {
 })
 
 // ============ 工作流徽标 ============
-const workflowSteps = computed(() => {
-  const isZh = locale.value === 'zh'
-  return [
-    isZh ? '图像预处理' : 'Preprocess',
-    isZh ? '特征提取' : 'Feature Extract',
-    isZh ? '分类推理' : 'Classify',
-    isZh ? 'Grad-CAM 可视化' : 'Grad-CAM'
-  ]
-})
+const workflowSteps = computed(() => [
+  t('home.workflow_steps.preprocess'),
+  t('home.workflow_steps.extract'),
+  t('home.workflow_steps.classify'),
+  t('home.workflow_steps.gradcam')
+])
 
 // ============ 详细报告内容 ============
 const detailSections = computed(() => {
-  const isZh = locale.value === 'zh'
   const lvl = lastResult.value?.freshness_level
   const conf = lastResult.value?.confidence_score ?? 0
   const meta = freshnessMeta(lvl)
-  const high = isZh
-    ? '瞳孔明亮清澈，角膜透明有光泽，晶状体通透，眼周组织饱满有弹性。'
-    : 'Pupil bright and clear, cornea transparent and glossy, lens translucent, surrounding tissue plump and elastic.'
-  const mid = isZh
-    ? '角膜略有浑浊，瞳孔仍可辨认，光泽度下降，眼周组织弹性减弱。'
-    : 'Cornea slightly cloudy, pupil still discernible, gloss reduced, tissue elasticity decreased.'
-  const low = isZh
-    ? '角膜严重浑浊发白，瞳孔模糊不可辨，组织松软塌陷，可能出现血丝。'
-    : 'Cornea severely cloudy/white, pupil blurred, tissue soft and sunken, possible blood streaks.'
-  const appearanceText = lvl === 0 ? high : lvl === 1 ? mid : low
-  const shelf = lvl === 0 ? (isZh ? '3-5 天保鲜期' : '3-5 day shelf life') : lvl === 1 ? (isZh ? '1-2 天内食用' : 'Consume in 1-2 days') : (isZh ? '建议立即处理' : 'Process immediately')
+  const appearanceText = lvl === 0 ? t('home.detail.appearance_high') : lvl === 1 ? t('home.detail.appearance_mid') : t('home.detail.appearance_low')
+  const shelf = lvl === 0 ? t('home.detail.shelf_high') : lvl === 1 ? t('home.detail.shelf_mid') : t('home.detail.shelf_low')
   return [
     {
       key: 'appearance',
       title: t('home.result.appearance'),
       items: [
-        isZh ? '角膜状态' : 'Cornea',
-        isZh ? '瞳孔清晰度' : 'Pupil Clarity',
-        isZh ? '晶状体透明度' : 'Lens Transparency',
-        isZh ? '眼周组织' : 'Surrounding Tissue'
+        t('home.detail.appearance_items.cornea'),
+        t('home.detail.appearance_items.pupil'),
+        t('home.detail.appearance_items.lens'),
+        t('home.detail.appearance_items.tissue')
       ],
       desc: appearanceText
     },
@@ -565,40 +551,35 @@ const detailSections = computed(() => {
       key: 'trend',
       title: t('home.result.trend'),
       items: [
-        `${isZh ? '当前等级' : 'Current'}: ${meta.label}`,
-        `${isZh ? '置信度' : 'Confidence'}: ${(conf * 100).toFixed(1)}%`,
+        `${t('home.detail.trend_current')}: ${meta.label}`,
+        `${t('home.detail.trend_confidence')}: ${(conf * 100).toFixed(1)}%`,
         shelf,
-        isZh ? (lvl === 0 ? '新鲜度稳定' : '新鲜度下降中') : (lvl === 0 ? 'Stable' : 'Declining')
+        lvl === 0 ? t('home.detail.trend_stable') : t('home.detail.trend_declining')
       ],
-      desc: isZh
-        ? '基于鱼眼特征综合判断，新鲜度随时间推移持续下降。结合储存温度与处理方式，可估算剩余保鲜窗口。'
-        : 'Based on eye features, freshness declines over time. Storage temperature and handling determine remaining shelf window.'
+      desc: t('home.detail.trend_desc')
     },
     {
       key: 'standard',
       title: t('home.result.standard'),
       items: [
-        isZh ? '高度新鲜：清澈明亮' : 'High: Clear & bright',
-        isZh ? '新鲜：轻微浑浊' : 'Fresh: Slightly cloudy',
-        isZh ? '不新鲜：浑浊发白' : 'Not fresh: Cloudy & white',
-        isZh ? '参照水产品鲜度感官标准' : 'Per seafood sensory standard'
+        t('home.detail.standard_high'),
+        t('home.detail.standard_mid'),
+        t('home.detail.standard_low'),
+        t('home.detail.standard_ref')
       ],
-      desc: isZh
-        ? '本判定参照水产品鲜度感官评价标准，结合 AI 模型在 FishFreshNet 数据集上的训练经验，给出综合分级。'
-        : 'Grading per seafood sensory freshness standard, combined with AI model trained on FishFreshNet dataset.'
+      desc: t('home.detail.standard_desc')
     }
   ]
 })
 
 // ============ 处理建议 ============
 const adviceSections = computed(() => {
-  const isZh = locale.value === 'zh'
   const lvl = lastResult.value?.freshness_level
   const storage = lvl === 0
-    ? (isZh ? '0-4°C 冰箱冷藏，覆盖保鲜膜，避免与其他食材串味。可保鲜 3-5 天。' : 'Refrigerate 0-4°C, wrap, keep 3-5 days.')
+    ? t('home.advice.storage_high')
     : lvl === 1
-    ? (isZh ? '0-4°C 冷藏，1-2 天内食用完毕，避免延长储存。' : 'Refrigerate 0-4°C, consume within 1-2 days.')
-    : (isZh ? '不建议储存，应立即处理或丢弃，避免污染其他食材。' : 'Do not store, process or discard immediately.')
+    ? t('home.advice.storage_mid')
+    : t('home.advice.storage_low')
   return [
     {
       key: 'storage',
@@ -610,33 +591,25 @@ const adviceSections = computed(() => {
       key: 'consumption',
       title: t('home.result.consumption'),
       icon: '🍽️',
-      desc: lvl === 2
-        ? (isZh ? '不建议食用，可能引发肠胃不适或食物中毒。' : 'Not edible, may cause food poisoning.')
-        : (isZh ? '充分加热至 70°C 以上，避免生食。' : 'Cook thoroughly above 70°C, avoid raw.')
+      desc: lvl === 2 ? t('home.advice.consumption_bad') : t('home.advice.consumption_ok')
     },
     {
       key: 'processing',
       title: t('home.result.processing'),
       icon: '🔪',
-      desc: isZh
-        ? '处理前清洗双手与器具，去除鱼鳃与内脏，流水冲洗。生熟分开避免交叉污染。'
-        : 'Wash hands & tools, remove gills & guts, rinse under running water. Keep raw and cooked separate.'
+      desc: t('home.advice.processing')
     },
     {
       key: 'safety',
       title: t('home.result.safety'),
       icon: '⚠️',
-      desc: lvl === 2
-        ? (isZh ? '不新鲜水产品可能含组胺与致病菌，食用风险高，建议丢弃。' : 'May contain histamine & pathogens, high risk, discard.')
-        : (isZh ? '如有异味、黏液或变色应停止食用。过敏人群慎食。' : 'Stop eating if off-odor/slime/color change. Allergy-prone use caution.')
+      desc: lvl === 2 ? t('home.advice.safety_bad') : t('home.advice.safety_ok')
     },
     {
       key: 'best',
       title: t('home.result.best'),
       icon: '✨',
-      desc: isZh
-        ? '购买后尽快处理；拍摄时正面、清晰、光线充足，可提高 AI 判断准确率。'
-        : 'Process soon after purchase; shoot frontally, clearly, well-lit to improve AI accuracy.'
+      desc: t('home.advice.best')
     }
   ]
 })
@@ -654,7 +627,6 @@ function exportPDF(): void {
     return
   }
   const r = lastResult.value
-  const isZh = locale.value === 'zh'
   const meta = freshnessMeta(r.freshness_level)
   const colorHex = meta.key === 'high' ? '#10b981' : meta.key === 'mid' ? '#d97706' : '#ef4444'
   const probRows = ([0, 1, 2] as FreshnessLabel[]).map((k) => {
@@ -662,7 +634,7 @@ function exportPDF(): void {
     const lbl = k === 0 ? t('home.result.high') : k === 1 ? t('home.result.mid') : t('home.result.low')
     return `<div class="row"><span>${lbl}</span><span>${v.toFixed(1)}%</span></div><div class="bar"><div style="width:${v}%"></div></div>`
   }).join('')
-  const html = `<!DOCTYPE html><html lang="${locale.value}"><head><meta charset="UTF-8"><title>${isZh ? '鲜眸检测报告' : 'FreshEye Report'}</title>
+  const html = `<!DOCTYPE html><html lang="${locale.value}"><head><meta charset="UTF-8"><title>${t('home.pdf.title')}</title>
   <style>
     @page { size: A4; margin: 18mm; }
     body { font-family: "PingFang SC","Microsoft YaHei",Arial,sans-serif; color: #0b2238; line-height: 1.6; }
@@ -676,8 +648,8 @@ function exportPDF(): void {
     img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
     .foot { margin-top: 24px; color: #888; font-size: 11px; text-align: center; border-top: 1px solid #eee; padding-top: 10px; }
   </style></head><body>
-    <h1>${isZh ? '鲜眸 · 鱼眼新鲜度检测报告' : 'FreshEye · Fish Eye Freshness Report'}</h1>
-    <div class="meta">${isZh ? '分析时间' : 'Time'}: ${new Date(r.timestamp).toLocaleString(locale.value === 'zh' ? 'zh-CN' : 'en-US')} · ${isZh ? '耗时' : 'Duration'}: ${lastDuration.value}ms · ${isZh ? '模型' : 'Model'}: ${r.model_version}</div>
+    <h1>${t('home.pdf.h1')}</h1>
+    <div class="meta">${t('home.pdf.time')}: ${new Date(r.timestamp).toLocaleString(locale.value === 'zh' ? 'zh-CN' : 'en-US')} · ${t('home.pdf.duration')}: ${lastDuration.value}ms · ${t('home.pdf.model')}: ${r.model_version}</div>
     <div class="card">
       <div class="row"><span>${t('home.result.freshness')}</span><span class="level">${meta.label}</span></div>
       <div class="row"><span>${t('home.result.confidence')}</span><span>${(r.confidence_score * 100).toFixed(1)}%</span></div>
@@ -689,11 +661,11 @@ function exportPDF(): void {
     ${lastOriginalImage.value ? `<div class="card"><h3>${t('home.result.original')}</h3><img src="${lastOriginalImage.value}"/></div>` : ''}
     ${lastHeatmap.value ? `<div class="card"><h3>${t('home.result.heatmap')}</h3><img src="${lastHeatmap.value}"/></div>` : ''}
     <div class="card"><h3>${t('home.result.appearance')}</h3><p>${detailSections.value[0].desc}</p></div>
-    <div class="foot">FreshEye © 2026 · ${isZh ? '本报告由 AI 模型生成，仅供参考' : 'AI-generated, for reference only'}</div>
+    <div class="foot">FreshEye © 2026 · ${t('home.pdf.footer')}</div>
   </body></html>`
   const win = window.open('', '_blank')
   if (!win) {
-    toast.error(isZh ? '请允许弹窗以导出 PDF' : 'Allow popups to export PDF')
+    toast.error(t('home.pdf.popup_error'))
     return
   }
   win.document.open()
@@ -746,9 +718,9 @@ function dismissGuide(): void {
     <div v-if="showGuide" class="guide-overlay" @click="dismissGuide">
       <div class="guide-modal" @click.stop>
         <div class="guide-emoji">🐟</div>
-        <h3 class="guide-title">{{ locale === 'zh' ? '欢迎使用鲜眸' : 'Welcome to FreshEye' }}</h3>
-        <p class="guide-text">{{ locale === 'zh' ? '上传一张鱼眼照片，AI 会自动分析新鲜度并生成可解释热力图。支持拖拽、粘贴与拍照。' : 'Upload a fish eye photo, AI will analyze freshness and generate an explainable heatmap. Drag, paste or camera supported.' }}</p>
-        <button class="btn" type="button" @click="dismissGuide">{{ locale === 'zh' ? '开始使用' : 'Get Started' }}</button>
+        <h3 class="guide-title">{{ t('home.guide_modal.title') }}</h3>
+        <p class="guide-text">{{ t('home.guide_modal.text') }}</p>
+        <button class="btn" type="button" @click="dismissGuide">{{ t('home.guide_modal.button') }}</button>
       </div>
     </div>
   </transition>
@@ -759,8 +731,8 @@ function dismissGuide(): void {
       <div class="guide-modal" @click.stop>
         <div class="guide-emoji warn">⚠️</div>
         <h3 class="guide-title">{{ t('home.confidence_warn.low') }}</h3>
-        <p class="guide-text">{{ locale === 'zh' ? '建议重新拍摄：正面、清晰、光线充足、对焦准确。' : 'Please retake: frontal, clear, well-lit, properly focused.' }}</p>
-        <button class="btn" type="button" @click="showLowConfidenceModal = false">{{ locale === 'zh' ? '我知道了' : 'OK' }}</button>
+        <p class="guide-text">{{ t('home.low_conf_modal.text') }}</p>
+        <button class="btn" type="button" @click="showLowConfidenceModal = false">{{ t('home.low_conf_modal.button') }}</button>
       </div>
     </div>
   </transition>
@@ -807,7 +779,7 @@ function dismissGuide(): void {
       </span>
     </div>
     <a href="#uploadZone" class="scroll-hint" aria-hidden="true">
-      <span>{{ locale === 'zh' ? '下滑开始检测' : 'Scroll to detect' }}</span>
+      <span>{{ t('home.hero.scroll_hint') }}</span>
       <span class="scroll-arrow">↓</span>
     </a>
   </section>
@@ -846,7 +818,7 @@ function dismissGuide(): void {
         <div class="fish-icon"><span class="fish-eye"></span></div>
       </div>
       <p class="upload-text">{{ previewUrl ? t('home.upload.analyze') : t('home.upload.hint') }}</p>
-      <p class="upload-meta">{{ t('home.upload.formats') }} · ≤25MB · Ctrl+V {{ locale === 'zh' ? '粘贴' : 'Paste' }}</p>
+      <p class="upload-meta">{{ t('home.upload.formats') }} · ≤25MB · Ctrl+V {{ t('home.upload.paste') }}</p>
       <div class="upload-cta-group">
         <button class="upload-cta" type="button" @click.stop="onPickFile">{{ t('home.upload.analyze') }}</button>
         <button class="upload-cta alt" type="button" @click.stop="openCamera">📷 {{ t('home.upload.camera') }}</button>
@@ -887,7 +859,7 @@ function dismissGuide(): void {
           <span v-if="analyzing" class="spinner small"></span>
           {{ analyzing ? t('home.upload.analyzing') : (errorMsg ? t('home.upload.retry') : t('home.upload.analyze')) }}
         </button>
-        <button class="btn alt" type="button" @click="resetAll">{{ locale === 'zh' ? '清除' : 'Clear' }}</button>
+        <button class="btn alt" type="button" @click="resetAll">{{ t('home.upload.clear') }}</button>
       </div>
       <p v-if="errorMsg" class="error-msg">⚠️ {{ errorMsg }}</p>
     </div>
@@ -896,7 +868,7 @@ function dismissGuide(): void {
   <!-- ============ 骨架屏 ============ -->
   <section v-if="analyzing && !lastResult" class="reveal">
     <div class="section-head">
-      <h2 class="section-title">{{ locale === 'zh' ? '分析中' : 'Analyzing' }}</h2>
+      <h2 class="section-title">{{ t('home.result.analyzing') }}</h2>
     </div>
     <div class="skeleton-grid">
       <div class="skeleton tall"></div>
@@ -909,7 +881,7 @@ function dismissGuide(): void {
   <!-- ============ 结果区 ============ -->
   <section v-if="lastResult" id="result-section" class="reveal">
     <div class="section-head">
-      <h2 class="section-title">{{ locale === 'zh' ? '分析报告' : 'Analysis Report' }}</h2>
+      <h2 class="section-title">{{ t('home.result.report_title') }}</h2>
       <button class="btn alt small" type="button" @click="exportPDF">📄 {{ t('home.export') }}</button>
     </div>
 
@@ -1011,7 +983,7 @@ function dismissGuide(): void {
     <!-- Tab 2: AI 视觉分析 -->
     <div v-show="activeTab === 1" role="tabpanel" aria-labelledby="tab-1" class="tab-panel">
       <div v-if="lastHeatmap" class="compare-wrap glass-card">
-        <h3 class="block-title">{{ locale === 'zh' ? '原图 vs Grad-CAM 热力图' : 'Original vs Grad-CAM Heatmap' }}</h3>
+        <h3 class="block-title">{{ t('home.result.compare_title') }}</h3>
         <div
           ref="compareWrap"
           class="compare-slider"
@@ -1033,10 +1005,10 @@ function dismissGuide(): void {
           <span class="compare-tag left">{{ t('home.result.original') }}</span>
           <span class="compare-tag right">{{ t('home.result.heatmap') }}</span>
         </div>
-        <p class="compare-hint">{{ locale === 'zh' ? '拖动滑块对比原图与热力图，红色区域为 AI 关注的关键特征。' : 'Drag to compare. Red regions are key features AI focused on.' }}</p>
+        <p class="compare-hint">{{ t('home.result.compare_hint') }}</p>
       </div>
       <div v-else class="empty-state glass-card">
-        {{ locale === 'zh' ? '暂无热力图数据' : 'No heatmap available' }}
+        {{ t('home.result.no_heatmap') }}
       </div>
     </div>
 
