@@ -299,11 +299,13 @@
     }
 
     /**
-     * 压缩大图用于上传（>500KB 时压缩到 maxDim 内，JPEG q=0.85）
+     * 压缩/转换图片用于上传（JPEG q=0.85）。
+     * 生产 API 对部分 WebP 文件的魔数校验较严格，前端允许 WebP 时强制转为 JPEG，
+     * 让示例图片、拖拽上传和手机相册上传走同一条稳定链路。
      */
-    function compressImageForUpload(file, maxDim, quality) {
+    function compressImageForUpload(file, maxDim, quality, forceTranscode = false) {
       return new Promise((resolve) => {
-        if (file.size < 500 * 1024) { resolve(null); return; }
+        if (!forceTranscode && file.size < 500 * 1024) { resolve(null); return; }
         const reader = new FileReader();
         reader.onload = (e) => {
           const dataUrl = e.target.result;
@@ -314,7 +316,7 @@
             // 均已自动应用 EXIF 方向。此处直接按解码后尺寸绘制即可，
             // 不再手动旋转——否则 orientation 5-8 的照片会被二次旋转。
             const w = img.naturalWidth, h = img.naturalHeight;
-            if (w <= maxDim && h <= maxDim) { resolve(null); return; }
+            if (!forceTranscode && w <= maxDim && h <= maxDim) { resolve(null); return; }
             const scale = Math.min(1, maxDim / Math.max(w, h));
             const tw = Math.round(w * scale), th = Math.round(h * scale);
             const canvas = document.createElement('canvas');
@@ -323,7 +325,10 @@
             ctx.drawImage(img, 0, 0, tw, th);
             canvas.toBlob((blob) => {
               if (blob) {
-                resolve(new File([blob], file.name || 'image.jpg', { type: 'image/jpeg', lastModified: Date.now() }));
+                const sourceName = file.name || 'image';
+                const baseName = sourceName.replace(/\.[^.]+$/, '') || 'image';
+                const outputName = forceTranscode ? `${baseName}.jpg` : sourceName;
+                resolve(new File([blob], outputName, { type: 'image/jpeg', lastModified: Date.now() }));
               } else {
                 resolve(null);
               }
@@ -1248,9 +1253,10 @@
      */
     async function callPredictApi(file) {
       let uploadFile = file;
-      if (file.size > 2 * 1024 * 1024) {
+      const isWebp = /^image\/webp$/i.test(file.type || "") || /\.webp$/i.test(file.name || "");
+      if (isWebp || file.size > 2 * 1024 * 1024) {
         try {
-          const compressed = await compressImageForUpload(file, 1280, 0.9);
+          const compressed = await compressImageForUpload(file, 1280, 0.9, isWebp);
           if (compressed) {
             uploadFile = compressed;
           }
