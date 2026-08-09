@@ -40,7 +40,17 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("./assets/sw.js")
+      // 旧版本把 SW 放在 /assets/，默认作用域无法控制首页，且相对缓存路径
+      // 会错误解析成 /assets/assets/*。先清理旧注册，再注册根作用域 SW。
+      navigator.serviceWorker.getRegistrations()
+        .then(function (registrations) {
+          return Promise.all(registrations
+            .filter(function (registration) {
+              return new URL(registration.scope).pathname.endsWith("/assets/");
+            })
+            .map(function (registration) { return registration.unregister(); }));
+        })
+        .then(function () { return navigator.serviceWorker.register("./sw.js"); })
         .catch(function (error) {
           console.warn("📦 PWA: Service Worker 注册失败", error);
         });

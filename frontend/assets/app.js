@@ -40,6 +40,18 @@
       const behavior = prefersReduced ? "auto" : "smooth";
       el.scrollIntoView({ behavior, ...opts });
     }
+
+    /** 在窄屏上将目标稳定定位到固定导航栏下方，避免多次平滑滚动互相覆盖。 */
+    function scrollBelowNavbar(el) {
+      if (!el) return;
+      const navbarHeight = document.querySelector(".navbar")?.getBoundingClientRect().height || 64;
+      const targetTop = el.getBoundingClientRect().top + window.scrollY - navbarHeight - 12;
+      const root = document.documentElement;
+      const previousScrollBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = "auto";
+      window.scrollTo({ top: Math.max(0, targetTop) });
+      requestAnimationFrame(() => { root.style.scrollBehavior = previousScrollBehavior; });
+    }
     const MODEL_PREF_KEY = "fresheye-model";
     const LEGACY_KEYS = {
       "fish-agent-history": HISTORY_KEY,
@@ -1215,7 +1227,8 @@
       showLoading();
       // 滚动到结果区
       if (resultsSection) {
-        scrollToTarget(resultsSection, { block: "start" });
+        if (window.matchMedia("(max-width: 720px)").matches) scrollBelowNavbar(resultsSection);
+        else scrollToTarget(resultsSection, { block: "start" });
       }
 
       try {
@@ -1233,6 +1246,29 @@
         addHistoryRecord(data, durationSec);
         setAnalyzeDone();
         if (resultHint) resultHint.textContent = "分析完成";
+        // 移动端骨架屏切换为结果面板后高度会变化；待布局稳定后重新对齐，
+        // 确保结果标题、导出按钮和第一个 Tab 不被固定导航栏遮挡。
+        if (resultsSection && window.matchMedia("(max-width: 720px)").matches) {
+          const realignResults = () => {
+            if (runId === analysisRunId) scrollBelowNavbar(resultsSection);
+          };
+          const finishRevealAlignment = (event) => {
+            if (event.target !== resultsSection || event.propertyName !== "transform") return;
+            resultsSection.removeEventListener("transitionend", finishRevealAlignment);
+            clearTimeout(revealAlignmentFallback);
+            realignResults();
+          };
+          requestAnimationFrame(() => {
+            requestAnimationFrame(realignResults);
+          });
+          // 结果区带有 reveal 位移动画。必须在 transform 动画真正结束后再对齐，
+          // 否则标题会在动画收尾时重新上移到固定导航栏下方。
+          resultsSection.addEventListener("transitionend", finishRevealAlignment);
+          const revealAlignmentFallback = setTimeout(() => {
+            resultsSection.removeEventListener("transitionend", finishRevealAlignment);
+            realignResults();
+          }, 900);
+        }
       } catch (err) {
         if (runId !== analysisRunId || err.name === "AbortError") return;
         stopScanning();
@@ -2224,7 +2260,8 @@
       setAnalyzeDone();
       if (resultHint) resultHint.textContent = "历史记录 · " + formatHistoryTime(r.timestamp);
       metricDuration.textContent = r.processingTime ? `${r.processingTime.toFixed(1)}s` : "—";
-      scrollToTarget(resultsSection, { block: "start" });
+      if (window.matchMedia("(max-width: 720px)").matches) scrollBelowNavbar(resultsSection);
+      else scrollToTarget(resultsSection, { block: "start" });
     }
 
     // ---- 历史记录事件委托 ----
