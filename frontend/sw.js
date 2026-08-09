@@ -1,7 +1,7 @@
 /* ============ 鲜眸（FreshEye）根作用域 Service Worker ============ */
 /* HTML 网络优先；静态资源 stale-while-revalidate。 */
 
-const CACHE_NAME = "fresheye-v23";
+const CACHE_NAME = "fresheye-v24";
 const CORE_URLS = [
   "./",
   "./index.html",

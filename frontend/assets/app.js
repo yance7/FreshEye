@@ -2820,6 +2820,10 @@
 </div>
 </body></html>`;
 
+      // 报告预览页继承主站 CSP；布局统一由同源 pdf-report.css 提供。
+      // 移除重复的内联样式，避免不同浏览器拦截后产生告警或渲染差异。
+      fullHtml = fullHtml.replace(/<style>[\s\S]*?<\/style>/, "");
+
       // 将工具栏注入报告（仅在 <body> 后插入，报告样式与内容不变）
       fullHtml = fullHtml.replace("<body>", "<body>" + PDF_TOOLBAR);
 
