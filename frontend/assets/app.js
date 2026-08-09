@@ -1647,16 +1647,24 @@
       if (!compareSlider || !compHandle) return;
       let dragging = false;
       let activePointerId = null;
+      const getClientX = (e) => {
+        const touch = e.touches?.[0] || e.changedTouches?.[0];
+        return touch ? touch.clientX : e.clientX;
+      };
       const onMove = (e) => {
-        if (!dragging || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+        const isPointerEvent = typeof e.pointerId === "number";
+        if (!dragging || (activePointerId !== null && isPointerEvent && e.pointerId !== activePointerId)) return;
+        const clientX = getClientX(e);
+        if (!Number.isFinite(clientX)) return;
         const rect = compareSlider.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+        const x = clientX - rect.left;
         const pct = (x / rect.width) * 100;
         setSliderPos(pct);
+        if (e.cancelable) e.preventDefault();
       };
       const stopDrag = (e) => {
         if (!dragging) return;
-        if (activePointerId !== null && e?.pointerId !== activePointerId) return;
+        if (activePointerId !== null && typeof e?.pointerId === "number" && e.pointerId !== activePointerId) return;
         dragging = false;
         if (activePointerId !== null && compareSlider.releasePointerCapture) {
           try { compareSlider.releasePointerCapture(activePointerId); } catch (_) { /* pointer 已结束 */ }
@@ -1666,24 +1674,32 @@
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", stopDrag);
         window.removeEventListener("pointercancel", stopDrag);
+        window.removeEventListener("touchmove", onMove);
+        window.removeEventListener("touchend", stopDrag);
+        window.removeEventListener("touchcancel", stopDrag);
       };
       const startDrag = (e) => {
         if (dragging) return;
         if (e.pointerType === "mouse" && e.button !== 0) return;
+        const clientX = getClientX(e);
+        if (!Number.isFinite(clientX)) return;
         dragging = true;
-        activePointerId = typeof e.pointerId === "number" ? e.pointerId : null;
+        activePointerId = e.type === "touchstart" ? null : (typeof e.pointerId === "number" ? e.pointerId : null);
         compHandle.classList.add("is-active");
         compareSlider.classList.add("is-interacted");
         if (activePointerId !== null && compareSlider.setPointerCapture) {
           try { compareSlider.setPointerCapture(activePointerId); } catch (_) { /* 浏览器不支持时由 window 监听兜底 */ }
         }
         const rect = compareSlider.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+        const x = clientX - rect.left;
         const pct = (x / rect.width) * 100;
         setSliderPos(pct);
         window.addEventListener("pointermove", onMove);
         window.addEventListener("pointerup", stopDrag);
         window.addEventListener("pointercancel", stopDrag);
+        window.addEventListener("touchmove", onMove, { passive: false });
+        window.addEventListener("touchend", stopDrag);
+        window.addEventListener("touchcancel", stopDrag);
         e.preventDefault();
       };
       compHandle.addEventListener("pointerdown", (e) => {
@@ -1691,6 +1707,8 @@
         startDrag(e);
       });
       compareSlider.addEventListener("pointerdown", startDrag);
+      // 部分移动浏览器的 Pointer Events 兼容性不完整，保留 touch 事件兜底。
+      compareSlider.addEventListener("touchstart", startDrag, { passive: false });
     }
 
     /**
@@ -2393,7 +2411,12 @@
           best: ["购买时注意辨别新鲜度", "选择信誉良好的商家", "保留购买凭证以便追溯"]
         }
       };
-      const rawRecs = lastAnalysisResult.recommendations || pdfDefaultRecs[pred.freshness_label ?? 0] || {};
+      const backendRecs = lastAnalysisResult.recommendations;
+      const hasUsableRecs = backendRecs && typeof backendRecs === "object"
+        && Object.values(backendRecs).some((value) => Array.isArray(value) && value.length > 0);
+      const rawRecs = hasUsableRecs
+        ? backendRecs
+        : (pdfDefaultRecs[pred.freshness_label ?? 0] || {});
       const recs = Object.fromEntries(Object.entries(rawRecs).map(([key, values]) => [
         key,
         Array.isArray(values) ? values.map(softenSafetyLanguage) : values

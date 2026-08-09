@@ -260,6 +260,149 @@
   .model-card-grid { grid-template-columns: 1fr; }
 }
 
+/* ============ 评委速览事实卡 ============ */
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 9px;
+  color: var(--aqua);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  line-height: 1;
+}
+.evidence-card-section .section-head,
+#why-fish-eye .section-head,
+#trae-workflow .section-head {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+.evidence-card-section { scroll-margin-top: 92px; }
+.evidence-card {
+  position: relative;
+  overflow: hidden;
+  margin-top: 20px;
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid rgba(39, 208, 196, 0.28);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(39, 208, 196, 0.16), transparent 34%),
+    linear-gradient(135deg, rgba(15, 86, 102, 0.34), rgba(4, 22, 43, 0.72));
+  box-shadow: 0 18px 50px rgba(1, 10, 23, 0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.evidence-card::after {
+  content: "";
+  position: absolute;
+  right: -42px;
+  bottom: -52px;
+  width: 150px;
+  height: 150px;
+  border: 1px solid rgba(39, 208, 196, 0.16);
+  border-radius: 50%;
+  box-shadow: 0 0 0 18px rgba(39, 208, 196, 0.03), 0 0 0 38px rgba(39, 208, 196, 0.025);
+  pointer-events: none;
+}
+.evidence-card-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(189, 246, 239, 0.12);
+}
+.evidence-card-label {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+.evidence-card-head h3 {
+  margin: 9px 0 0;
+  color: var(--foam);
+  font-size: clamp(18px, 2.4vw, 24px);
+  line-height: 1.3;
+}
+.evidence-card-link {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid rgba(39, 208, 196, 0.3);
+  border-radius: 999px;
+  color: var(--foam);
+  background: rgba(39, 208, 196, 0.08);
+  font-size: 12px;
+  transition: border-color var(--transition), background var(--transition), transform var(--transition);
+}
+.evidence-card-link:hover { transform: translateY(-1px); border-color: var(--aqua); background: rgba(39, 208, 196, 0.15); }
+.evidence-stat-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  padding: 20px 0 16px;
+}
+.evidence-stat {
+  min-width: 0;
+  padding: 12px 10px;
+  border: 1px solid rgba(189, 246, 239, 0.1);
+  border-radius: 12px;
+  background: rgba(0, 8, 20, 0.22);
+}
+.evidence-stat strong {
+  display: block;
+  color: var(--foam);
+  font-size: clamp(15px, 1.9vw, 20px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.evidence-stat span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.evidence-stat-accent { border-color: rgba(39, 208, 196, 0.28); background: rgba(39, 208, 196, 0.08); }
+.evidence-stat-accent strong { color: var(--aqua); }
+.evidence-chip-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.evidence-chip {
+  padding: 6px 9px;
+  border: 1px solid rgba(189, 246, 239, 0.13);
+  border-radius: 999px;
+  color: var(--foam);
+  background: rgba(0, 8, 20, 0.2);
+  font-size: 11px;
+}
+.evidence-note {
+  position: relative;
+  z-index: 1;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+@media (max-width: 960px) {
+  .evidence-stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .evidence-card-head { flex-direction: column; }
+  .evidence-card-link { align-self: flex-start; }
+  .evidence-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* ============ 参考文献列表 ============ */
 .ref-list {
   list-style: decimal;
@@ -923,6 +1066,41 @@
   .timeline-content p { font-size: 12.5px; }
 }
 
+/* ============ TRAE 协作流程 ============ */
+.trae-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: var(--space-4, 24px);
+}
+.trae-workflow-card {
+  min-height: 174px;
+  padding: 20px;
+  border: 1px solid rgba(39, 208, 196, 0.17);
+  border-radius: var(--radius-xl, 16px);
+  background: linear-gradient(160deg, rgba(39, 208, 196, 0.08), rgba(255,255,255,0.025));
+  transition: transform var(--transition, 0.2s), border-color var(--transition, 0.2s), background var(--transition, 0.2s);
+}
+.trae-workflow-card:hover { transform: translateY(-3px); border-color: rgba(39, 208, 196, 0.42); background: linear-gradient(160deg, rgba(39, 208, 196, 0.13), rgba(255,255,255,0.035)); }
+.trae-workflow-index {
+  display: block;
+  margin-bottom: 20px;
+  color: var(--aqua);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.trae-workflow-card h3 { margin: 0 0 9px; color: var(--foam); font-size: 16px; }
+.trae-workflow-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+@media (max-width: 960px) {
+  .trae-workflow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .trae-workflow-grid { grid-template-columns: 1fr; }
+  .trae-workflow-card { min-height: 0; padding: 18px; }
+  .trae-workflow-index { margin-bottom: 14px; }
+}
+
 /* ============ 社会价值卡片 ============ */
 .social-grid {
   display: grid;
@@ -930,6 +1108,7 @@
   gap: var(--space-4, 24px);
   margin-top: var(--space-4, 24px);
 }
+#socialContent .social-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .social-card {
   padding: var(--space-5, 32px);
   border-radius: var(--radius-xl, 16px);
@@ -974,6 +1153,7 @@
 }
 @media (max-width: 640px) {
   .social-grid { grid-template-columns: 1fr; }
+  #socialContent .social-grid { grid-template-columns: 1fr; }
   .social-card { padding: var(--space-4, 24px); }
 }
 

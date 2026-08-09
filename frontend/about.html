@@ -92,29 +92,68 @@
     <div class="about-layout">
       <aside class="about-toc" aria-label="技术细节目录">
         <p class="about-toc-title">技术细节</p>
-        <a href="#project-architecture">01 项目架构</a>
-        <a href="#comparison">02 模型表现</a>
-        <a href="#model-arch">03 FishFreshNet V1</a>
-        <a href="#model-v2">04 FishFreshNet V2</a>
-        <a href="#workflow">05 推理流程</a>
-        <a href="#journey">06 创作历程</a>
-        <a href="#social-value">07 社会价值</a>
-        <a href="#references">08 参考文献</a>
+        <a href="#evidence-card">01 评委速览</a>
+        <a href="#project-architecture">02 项目架构</a>
+        <a href="#why-fish-eye">03 为什么选择鱼眼</a>
+        <a href="#comparison">04 模型表现</a>
+        <a href="#model-arch">05 FishFreshNet V1</a>
+        <a href="#model-v2">06 FishFreshNet V2</a>
+        <a href="#workflow">07 推理流程</a>
+        <a href="#journey">08 创作历程</a>
+        <a href="#social-value">09 社会价值</a>
+        <a href="#references">10 参考文献</a>
       </aside>
       <div class="about-content">
         <details class="about-toc-mobile">
           <summary>本页目录</summary>
           <nav aria-label="移动端技术细节目录">
-            <a href="#project-architecture">01 项目架构</a>
-            <a href="#comparison">02 模型表现</a>
-            <a href="#model-arch">03 FishFreshNet V1</a>
-            <a href="#model-v2">04 FishFreshNet V2</a>
-            <a href="#workflow">05 推理流程</a>
-            <a href="#journey">06 创作历程</a>
-            <a href="#social-value">07 社会价值</a>
-            <a href="#references">08 参考文献</a>
+            <a href="#evidence-card">01 评委速览</a>
+            <a href="#project-architecture">02 项目架构</a>
+            <a href="#why-fish-eye">03 为什么选择鱼眼</a>
+            <a href="#comparison">04 模型表现</a>
+            <a href="#model-arch">05 FishFreshNet V1</a>
+            <a href="#model-v2">06 FishFreshNet V2</a>
+            <a href="#workflow">07 推理流程</a>
+            <a href="#journey">08 创作历程</a>
+            <a href="#social-value">09 社会价值</a>
+            <a href="#references">10 参考文献</a>
           </nav>
         </details>
+
+        <!-- ============ 评委速览：只呈现仓库已有的可验证事实 ============ -->
+        <section id="evidence-card" class="reveal evidence-card-section">
+          <div class="section-head">
+            <span class="section-kicker">EVIDENCE CARD</span>
+            <h2 class="section-title">先看可验证的事实</h2>
+          </div>
+          <p class="intro-sub">把模型范围、公开指标与已实现能力放在一起，帮助第一次访问的评委快速建立正确预期。</p>
+          <div class="evidence-card">
+            <div class="evidence-card-head">
+              <div>
+                <span class="evidence-card-label">FRESHEYE / PROJECT SNAPSHOT</span>
+                <h3>一个可运行、可解释、边界清晰的视觉辅助评估工具</h3>
+              </div>
+              <a class="evidence-card-link" href="#model-card">查看 Model Card <span aria-hidden="true">→</span></a>
+            </div>
+            <div class="evidence-stat-grid" role="list" aria-label="项目验证事实">
+              <div class="evidence-stat" role="listitem"><strong>约 4,800</strong><span>MFED 样本</span></div>
+              <div class="evidence-stat" role="listitem"><strong>2 种</strong><span>已验证淡水鱼</span></div>
+              <div class="evidence-stat" role="listitem"><strong>4 种</strong><span>受控环境</span></div>
+              <div class="evidence-stat" role="listitem"><strong>4.095M</strong><span>V2 参数量</span></div>
+              <div class="evidence-stat" role="listitem"><strong>0.414G</strong><span>V2 FLOPs</span></div>
+              <div class="evidence-stat evidence-stat-accent" role="listitem"><strong>99.29%</strong><span>MFED 测试集</span></div>
+              <div class="evidence-stat evidence-stat-accent" role="listitem"><strong>81.18%</strong><span>FFE 公开数据集</span></div>
+            </div>
+            <div class="evidence-chip-list" aria-label="已实现能力">
+              <span class="evidence-chip">✓ 真实 CNN 推理</span>
+              <span class="evidence-chip">✓ Grad-CAM</span>
+              <span class="evidence-chip">✓ 手机相机</span>
+              <span class="evidence-chip">✓ PWA</span>
+              <span class="evidence-chip">✓ 数据集公开</span>
+            </div>
+            <p class="evidence-note">99.29% 与 81.18% 是对应数据集上的验证结果，不代表现实环境中的食品安全准确率；其他鱼种、模糊反光图片与非视觉安全风险仍需额外判断。</p>
+          </div>
+        </section>
 
     <!-- ============ 技术架构图 ============ -->
     <section id="project-architecture" class="reveal" style="margin-bottom: var(--space-8);">
@@ -200,6 +239,32 @@
             <li>Grad-CAM 热力图解释"为什么"，结构化报告给出"怎么办"</li>
             <li>置信度驱动自适应分支，低置信度主动提示重拍</li>
           </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 为什么选择鱼眼 ============ -->
+    <section id="why-fish-eye" class="reveal">
+      <div class="section-head">
+        <span class="section-kicker">WHY FISH EYE</span>
+        <h2 class="section-title">为什么选择鱼眼作为入口？</h2>
+      </div>
+      <p class="intro-sub">鱼眼是本项目的视觉切入点，不等于对完整食品安全状态的判断。</p>
+      <div class="users-grid why-fish-eye-grid">
+        <div class="user-card">
+          <div class="user-icon" aria-hidden="true">◌</div>
+          <h3 class="user-title">非破坏</h3>
+          <p class="user-text">只采集鱼眼图像即可获得视觉参考，不需要切开或消耗样品。</p>
+        </div>
+        <div class="user-card">
+          <div class="user-icon" aria-hidden="true">◉</div>
+          <h3 class="user-title">特征可观察</h3>
+          <p class="user-text">鱼眼的光泽、角膜与瞳孔区域提供了适合视觉模型分析的外观线索。</p>
+        </div>
+        <div class="user-card">
+          <div class="user-icon" aria-hidden="true">⌁</div>
+          <h3 class="user-title">手机友好</h3>
+          <p class="user-text">无需额外传感器，手机相机即可完成采集，适合先做基础视觉辅助判断。</p>
         </div>
       </div>
     </section>
@@ -457,7 +522,7 @@
         </div>
         <div class="model-flow-arrow" aria-hidden="true">→</div>
         <div class="model-flow-step model-flow-step-highlight">
-          <span class="model-flow-label">ECA<br/><small>通道注意力（零参数）</small></span>
+          <span class="model-flow-label">ECA<br/><small>通道注意力（参数开销极低）</small></span>
         </div>
         <div class="model-flow-arrow" aria-hidden="true">→</div>
         <div class="model-flow-step model-flow-step-highlight">
@@ -476,10 +541,10 @@
       <!-- ECA 技术创新点 -->
       <div class="model-card">
         <h3 class="model-h3"><span class="model-h3-icon" aria-hidden="true">⚡</span> ECA 通道注意力（替代 CBAM）</h3>
-        <p>V1 使用的 <strong>CBAM</strong> 同时引入通道注意力子模块（共享 MLP）和空间注意力子模块（卷积层），会带来额外的参数开销。V2 改用 <strong>ECA-Net（Efficient Channel Attention）<sup>[9]</sup></strong>提出的高效通道注意力，核心思想是：<strong>用一维卷积替代全连接 MLP，让相邻通道直接交互，避免降维带来的信息损失</strong>。</p>
+        <p>V1 使用的 <strong>CBAM</strong> 同时引入通道注意力子模块（共享 MLP）和空间注意力子模块（卷积层），会带来额外的参数开销。V2 改用 <strong>ECA-Net（Efficient Channel Attention）<sup>[9]</sup></strong>提出的高效通道注意力，核心思想是：<strong>用一维卷积替代全连接 MLP，让相邻通道直接交互，避免降维带来的信息损失</strong>。在本项目语境下，它的参数开销极低，但不应简单表述为“零参数”。</p>
         <div class="model-features">
           <div class="model-feature">
-            <strong>零额外参数</strong>：ECA 仅一个一维卷积核（k 个权重），不引入任何通道降维参数。核大小 k 由通道数 C 自适应决定：<code>k = 2 × ⌊log₂(C) / 2 + 0.5⌋ - 1</code>，最小取 3。
+            <strong>参数开销极低</strong>：ECA 仅使用一个一维卷积核（k 个权重），不引入通道降维参数。核大小 k 由通道数 C 自适应决定：<code>k = 2 × ⌊log₂(C) / 2 + 0.5⌋ - 1</code>，最小取 3。
           </div>
           <div class="model-feature">
             <strong>局部跨通道交互</strong>：与 CBAM 的全局 MLP 全连接不同，ECA 通过一维卷积实现局部邻域的通道交互，更高效地捕获通道间依赖关系。
@@ -493,7 +558,7 @@
       <!-- Light CRA 鱼眼专用区域注意力 -->
       <div class="model-card">
         <h3 class="model-h3"><span class="model-h3-icon" aria-hidden="true">🎯</span> Light CRA 环形区域注意力</h3>
-        <p>这是 V2 引入的<strong>原创模块</strong>，利用鱼眼近似圆形的几何先验，将特征图划分为 N=3 个同心环（瞳孔 / 角膜 / 眼眶）并分别施加注意力。原始 CRA 参数高达 13.846M，Light CRA 通过"掩码分区 + 共享深度卷积"压缩到仅 <strong>0.083M</strong>；MFED 测试集准确率由 98.88% 提升至 99.29%。</p>
+        <p>这是 V2 引入的<strong>本项目提出的 Light CRA 模块</strong>，利用鱼眼近似圆形的几何先验，将特征图划分为 N=3 个同心环（瞳孔 / 角膜 / 眼眶）并分别施加注意力。原始 CRA 参数高达 13.846M，Light CRA 通过"掩码分区 + 共享深度卷积"压缩到仅 <strong>0.083M</strong>；MFED 测试集准确率由 98.88% 提升至 99.29%。</p>
         <div class="model-features">
           <div class="model-feature">
             <strong>三环语义结构</strong>：N=3 对应鱼眼的三段语义结构——内环（瞳孔）、中环（角膜）、外环（眼眶），每个环独立生成注意力权重，使模型聚焦于不同半径区域的新鲜度特征。
@@ -743,12 +808,43 @@
         </div>
       </div>
     </section>
+    <!-- ============ TRAE 协作方式 ============ -->
+    <section id="trae-workflow" class="reveal">
+      <div class="section-head">
+        <span class="section-kicker">BUILT WITH TRAE</span>
+        <h2 class="section-title">TRAE 如何参与 FreshEye</h2>
+      </div>
+      <p class="intro-sub">TRAE 在这里承担的是从研究 Demo 到可运行产品之间的协同工作：拆解需求、推进开发、定位问题，再根据反馈收紧表达与体验。</p>
+      <div class="trae-workflow-grid">
+        <div class="trae-workflow-card">
+          <span class="trae-workflow-index">01</span>
+          <h3>需求拆解</h3>
+          <p>把模型能力拆成上传、推理、结果、历史记录、PDF 报告与移动端体验等用户可操作的模块。</p>
+        </div>
+        <div class="trae-workflow-card">
+          <span class="trae-workflow-index">02</span>
+          <h3>协同开发</h3>
+          <p>协助完成纯 HTML / CSS / JavaScript 多页面前端、FastAPI 接入、Grad-CAM 展示与 PWA 能力。</p>
+        </div>
+        <div class="trae-workflow-card">
+          <span class="trae-workflow-index">03</span>
+          <h3>Debug</h3>
+          <p>围绕网络异常、Service Worker 缓存、响应式布局、图片格式与 PDF 打印等实际问题持续排查。</p>
+        </div>
+        <div class="trae-workflow-card">
+          <span class="trae-workflow-index">04</span>
+          <h3>产品迭代</h3>
+          <p>根据测试与评审反馈，调整结果层级、置信度边界、模型卡与页面文案，让能力和承诺保持一致。</p>
+        </div>
+      </div>
+    </section>
+
     <!--
     演示视频脚本（1-5 分钟录屏参考）：
     1. 打开 https://fresheye.yance777.com/（0:00-0:10）
     2. 点击上传区，选择一张高度新鲜鱼眼照片（0:10-0:20）
     3. 点击"开始分析"，展示扫描动画（0:20-0:30）
-    4. 分析完成，展示 4-Tab 报告：概览 → AI视觉分析 → 详细报告 → 处理建议（0:30-1:15）
+    4. 分析完成，展示 4-Tab 报告：结果 → AI 依据 → 详细分析 → 建议（0:30-1:15）
     5. Grad-CAM 滑块对比原图与热力图（1:15-1:30）
     6. 展示 5 大类建议卡片折叠展开（1:30-1:45）
     7. 上传一张低质量照片，触发置信度 < 60% 红色弹窗（1:45-2:00）
@@ -767,34 +863,24 @@
       <div id="socialContent">
         <div class="social-grid">
           <div class="social-card">
-            <div class="social-icon" aria-hidden="true">👥</div>
-            <h3>受众规模</h3>
-            <p>据农业农村部《2023 年全国渔业经济统计公报》，全国水产品总产量 <strong>7116.17 万吨</strong>，产业链覆盖千万级从业者与 <strong>3 亿+</strong> 消费者，社会需求面极广。</p>
+            <div class="social-icon" aria-hidden="true">🧭</div>
+            <h3>降低经验门槛</h3>
+            <p>为缺少专业经验的消费者提供<strong>额外的视觉判断参考</strong>，减少只凭经验挑鱼的不确定性。</p>
           </div>
           <div class="social-card">
-            <div class="social-icon" aria-hidden="true">🛡️</div>
-            <h3>填平经验壁垒</h3>
-            <p>让第一次买鱼的高中生也能拥有<strong>老师傅级别的判别力</strong>，用技术填平"经验鸿沟"<sup>[12]</sup>。</p>
+            <div class="social-icon" aria-hidden="true">📱</div>
+            <h3>无需专用设备</h3>
+            <p>无需专用检测仪器，只需手机和浏览器即可获得<strong>基础视觉新鲜度辅助判断</strong>。</p>
           </div>
           <div class="social-card">
-            <div class="social-icon" aria-hidden="true">🏥</div>
-            <h3>降低食安事故</h3>
-            <p>低成本视觉检测在<strong>"最后一公里"拦截问题产品</strong>，事前识别胜过事后追溯。</p>
+            <div class="social-icon" aria-hidden="true">🗂️</div>
+            <h3>辅助采购初筛</h3>
+            <p>商户与采购人员可将单次结果作为<strong>购买、验收和复核环节中的辅助初筛</strong>，并通过历史记录留存对照。</p>
           </div>
           <div class="social-card">
-            <div class="social-icon" aria-hidden="true">🏝️</div>
-            <h3>助力边远地区</h3>
-            <p>一部手机 + 浏览器即可获得<strong>一线城市专业检测机构级别</strong>的初步判别能力。</p>
-          </div>
-          <div class="social-card">
-            <div class="social-icon" aria-hidden="true">⚖️</div>
-            <h3>促进市场公平</h3>
-            <p>消费者拥有独立判别能力，从机制上<strong>减少"以次充好"的生存空间</strong>。</p>
-          </div>
-          <div class="social-card">
-            <div class="social-icon" aria-hidden="true">🔄</div>
-            <h3>可复制性</h3>
-            <p>技术栈轻量（CPU 推理），部署标准化（一天内即可自建），<strong>场景可迁移</strong>（肉类/果蔬/海鲜）。</p>
+            <div class="social-icon" aria-hidden="true">🧪</div>
+            <h3>可拓展研究方向</h3>
+            <p>“视觉特征 + 轻量模型 + 可解释分析”的思路，未来可探索迁移到<strong>其他生鲜品质评估场景</strong>，仍需新的数据与验证。</p>
           </div>
         </div>
       </div>
@@ -808,30 +894,27 @@
       <div id="iterContent">
         <div class="iter-grid">
           <div class="iter-phase">
-            <h3>短期（1–3 个月）</h3>
+            <h3>当前阶段</h3>
             <ul>
-              <li><strong>MC Dropout 推理置信度量化</strong>（后续工作方向）</li>
-              <li>受控混淆因子训练（防背景反光干扰）</li>
-              <li>数据集扩充到 <strong>1 万+</strong> 张</li>
-              <li>批量分析功能上线</li>
+              <li>面向消费者提供单张鱼眼照片的视觉新鲜度辅助参考</li>
+              <li>通过置信度、Grad-CAM、建议与 PDF 报告解释结果</li>
+              <li>用 Model Card 公开数据集范围与食品安全边界</li>
             </ul>
           </div>
           <div class="iter-phase">
-            <h3>中期（3–12 个月）</h3>
+            <h3>下一阶段</h3>
             <ul>
-              <li><strong>品种细分</strong>（鱼种识别 + 新鲜度 + 烹饪建议三合一）</li>
-              <li>监管对接（农贸市场 SaaS 版）</li>
-              <li><strong>离线 SDK</strong>（ONNX 打包，本地推理）</li>
-              <li>微信小程序上线</li>
+              <li>探索商户与采购场景中的<strong>批量初筛与记录留档</strong></li>
+              <li>继续优化移动端采集、结果复核与历史记录体验</li>
+              <li>在新增功能上线前，先补齐对应的真实测试数据</li>
             </ul>
           </div>
           <div class="iter-phase">
-            <h3>长期（1 年以上）</h3>
+            <h3>研究方向</h3>
             <ul>
-              <li><strong>实时场景验证</strong>（当前局限突破）</li>
-              <li>B 端 SaaS 平台</li>
-              <li>G 端监管平台（<strong>明厨亮灶</strong>接入）</li>
-              <li>多模态融合（图像 + 气味 + 质地 + 温度）</li>
+              <li>扩充鱼种，并增加更接近现实使用条件的验证</li>
+              <li>探索视觉与其他可测指标的融合，避免把视觉结果当作完整安全判断</li>
+              <li>以公开数据、可复现实验和边界说明作为后续迭代前提</li>
             </ul>
           </div>
         </div>
