@@ -1810,10 +1810,26 @@
       showResultDetailsBtn?.addEventListener("click", () => {
         if (!resultDetails) return;
         resultDetails.open = true;
-        requestAnimationFrame(() => resultDetails.scrollIntoView({ behavior: "smooth", block: "start" }));
+        requestAnimationFrame(() => {
+          if (window.matchMedia("(max-width: 720px)").matches) {
+            scrollBelowNavbar(resultDetails);
+          } else {
+            resultDetails.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
       });
       showAdviceBtn?.addEventListener("click", () => {
-        document.querySelector('.report-tab[data-tab="advice"]')?.click();
+        const adviceTab = document.querySelector('.report-tab[data-tab="advice"]');
+        adviceTab?.click();
+        requestAnimationFrame(() => {
+          const tabs = document.querySelector(".report-tabs");
+          if (!tabs) return;
+          if (window.matchMedia("(max-width: 720px)").matches) {
+            scrollBelowNavbar(tabs);
+          } else {
+            tabs.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+        });
       });
     }
 
@@ -1853,6 +1869,11 @@
       }
 
       tabs.forEach((tab, index) => {
+        const targetPane = Array.from(panes).find((pane) => pane.dataset.pane === tab.dataset.tab);
+        if (targetPane) {
+          if (!targetPane.id) targetPane.id = `report-pane-${tab.dataset.tab}`;
+          tab.setAttribute("aria-controls", targetPane.id);
+        }
         tab.addEventListener("click", () => activateTab(tab));
         tab.addEventListener("keydown", (e) => {
           let newIndex = null;
@@ -1881,6 +1902,7 @@
         const isActive = p.classList.contains("is-active");
         p.hidden = !isActive;
         p.setAttribute("aria-hidden", isActive ? "false" : "true");
+        p.setAttribute("tabindex", "0");
       });
     }
 
@@ -2997,7 +3019,9 @@
 
       const openMenu = () => {
         lastFocused = document.activeElement;
+        previousBodyOverflow = document.body.style.overflow;
         overlay.hidden = false;
+        overlay.setAttribute("aria-hidden", "false");
         toggle.classList.add("is-open");
         toggle.setAttribute("aria-expanded", "true");
         toggle.setAttribute("aria-label", "关闭导航菜单");
@@ -3005,14 +3029,18 @@
         firstLink?.focus();
         document.body.style.overflow = "hidden";
       };
-      const closeMenu = () => {
+      const closeMenu = (restoreFocus = true) => {
         overlay.hidden = true;
+        overlay.setAttribute("aria-hidden", "true");
         toggle.classList.remove("is-open");
         toggle.setAttribute("aria-expanded", "false");
         toggle.setAttribute("aria-label", "打开导航菜单");
-        document.body.style.overflow = "";
-        lastFocused?.focus();
+        document.body.style.overflow = previousBodyOverflow;
+        if (restoreFocus && lastFocused?.focus && lastFocused.offsetParent !== null) lastFocused.focus();
       };
+
+      let previousBodyOverflow = "";
+      overlay.setAttribute("aria-hidden", overlay.hidden ? "true" : "false");
 
       toggle.addEventListener("click", () => {
         overlay.hidden ? openMenu() : closeMenu();
@@ -3025,6 +3053,11 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && !overlay.hidden) closeMenu();
       });
+      const closeMenuOnViewportChange = () => {
+        if (!overlay.hidden && !window.matchMedia("(max-width: 640px)").matches) closeMenu(false);
+      };
+      window.addEventListener("resize", closeMenuOnViewportChange, { passive: true });
+      window.addEventListener("orientationchange", closeMenuOnViewportChange, { passive: true });
       // 焦点陷阱：Tab 在菜单内循环
       overlay.addEventListener("keydown", (e) => {
         if (e.key !== "Tab" || overlay.hidden) return;

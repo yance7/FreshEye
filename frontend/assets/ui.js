@@ -52,23 +52,30 @@
       if (toggle.dataset.menuReady === "true") return;
       toggle.dataset.menuReady = "true";
       var lastFocused = null;
+      var previousBodyOverflow = "";
 
       var openMenu = function () {
         lastFocused = document.activeElement;
+        previousBodyOverflow = document.body.style.overflow;
         overlay.hidden = false;
+        overlay.setAttribute("aria-hidden", "false");
         toggle.classList.add("is-open");
         toggle.setAttribute("aria-expanded", "true");
         var firstLink = overlay.querySelector("a");
         if (firstLink) firstLink.focus();
         document.body.style.overflow = "hidden";
       };
-      var closeMenu = function () {
+      var closeMenu = function (restoreFocus) {
+        if (restoreFocus === undefined) restoreFocus = true;
         overlay.hidden = true;
+        overlay.setAttribute("aria-hidden", "true");
         toggle.classList.remove("is-open");
         toggle.setAttribute("aria-expanded", "false");
-        document.body.style.overflow = "";
-        if (lastFocused && lastFocused.focus) lastFocused.focus();
+        document.body.style.overflow = previousBodyOverflow;
+        if (restoreFocus && lastFocused && lastFocused.focus && lastFocused.offsetParent !== null) lastFocused.focus();
       };
+
+      overlay.setAttribute("aria-hidden", overlay.hidden ? "true" : "false");
 
       toggle.addEventListener("click", function () {
         overlay.hidden ? openMenu() : closeMenu();
@@ -79,6 +86,12 @@
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape" && !overlay.hidden) closeMenu();
       });
+      window.addEventListener("resize", function () {
+        if (!overlay.hidden && !window.matchMedia("(max-width: 640px)").matches) closeMenu(false);
+      }, { passive: true });
+      window.addEventListener("orientationchange", function () {
+        if (!overlay.hidden && !window.matchMedia("(max-width: 640px)").matches) closeMenu(false);
+      }, { passive: true });
       overlay.addEventListener("keydown", function (e) {
         if (e.key !== "Tab" || overlay.hidden) return;
         var focusable = Array.prototype.slice.call(overlay.querySelectorAll("a, button"));

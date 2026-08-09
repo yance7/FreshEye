@@ -41,6 +41,7 @@
   justify-content: center;
   animation: overlay-fade 0.25s ease;
   overscroll-behavior: contain;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
 }
 @keyframes overlay-fade { from { opacity: 0; } to { opacity: 1; } }
 .nav-overlay[hidden] { display: none; }
