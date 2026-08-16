@@ -1,7 +1,7 @@
 /* ============ 鲜眸（FreshEye）根作用域 Service Worker ============ */
 /* HTML 网络优先；静态资源 stale-while-revalidate。 */
 
-const CACHE_NAME = "fresheye-v24";
+const CACHE_NAME = "fresheye-v25";
 const CORE_URLS = [
   "./",
   "./index.html",
@@ -22,6 +22,10 @@ const CORE_URLS = [
   "./assets/site.js",
   "./assets/app.js",
   "./assets/config.js",
+  "./assets/locale-zh.js",
+  "./assets/locale-en.js",
+  "./assets/i18n.js",
+  "./assets/pdf-report.js",
   "./assets/manifest.json",
   "./assets/icon-192.png",
   "./assets/icon-512.png"

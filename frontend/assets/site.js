@@ -22,6 +22,10 @@
   }
 
   function initPage() {
+    // i18n.js is loaded before this shared script. Re-apply once here so pages
+    // added through a static host still receive the persisted language and
+    // the header switcher is ready before shared interactions start.
+    if (window.FreshEyeI18n) window.FreshEyeI18n.init();
     // 首页有自己的结果页交互初始化，避免与共享库重复绑定气泡、菜单和手风琴。
     var isAnalysisPage = Boolean(document.getElementById("analyzeBtn"));
     if (!isAnalysisPage && window.FreshUI) {

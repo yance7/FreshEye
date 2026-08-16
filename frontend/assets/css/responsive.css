@@ -2,7 +2,7 @@
 /* :focus-visible 基础规则见顶部重置区块 */
 /* touch-action: manipulation 统一规则见下方触摸优化区块（含完整选择器） */
 /* 最小触摸尺寸保障 */
-.btn-analyze, .btn-export, .history-btn, .nav-toggle {
+.btn-analyze, .btn-export, .history-btn, .nav-toggle, .language-toggle {
   min-height: 44px;
   min-width: 44px;
 }
@@ -68,13 +68,13 @@
 .accordion-head:focus-visible { outline: 2px solid var(--aqua); outline-offset: -2px; }
 .btn-export:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
 .history-btn:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
-.nav-toggle:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.nav-toggle:focus-visible, .language-toggle:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
 .warning-dismiss:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
 .btn-modal-primary:focus-visible, .btn-modal-secondary:focus-visible { outline: 2px solid var(--foam); outline-offset: 2px; }
 .nav-overlay-links a:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
 
 /* ============ 触控反馈 ============ */
-.badge:active, .btn-ghost:active, .btn-export:active, .accordion-head:active, .nav-toggle:active, .pain-card:active, .social-card:active, .user-card:active { transform: scale(0.97); }
+.badge:active, .btn-ghost:active, .btn-export:active, .accordion-head:active, .nav-toggle:active, .language-toggle:active, .pain-card:active, .social-card:active, .user-card:active { transform: scale(0.97); }
 
 
 /* ============ 比赛页脚 ============ */
@@ -114,6 +114,7 @@
 @media (max-width: 640px) {
   .nav-links { display: none; }
   .nav-toggle { display: flex; }
+  .language-toggle { margin-left: auto; margin-right: 8px; }
   .hero-title { font-size: clamp(26px, 8vw, 42px); }
   .upload-zone { width: 100%; min-height: 140px; }
   .preview-img { max-width: 100%; }

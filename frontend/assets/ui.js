@@ -61,6 +61,7 @@
         overlay.setAttribute("aria-hidden", "false");
         toggle.classList.add("is-open");
         toggle.setAttribute("aria-expanded", "true");
+        if (window.FreshEyeI18n) toggle.setAttribute("aria-label", window.FreshEyeI18n.t("nav.close"));
         var firstLink = overlay.querySelector("a");
         if (firstLink) firstLink.focus();
         document.body.style.overflow = "hidden";
@@ -71,6 +72,7 @@
         overlay.setAttribute("aria-hidden", "true");
         toggle.classList.remove("is-open");
         toggle.setAttribute("aria-expanded", "false");
+        if (window.FreshEyeI18n) toggle.setAttribute("aria-label", window.FreshEyeI18n.t("nav.open"));
         document.body.style.overflow = previousBodyOverflow;
         if (restoreFocus && lastFocused && lastFocused.focus && lastFocused.offsetParent !== null) lastFocused.focus();
       };
@@ -146,9 +148,13 @@
     var topBtn = document.createElement("button");
     topBtn.className = "back-to-top";
     topBtn.type = "button";
-    topBtn.setAttribute("aria-label", "回到顶部");
+    topBtn.setAttribute("aria-label", window.FreshEyeI18n ? window.FreshEyeI18n.t("common.backToTop") : "回到顶部");
     topBtn.textContent = "↑";
     document.body.appendChild(topBtn);
+
+    window.addEventListener("fresheye:languagechange", function () {
+      if (window.FreshEyeI18n) topBtn.setAttribute("aria-label", window.FreshEyeI18n.t("common.backToTop"));
+    });
 
     topBtn.addEventListener("click", function () {
       var behavior = reduceMotion.matches ? "auto" : "smooth";

@@ -30,6 +30,21 @@
 
 `/predict_with_gradcam` 额外返回 `heatmap_image`（Grad-CAM 热力图叠加原图的 JPEG base64）。
 
+## 前端双语与报告契约
+
+FreshEye 的前端保持原生 HTML/CSS/JavaScript 架构，不要求后端增加语言参数，也不改变上述接口字段。
+
+| 前端资源 | 职责 |
+| --- | --- |
+| `frontend/assets/locale-zh.js` | 中文默认文案、动态结果、历史记录、错误与 PDF 文案 |
+| `frontend/assets/locale-en.js` | English 文案覆盖 |
+| `frontend/assets/i18n.js` | 读取 `fresheye-language`、应用 `data-i18n`、维护 `document.lang` 与键盘可用的右上角切换按钮 |
+| `frontend/assets/pdf-report.js` | 由结构化预测数据生成当前语言的单页 A4 报告 |
+
+语言切换只影响前端呈现。预测数据仍使用既有字段；概率展示固定遵循 `高度新鲜 / 新鲜 / 不新鲜`（对应标签 `0 / 1 / 2`）顺序，避免前后端字典顺序变化造成误读。PDF 报告提供打印/存为 PDF、下载 HTML 与关闭操作，且与页面一样明确声明：视觉结果不能替代法定食品安全检测。
+
+The bilingual layer is presentation-only. The API contract and `PredictionResult` fields stay unchanged. `locale-zh.js` is the default dictionary, `locale-en.js` supplies English copy, `i18n.js` persists `fresheye-language`, and `pdf-report.js` renders the active language. Probability order is always label `0 / 1 / 2`: `Highly fresh / Fresh / Not fresh`.
+
 ## 模型权重
 
 - 环境变量 `V1_MODEL_PATH` / `V2_MODEL_PATH` 优先；未设置时默认查找 `deploy/src/storage/fishfreshnet_v1.pth` / `fishfreshnet_v2.pth`。

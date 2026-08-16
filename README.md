@@ -72,6 +72,7 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 - 📊 **Structured analysis** — rule-based eye appearance / clarity / color / texture / quality descriptions.
 - 📋 **Five-category recommendations** — storage / consumption / handling / safety / best practices.
 - 📄 **PDF report export** — original image, heatmap, probability distribution, and detailed analysis.
+- 🌐 **Bilingual UI** — Chinese by default, English toggle in the header, persisted with `fresheye-language`; static pages, dynamic results, history, errors, and PDF copy share the same locale contract.
 - 📱 **PWA support** — offline caching with Service Worker, plus an in-app camera viewfinder with a circular fish-eye guide frame on mobile.
 - 🧠 **MFED dataset** — 4800+ samples, 4 environments, 2 fish species, open-sourced on Mendeley Data.
 
@@ -88,6 +89,12 @@ python -m http.server 8000 --directory frontend
 ```
 
 Then open <http://localhost:8000> in a browser. The production API endpoint is configured in `frontend/assets/config.js`.
+
+### Bilingual and report contract
+
+The frontend keeps the existing static HTML/CSS/JavaScript architecture. `frontend/assets/locale-zh.js` and `locale-en.js` contain the copy, `i18n.js` applies it to marked DOM nodes, and the header toggle persists the selected locale in `localStorage` under `fresheye-language`. The backend protocol and `PredictionResult` fields remain unchanged.
+
+`frontend/assets/pdf-report.js` builds the single-page A4 report from structured prediction data. The report uses the active locale, keeps the probability order `Highly fresh / Fresh / Not fresh` (the backend's `高度新鲜 / 新鲜 / 不新鲜` order), and exposes Print / Save as PDF, HTML download, and Close actions. PDF output remains a visual reference, not a statutory food-safety certificate.
 
 <a id="detection-workflow"></a>
 
@@ -198,6 +205,7 @@ MIT License — see [LICENSE](LICENSE).
 | 📊 **结构化分析** | 规则模板：鱼眼外观 / 清澈度 / 颜色 / 纹理 / 质量指标 |
 | 📋 **五大类建议** | 储存 / 食用 / 加工 / 安全 / 最佳实践 |
 | 📄 **PDF 报告** | 含原图、热力图、概率分布和详细分析 |
+| 🌐 **中英文切换** | 中文默认；右上角切换 English，`fresheye-language` 本地持久化；页面、动态结果、历史记录、错误与 PDF 共用语言字典 |
 | 📱 **PWA 支持** | Service Worker 离线缓存 + 手机端拍照取景框（圆形鱼眼引导） |
 | 🧠 **MFED 数据集** | 4800+ 样本、4 种环境、2 种鱼类，开源至 Mendeley Data |
 
@@ -233,6 +241,12 @@ MIT License — see [LICENSE](LICENSE).
 | 模型 | FishFreshNetV1 / FishFreshNetV2 | 进程内 CNN 推理 + Grad-CAM |
 
 前端负责格式校验、图片压缩和置信度自适应渲染；后端负责 CNN 推理与 Grad-CAM 热力图生成。整个系统不依赖外部模型服务或大语言模型。
+
+### 双语界面与报告约定
+
+前端仍保持原生 HTML/CSS/JavaScript 架构：`frontend/assets/locale-zh.js` 与 `locale-en.js` 保存文案，`i18n.js` 将文案应用到带标记的 DOM，右上角按钮把当前语言保存到 `localStorage` 的 `fresheye-language`。后端接口与 `PredictionResult` 字段不变。
+
+`frontend/assets/pdf-report.js` 根据结构化预测数据生成单页 A4 报告，沿用后端概率顺序 `高度新鲜 / 新鲜 / 不新鲜`，并提供“打印/存为 PDF”“下载报告 HTML”“关闭”操作。报告仅描述视觉参考，不构成法定食品安全证明。
 
 <a id="模型"></a>
 

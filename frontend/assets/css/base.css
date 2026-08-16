@@ -217,6 +217,34 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .nav-links a.is-current { color: var(--aqua); }
 .nav-links a.is-current::after { width: 100%; }
 
+/* ============ 语言切换 ============ */
+.language-toggle {
+  flex: 0 0 auto;
+  min-width: 76px;
+  min-height: 44px;
+  margin-left: var(--space-4);
+  padding: 7px 10px;
+  border: 1px solid rgba(39, 208, 196, 0.42);
+  border-radius: 999px;
+  background: rgba(7, 53, 79, 0.72);
+  color: var(--foam);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), color var(--transition), transform var(--transition);
+}
+.language-toggle:hover { border-color: var(--aqua); background: rgba(17, 133, 184, 0.32); color: var(--white); }
+.language-toggle:active { transform: scale(0.96); }
+.language-toggle:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
+.language-option { transition: color var(--transition), opacity var(--transition); }
+.language-option-zh { color: var(--aqua); }
+.language-option-en { color: var(--muted); }
+.language-toggle.is-en .language-option-zh { color: var(--muted); }
+.language-toggle.is-en .language-option-en { color: var(--aqua); }
+
 /* ============ 主容器 ============ */
 main {
   max-width: 920px;
