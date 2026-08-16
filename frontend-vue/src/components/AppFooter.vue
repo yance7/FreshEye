@@ -22,9 +22,9 @@ const techStack = ['Python + FastAPI', 'PyTorch', 'EfficientNet-B0', 'Grad-CAM',
         <h4 class="footer-col-title">{{ t('footer.nav_title') }}</h4>
         <div class="footer-links">
           <router-link to="/">{{ t('footer.nav_home') }}</router-link>
-          <router-link to="/guide">{{ t('footer.nav_guide') }}</router-link>
-          <router-link to="/fish">{{ t('footer.nav_fish') }}</router-link>
-          <router-link to="/about">{{ t('footer.nav_about') }}</router-link>
+          <router-link to="/guide.html">{{ t('footer.nav_guide') }}</router-link>
+          <router-link to="/fish.html">{{ t('footer.nav_fish') }}</router-link>
+          <router-link to="/about.html">{{ t('footer.nav_about') }}</router-link>
           <a href="https://github.com/yance7/FreshEye" target="_blank" rel="noopener noreferrer">{{ t('footer.nav_source') }}</a>
         </div>
       </nav>

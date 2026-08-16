@@ -1,7 +1,7 @@
 /* 鲜眸 FreshEye · Vue PWA 缓存层
  * HTML 网络优先，本站静态资源 stale-while-revalidate；API 请求永不缓存。
  */
-const CACHE_NAME = 'fresheye-vue-v2'
+const CACHE_NAME = 'fresheye-vue-v3'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

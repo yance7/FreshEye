@@ -60,7 +60,7 @@ const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips')
         </h3>
         <p class="species-desc">{{ s.desc }}</p>
         <p class="species-meta">
-          📷 {{ t('fish.best_angle') }}：{{ s.angle }}<br />🍳 {{ t('fish.recommended_cook') }}：{{ s.cook }}
+          📷 {{ t('fish.best_angle') }}: {{ s.angle }}<br />🍳 {{ t('fish.recommended_cook') }}: {{ s.cook }}
         </p>
       </div>
     </div>

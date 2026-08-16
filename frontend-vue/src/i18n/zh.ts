@@ -243,7 +243,7 @@ const zh = {
   },
   guide: {
     eyebrow: '使用指南',
-    title: '三步get鲜眸',
+    title: '三步掌握鲜眸',
     subtitle: '从拍照到看懂结果，一分钟掌握鱼眼新鲜度智能评估。',
     steps_title: '三步使用流程',
     photo_title: '拍照教程',

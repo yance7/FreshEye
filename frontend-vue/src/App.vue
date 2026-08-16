@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
   <!-- 主内容区 -->
   <main id="main-content">
     <router-view v-slot="{ Component }">
-      <transition name="route-fade" mode="out-in">
+      <transition name="route-fade">
         <component :is="Component" />
       </transition>
     </router-view>

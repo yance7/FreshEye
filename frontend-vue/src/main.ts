@@ -1,7 +1,7 @@
 // 鲜眸 FreshEye · Vue 应用入口
 import { createApp } from 'vue'
 import App from './App.vue'
-import router, { getEntryRoute } from './router'
+import router from './router'
 import { provideI18n } from './i18n'
 import './styles/global.css'
 
@@ -9,10 +9,6 @@ const app = createApp(App)
 app.use(router)
 provideI18n(app)
 
-const entryRoute = getEntryRoute()
-if (entryRoute !== '/' && router.currentRoute.value.path === '/') {
-  router.replace(entryRoute)
-}
 router.isReady().then(() => app.mount('#app'))
 
 // 生产构建保留原版 PWA 能力；开发环境不注册，避免干扰 Vite HMR。

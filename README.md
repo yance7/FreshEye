@@ -144,11 +144,13 @@ The frontend performs format validation, image compression, and confidence-adapt
 
 Both models are trained on the **MFED** dataset (4800+ samples, 4 environments, 2 fish species), open-sourced on [Mendeley Data](https://data.mendeley.com/).
 
+The repository checkpoint is [`models/fishfreshnetv2.pth`](models/fishfreshnetv2.pth). The Hugging Face Space keeps its separately deployed runtime weight under `hf-space/src/storage/`.
+
 <a id="deployment"></a>
 
 ### Deployment & API
 
-- **Frontend**: automatically deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to `main`.
+- **Frontend**: automatically built and deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to `main`. The public static entries are `/`, `/guide.html`, `/fish.html`, `/about.html`, and `/404.html`; the Vue router uses clean HTML5 history, so no `#/` URL is required.
 - **Backend**: FastAPI + PyTorch service deployed separately on [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye).
 - **Health check**: `GET https://andreas777-fresheye.hf.space/health`.
 - **Analysis API**: `POST /predict_with_gradcam?model_version=v1|v2` with a multipart image field named `file`.
@@ -161,10 +163,9 @@ Both models are trained on the **MFED** dataset (4800+ samples, 4 environments, 
 ```text
 FreshEye/
 ├── frontend-vue/               # Vue source, tests, and self-contained assets
-├── frontend-dist/              # Generated Pages artifact (ignored locally)
+├── frontend-dist/              # Generated Pages artifact for CI (ignored and removable locally)
 ├── hf-space/                   # FastAPI/Hugging Face Space source and weights
 ├── models/                     # Training code and model weights
-├── test-samples/               # Local test images
 ├── docs/                       # Model integration and migration guides
 ├── .github/workflows/deploy.yml
 └── LICENSE
@@ -278,10 +279,9 @@ MIT License — see [LICENSE](LICENSE).
 ```text
 FreshEye/
 ├── frontend-vue/               # Vue 源码、测试与自包含资源
-├── frontend-dist/              # 构建生成的 Pages 产物（本地忽略）
+├── frontend-dist/              # CI 构建生成的 Pages 产物（本地忽略，可删除）
 ├── hf-space/                   # FastAPI/Hugging Face Space 源码与权重
 ├── models/                     # 训练代码与模型权重
-├── test-samples/               # 本地测试图片
 ├── docs/                       # 模型集成与迁移指南
 ├── .github/workflows/deploy.yml
 └── LICENSE

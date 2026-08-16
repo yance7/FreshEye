@@ -1,57 +1,70 @@
 // 鲜眸 FreshEye · 路由配置
-// 使用 createWebHashHistory 以兼容 GitHub Pages 静态部署
-import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
+// 使用 HTML5 history，与 Vite 的多页面静态入口配合，避免公开 URL 出现 #/
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import HomeView from '@/views/HomeView.vue'
+import GuideView from '@/views/GuideView.vue'
+import FishView from '@/views/FishView.vue'
+import AboutView from '@/views/AboutView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: () => import('@/views/HomeView.vue'),
+    component: HomeView,
     meta: { titleKey: 'home', metaKey: 'home' }
   },
   {
-    path: '/guide',
+    path: '/guide.html',
     name: 'guide',
-    component: () => import('@/views/GuideView.vue'),
+    component: GuideView,
     meta: { titleKey: 'guide', metaKey: 'guide' }
   },
   {
-    path: '/fish',
+    path: '/fish.html',
     name: 'fish',
-    component: () => import('@/views/FishView.vue'),
+    component: FishView,
     meta: { titleKey: 'fish', metaKey: 'fish' }
   },
   {
-    path: '/about',
+    path: '/about.html',
     name: 'about',
-    component: () => import('@/views/AboutView.vue'),
+    component: AboutView,
     meta: { titleKey: 'about', metaKey: 'about' }
   },
   {
-    path: '/:pathMatch(.*)*',
+    path: '/404.html',
     name: 'not-found',
-    component: () => import('@/views/NotFoundView.vue'),
+    component: NotFoundView,
+    meta: { titleKey: 'notfound', metaKey: 'notfound' }
+  },
+  {
+    path: '/guide',
+    redirect: '/guide.html'
+  },
+  {
+    path: '/fish',
+    redirect: '/fish.html'
+  },
+  {
+    path: '/about',
+    redirect: '/about.html'
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found-fallback',
+    component: NotFoundView,
     meta: { titleKey: 'notfound', metaKey: 'notfound' }
   }
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory('/'),
   routes,
   scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) return savedPosition
     return { top: 0 }
   }
 })
-
-/** GitHub Pages 保留五个旧静态入口；首次加载时把入口文件映射到同一套 Vue 视图。 */
-export function getEntryRoute(pathname = typeof window === 'undefined' ? '/' : window.location.pathname): string {
-  const file = pathname.split('/').pop()?.toLowerCase() ?? ''
-  if (file === 'guide.html') return '/guide'
-  if (file === 'fish.html') return '/fish'
-  if (file === 'about.html') return '/about'
-  if (file === '404.html') return '/404'
-  return '/'
-}
 
 export default router

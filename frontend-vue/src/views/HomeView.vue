@@ -10,6 +10,7 @@ import { useApi, ApiError } from '@/composables/useApi'
 import { GUIDE_KEY, LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY, MODEL_KEY } from '@/config'
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 import { buildReportHtml } from '@/utils/pdfReport'
+import { dataUrlToBlob } from '@/utils/dataUrl'
 
 const { t, tm, locale } = useI18n()
 const { toast } = useToast()
@@ -41,6 +42,7 @@ const previewDataUrl = ref<string>('')   // 预览压缩（1600px）
 const uploadDataUrl = ref<string>('')    // 上传压缩（1280px JPEG q=0.9）
 const imageDimensions = ref<{ width: number; height: number } | null>(null)
 const dragging = ref(false)
+const sampleLoading = ref(false)
 
 const MAX_SIZE = 25 * 1024 * 1024 // 25MB
 const COMPRESS_THRESHOLD = 2 * 1024 * 1024
@@ -386,14 +388,21 @@ const samples = computed(() => [
 ])
 
 async function loadSample(src: string): Promise<void> {
+  if (sampleLoading.value || analyzing.value) return
+  sampleLoading.value = true
   try {
     const res = await fetch(src)
+    if (!res.ok) throw new Error(`sample request failed: ${res.status}`)
     const blob = await res.blob()
     const extension = src.endsWith('.png') ? 'png' : 'webp'
     const file = new File([blob], `sample.${extension}`, { type: blob.type || `image/${extension}` })
-    handleFile(file)
+    await handleFile(file)
+    await nextTick()
+    document.getElementById('preview-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   } catch {
     toast.error(t('home.errors.network'))
+  } finally {
+    sampleLoading.value = false
   }
 }
 
@@ -433,8 +442,14 @@ async function analyze(): Promise<void> {
   startScanning()
   const start = performance.now()
   try {
-    const blob = await (await fetch(uploadDataUrl.value)).blob()
-    const file = new File([blob], selectedFile.value.name || 'upload.jpg', { type: 'image/jpeg' })
+    const sourceFile = selectedFile.value
+    let file = sourceFile
+    if (uploadDataUrl.value !== previewDataUrl.value) {
+      const uploadBlob = dataUrlToBlob(uploadDataUrl.value)
+      file = new File([uploadBlob], sourceFile.name || 'upload.jpg', {
+        type: uploadBlob.type || sourceFile.type || 'image/jpeg'
+      })
+    }
     const { prediction, heatmap_image } = await callPredictApi(file, modelVersion.value)
     const duration = Math.round(performance.now() - start)
     lastResult.value = prediction
@@ -463,6 +478,7 @@ async function analyze(): Promise<void> {
 }
 
 function resetAll(): void {
+  showLowConfidenceModal.value = false
   selectedFile.value = null
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   previewUrl.value = ''
@@ -473,6 +489,13 @@ function resetAll(): void {
   lastOriginalImage.value = ''
   imageDimensions.value = null
   errorMsg.value = ''
+  activeTab.value = 0
+  showMidWarning.value = true
+  showLowWarning.value = true
+}
+
+function scrollToSection(id: string): void {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function retryLowConfidence(): void {
@@ -1053,14 +1076,14 @@ function dismissGuide(): void {
     <p class="hero-tagline">{{ t('home.hero.tagline') }}</p>
     <p class="hero-desc">{{ t('home.hero.subtitle') }}</p>
     <div class="hero-actions" :aria-label="t('home.hero.quick_start')">
-      <a class="hero-action-primary" href="#upload-title">{{ t('home.hero.start') }} <span aria-hidden="true">→</span></a>
-      <a class="hero-action-secondary" href="#sample-card">{{ t('home.hero.view_sample') }}</a>
+      <a class="hero-action-primary" href="#upload-title" @click.prevent="scrollToSection('upload-title')">{{ t('home.hero.start') }} <span aria-hidden="true">→</span></a>
+      <a class="hero-action-secondary" href="#sample-card" @click.prevent="scrollToSection('sample-card')">{{ t('home.hero.view_sample') }}</a>
     </div>
     <div class="hero-badges hero-evidence-strip" role="list" :aria-label="t('home.hero.evidence_label')">
       <span v-for="item in evidenceItems" :key="item.value + item.label" class="hero-evidence-item" role="listitem"><strong>{{ item.value }}</strong> {{ item.label }}</span>
     </div>
-    <router-link class="hero-evidence-link" to="/about">{{ t('home.hero.evidence_link') }} <span aria-hidden="true">→</span></router-link>
-    <a href="#upload-title" class="hero-scroll-cue">
+    <router-link class="hero-evidence-link" to="/about.html">{{ t('home.hero.evidence_link') }} <span aria-hidden="true">→</span></router-link>
+    <a href="#upload-title" class="hero-scroll-cue" @click.prevent="scrollToSection('upload-title')">
       <span>{{ t('home.hero.scroll_hint') }}</span>
       <span class="hero-scroll-cue-arrow" aria-hidden="true">⌄</span>
     </a>
@@ -1073,6 +1096,7 @@ function dismissGuide(): void {
       <span class="section-hint">{{ t('home.upload.section_hint') }}</span>
     </div>
 
+    <template v-if="!previewUrl">
     <details class="advanced-settings">
       <summary><span>{{ t('home.model.advanced') }}</span> <span class="advanced-settings-hint">{{ t('home.model.advanced_hint') }}</span></summary>
       <div class="model-selector">
@@ -1118,6 +1142,9 @@ function dismissGuide(): void {
         :key="s.name"
         type="button"
         class="sample-thumb"
+        :class="{ 'is-loading': sampleLoading }"
+        :disabled="sampleLoading"
+        :aria-busy="sampleLoading"
         :aria-label="s.label"
         @click="loadSample(s.src)"
       >
@@ -1125,12 +1152,13 @@ function dismissGuide(): void {
         <span class="sample-tag">{{ s.label }}</span>
       </button>
     </div>
+    </template>
 
     <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" hidden @change="onFileChange" />
     <input ref="cameraInput" type="file" accept="image/*" capture="environment" hidden @change="onCameraChange" />
 
     <!-- 预览卡片 + 分析按钮 -->
-    <div v-if="previewUrl" class="preview-card glass-card">
+    <div v-if="previewUrl" id="preview-card" class="preview-card glass-card">
       <div class="preview-img-wrap" :class="{ scanning: analyzing }">
         <img :src="previewUrl" :alt="t('home.upload.preview_alt')" class="preview-img" />
         <div v-if="analyzing" class="scan-line"></div>

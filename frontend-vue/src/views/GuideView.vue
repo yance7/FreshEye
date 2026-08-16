@@ -70,13 +70,13 @@ function toggleFaq(idx: number): void {
       <div class="pain-card solution">
         <div class="pain-card-head"><span class="pain-icon" aria-hidden="true">✓</span><span>{{ t('guide.correct_title') }}</span></div>
         <ul class="pain-list">
-          <li v-for="item in correctChecks" :key="item.title"><strong>{{ item.title }}</strong>：{{ item.text }}</li>
+          <li v-for="item in correctChecks" :key="item.title"><strong>{{ item.title }}</strong>: {{ item.text }}</li>
         </ul>
       </div>
       <div class="pain-card pain">
         <div class="pain-card-head"><span class="pain-icon" aria-hidden="true">!</span><span>{{ t('guide.incorrect_title') }}</span></div>
         <ul class="pain-list">
-          <li v-for="item in incorrectChecks" :key="item.title"><strong>{{ item.title }}</strong>：{{ item.text }}</li>
+          <li v-for="item in incorrectChecks" :key="item.title"><strong>{{ item.title }}</strong>: {{ item.text }}</li>
         </ul>
       </div>
     </div>

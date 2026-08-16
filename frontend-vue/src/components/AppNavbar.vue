@@ -8,9 +8,15 @@ const { t, locale, toggleLocale } = useI18n()
 const isScrolled = ref(false)
 const menuOpen = ref(false)
 const toggleBtn = ref<HTMLElement | null>(null)
-const overlayFirstLink = ref<HTMLElement | null>(null)
+type FocusTarget = HTMLElement | { $el?: HTMLElement }
+const overlayFirstLink = ref<FocusTarget | null>(null)
 const lastFocused = ref<HTMLElement | null>(null)
 let previousBodyOverflow = ''
+
+function focusTarget(target: FocusTarget | null): void {
+  const element = target instanceof HTMLElement ? target : target?.$el
+  element?.focus()
+}
 
 /** 滚动监听：超过 8px 添加 is-scrolled */
 function onScroll(): void {
@@ -27,7 +33,7 @@ async function toggleMenu(open: boolean): Promise<void> {
   if (open) {
     document.body.style.overflow = 'hidden'
     await nextTick()
-    overlayFirstLink.value?.focus()
+    focusTarget(overlayFirstLink.value)
   } else {
     document.body.style.overflow = previousBodyOverflow
     const target = lastFocused.value ?? toggleBtn.value
@@ -62,7 +68,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
-  document.body.style.overflow = ''
+  document.body.style.overflow = previousBodyOverflow
 })
 </script>
 
@@ -78,14 +84,16 @@ onBeforeUnmount(() => {
 
     <nav class="nav-links" :aria-label="t('nav.aria')">
       <router-link to="/" exact-active-class="is-current">{{ t('nav.home') }}</router-link>
-      <router-link to="/guide" active-class="is-current">{{ t('nav.guide') }}</router-link>
-      <router-link to="/fish" active-class="is-current">{{ t('nav.fish') }}</router-link>
-      <router-link to="/about" active-class="is-current">{{ t('nav.about') }}</router-link>
+      <router-link to="/guide.html" active-class="is-current">{{ t('nav.guide') }}</router-link>
+      <router-link to="/fish.html" active-class="is-current">{{ t('nav.fish') }}</router-link>
+      <router-link to="/about.html" active-class="is-current">{{ t('nav.about') }}</router-link>
       <a href="https://github.com/yance7/FreshEye" target="_blank" rel="noopener noreferrer">{{ t('nav.source') }}</a>
       <button
         class="lang-switch"
         type="button"
         :aria-label="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')"
+        :aria-pressed="locale === 'en'"
+        :title="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')"
         @click="toggleLocale"
       >
         <span class="lang-option" :class="{ active: locale === 'zh' }">中</span>
@@ -122,11 +130,11 @@ onBeforeUnmount(() => {
   >
     <nav class="nav-overlay-links" :aria-label="t('nav.mobile_aria')">
       <router-link ref="overlayFirstLink" to="/" exact-active-class="is-current" @click="toggleMenu(false)">{{ t('nav.home') }}</router-link>
-      <router-link to="/guide" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.guide') }}</router-link>
-      <router-link to="/fish" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.fish') }}</router-link>
-      <router-link to="/about" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.about') }}</router-link>
+      <router-link to="/guide.html" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.guide') }}</router-link>
+      <router-link to="/fish.html" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.fish') }}</router-link>
+      <router-link to="/about.html" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.about') }}</router-link>
       <a href="https://github.com/yance7/FreshEye" target="_blank" rel="noopener noreferrer" @click="toggleMenu(false)">{{ t('nav.source') }}</a>
-      <button class="lang-switch" type="button" :aria-label="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')" @click="toggleLocale">
+      <button class="lang-switch" type="button" :aria-label="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')" :aria-pressed="locale === 'en'" :title="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')" @click="toggleLocale">
         <span class="lang-option" :class="{ active: locale === 'zh' }">中</span>
         <span class="lang-divider" aria-hidden="true">/</span>
         <span class="lang-option" :class="{ active: locale === 'en' }">EN</span>

@@ -84,6 +84,32 @@ test('Vue preserves the legacy interaction surface', () => {
   assert.match(serviceWorker, /fresheye-vue/);
 });
 
+test('canonical pages use clean HTML5 history navigation', () => {
+  const router = file('src/router/index.ts');
+  const main = file('src/main.ts');
+  const navbar = file('src/components/AppNavbar.vue');
+  const footer = file('src/components/AppFooter.vue');
+
+  assert.match(router, /createWebHistory/);
+  assert.doesNotMatch(router, /createWebHashHistory/);
+  for (const path of ['/', '/guide.html', '/fish.html', '/about.html', '/404.html']) {
+    assert.match(router, new RegExp(`path: ['"]${path.replace('/', '\\/')}['"]`), `missing canonical route: ${path}`);
+  }
+  assert.doesNotMatch(main, /getEntryRoute|router\.replace\(entryRoute/);
+  for (const path of ['/guide.html', '/fish.html', '/about.html']) {
+    assert.match(`${navbar}\n${footer}`, new RegExp(`to=["']${path.replace('.', '\\.')}["']`), `missing clean nav link: ${path}`);
+  }
+});
+
+test('analysis converts local data URLs without a CSP-blocked fetch', () => {
+  const home = file('src/views/HomeView.vue');
+  const dataUrl = file('src/utils/dataUrl.ts');
+  assert.match(home, /dataUrlToBlob|dataUrlToFile/);
+  assert.doesNotMatch(home, /fetch\(uploadDataUrl\.value\)/);
+  assert.match(dataUrl, /atob/);
+  assert.match(dataUrl, /Uint8Array/);
+});
+
 test('English locale has no accidental visible Chinese copy', () => {
   const english = file('src/i18n/en.ts')
     .replace(/\/\/.*$/gm, '')
@@ -111,10 +137,13 @@ test('Vue build is self-contained and is the production frontend contract', () =
   assert.match(workflow, /path: '\.\/frontend-dist'/);
 });
 
-test('open-source repository payload has the requested top-level directories', () => {
+test('open-source repository payload excludes local test data and uses the renamed model', () => {
   assert.equal(existsSync(join(repo, 'hf-space', 'app.py')), true);
   assert.equal(existsSync(join(repo, 'models')), true);
-  assert.equal(existsSync(join(repo, 'test-samples')), true);
+  assert.equal(existsSync(join(repo, 'test-samples')), false);
+  assert.equal(existsSync(join(repo, 'test_examples')), false);
+  assert.equal(existsSync(join(repo, 'models', 'fishfreshnetv2.pth')), true);
+  assert.equal(existsSync(join(repo, 'models', 'best_fishfreshnetv2.pth')), false);
 });
 
 test('history previews cannot trigger a stale file re-analysis', () => {
@@ -122,4 +151,12 @@ test('history previews cannot trigger a stale file re-analysis', () => {
   assert.match(home, /selectedFile\.value = null/);
   assert.match(home, /uploadDataUrl\.value = ''/);
   assert.match(home, /v-if="selectedFile && uploadDataUrl"/);
+});
+
+test('sample selection keeps one detection workspace and bilingual copy stays natural', () => {
+  const home = file('src/views/HomeView.vue');
+  const zh = file('src/i18n/zh.ts');
+  assert.match(home, /v-if="!previewUrl"/);
+  assert.match(home, /sampleLoading/);
+  assert.doesNotMatch(zh, /三步get鲜眸/);
 });

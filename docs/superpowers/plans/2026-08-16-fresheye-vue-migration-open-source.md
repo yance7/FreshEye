@@ -4,7 +4,7 @@
 
 **Goal:** Make the Vue frontend the sole deployable frontend, move the repository contents and requested model/data directories under `Y:\FreshEye`, remove the legacy HTML frontend, and publish the verified result directly to GitHub `main`.
 
-**Architecture:** Keep `frontend-vue/` as the Vue 3 + TypeScript source project. Make its static assets self-contained under `frontend-vue/public/assets`, build to ignored `frontend-dist/`, and update GitHub Pages to install/build Vue before uploading that output. Move the Git repository metadata and project files to `Y:\FreshEye`, with `hf-space`, `models`, and `test-samples` as top-level source directories.
+**Architecture:** Keep `frontend-vue/` as the Vue 3 + TypeScript source project. Make its static assets self-contained under `frontend-vue/public/assets`, build to ignored `frontend-dist/`, and update GitHub Pages to install/build Vue before uploading that output. Move the Git repository metadata and project files to `Y:\FreshEye`, with `hf-space` and `models` as top-level source directories; local test images are explicitly excluded from the open-source payload.
 
 **Tech Stack:** Vue 3, TypeScript, Vite, Vue Router, Node test runner, FastAPI/PyTorch model files, GitHub Actions Pages.
 
@@ -47,11 +47,11 @@
 - Move Git repository root from `Y:\FreshEye\FreshEye` to `Y:\FreshEye`.
 - Move project files and `.git` to the new root.
 - Move `Y:\FreshEye\hf-space` and `Y:\FreshEye\models` into the repository root.
-- Move `Y:\FreshEye\samples\Test_samples` to `Y:\FreshEye\test-samples`.
+- Keep `test_examples`/local test images out of the repository publication set.
 
 - [ ] Validate every source/data path before moving it.
 - [ ] Remove only generated caches from the synchronized directories.
-- [ ] Verify model weights and test images are present and below GitHub file-size limits.
+- [ ] Verify the renamed model weight is present and below GitHub file-size limits; verify local test images are absent from the publication set.
 - [ ] Verify no nested Git repositories or accidental secrets are included.
 
 ## Task 4: Remove legacy frontend and refresh documentation
