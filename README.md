@@ -12,12 +12,12 @@
 [![MFED test](https://img.shields.io/badge/MFED%20test-99.29%25-27d0c4?style=flat-square)](#models)
 [![Models](https://img.shields.io/badge/Models-V1%20%2B%20V2-2f7fa0?style=flat-square)](#models)
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2B%20PyTorch-009688?style=flat-square)](#architecture)
-[![Frontend](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS-1b3a52?style=flat-square)](#architecture)
+[![Frontend](https://img.shields.io/badge/Frontend-Vue%203%20%2B%20TypeScript-1b3a52?style=flat-square)](#architecture)
 [![PWA](https://img.shields.io/badge/PWA-supported-8b5cf6?style=flat-square)](#key-features)
 
 **在线体验**：前端 [GitHub Pages](https://fresheye.yance777.com/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
-**快速入口**：[开始体验](https://fresheye.yance777.com/) · [产品与模型说明](frontend/about.html) · [使用指南](frontend/guide.html) · [开放数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)
+**快速入口**：[开始体验](https://fresheye.yance777.com/) · [产品与模型说明](https://fresheye.yance777.com/about.html) · [使用指南](https://fresheye.yance777.com/guide.html) · [开放数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)
 
 > **能力边界**：报告描述的是鱼眼图像中的视觉新鲜度特征，不替代法定食品检验、质量合格证明或食用安全判断；如有异味、组织异常或储存条件不明，请结合其他感官指标与专业意见判断。
 
@@ -31,7 +31,7 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 
 **核心链路**：上传 → AI 分析 → Grad-CAM → 结果与建议。报告仅描述视觉特征，不替代法定食品检测、质量合格证明或食用安全判断。
 
-**[在线体验](https://fresheye.yance777.com/)** · **[技术细节](frontend/about.html)** · **[公开数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)**
+**[在线体验](https://fresheye.yance777.com/)** · **[技术细节](https://fresheye.yance777.com/about.html)** · **[公开数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)**
 
 ---
 
@@ -72,7 +72,7 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 - 📊 **Structured analysis** — rule-based eye appearance / clarity / color / texture / quality descriptions.
 - 📋 **Five-category recommendations** — storage / consumption / handling / safety / best practices.
 - 📄 **PDF report export** — original image, heatmap, probability distribution, and detailed analysis.
-- 🌐 **Bilingual UI** — Chinese by default, English toggle in the header, persisted with `fresheye-language`; static pages, dynamic results, history, errors, and PDF copy share the same locale contract.
+- 🌐 **Bilingual UI** — Chinese by default, English toggle in the header, persisted with `fresheye-language` (with legacy-key compatibility); pages, dynamic results, history, errors, and PDF copy share the same locale contract.
 - 📱 **PWA support** — offline caching with Service Worker, plus an in-app camera viewfinder with a circular fish-eye guide frame on mobile.
 - 🧠 **MFED dataset** — 4800+ samples, 4 environments, 2 fish species, open-sourced on Mendeley Data.
 
@@ -82,19 +82,23 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 2. Choose FishFreshNetV1 or V2, then review the freshness class, confidence, probability distribution, and Grad-CAM evidence.
 3. Export the result as a single-page A4 report or revisit it from local history.
 
-For a local frontend preview (no build step required):
+For a local Vue frontend preview:
 
 ```bash
-python -m http.server 8000 --directory frontend
+cd frontend-vue
+npm ci
+npm run build
+cd ..
+python -m http.server 8000 --directory frontend-dist
 ```
 
-Then open <http://localhost:8000> in a browser. The production API endpoint is configured in `frontend/assets/config.js`.
+Then open <http://localhost:8000> in a browser. The production API endpoint is configured in `frontend-vue/src/config/index.ts`.
 
 ### Bilingual and report contract
 
-The frontend keeps the existing static HTML/CSS/JavaScript architecture. `frontend/assets/locale-zh.js` and `locale-en.js` contain the copy, `i18n.js` applies it to marked DOM nodes, and the header toggle persists the selected locale in `localStorage` under `fresheye-language`. The backend protocol and `PredictionResult` fields remain unchanged.
+The frontend uses Vue 3, TypeScript, Vue Router, and a small shared i18n runtime. `frontend-vue/src/i18n/zh.ts` and `en.ts` contain the copy, and the header toggle persists the selected locale in `localStorage` under `fresheye-language` while reading the legacy `fresheye_locale` key. The backend protocol and `PredictionResult` fields remain unchanged.
 
-`frontend/assets/pdf-report.js` builds the single-page A4 report from structured prediction data. The report uses the active locale, keeps the probability order `Highly fresh / Fresh / Not fresh` (the backend's `高度新鲜 / 新鲜 / 不新鲜` order), and exposes Print / Save as PDF, HTML download, and Close actions. PDF output remains a visual reference, not a statutory food-safety certificate.
+`frontend-vue/src/utils/pdfReport.ts` builds the single-page A4 report from structured prediction data. The report uses the active locale, keeps the probability order `Highly fresh / Fresh / Not fresh` (the backend's `高度新鲜 / 新鲜 / 不新鲜` order), and exposes Print / Save as PDF, HTML download, and Close actions. PDF output remains a visual reference, not a statutory food-safety certificate.
 
 <a id="detection-workflow"></a>
 
@@ -123,7 +127,7 @@ image_upload (click / drag / paste / camera)
 
 | Part | Stack | Highlights |
 | :--- | :--- | :--- |
-| Frontend | Pure HTML/CSS/JS + PWA | Deployed on GitHub Pages, no build step required |
+| Frontend | Vue 3 + TypeScript + Vite + PWA | Built in GitHub Actions and deployed on GitHub Pages |
 | Backend | FastAPI + PyTorch + OpenCV | Deployed on Hugging Face Spaces via Docker |
 | Model | FishFreshNetV1 / FishFreshNetV2 | In-process CNN inference with Grad-CAM |
 
@@ -156,14 +160,12 @@ Both models are trained on the **MFED** dataset (4800+ samples, 4 environments, 
 
 ```text
 FreshEye/
-├── frontend/                   # Production frontend (GitHub Pages)
-│   ├── index.html              # Main analysis page
-│   ├── about.html              # Tech architecture & model details
-│   ├── fish.html               # Fish encyclopedia
-│   ├── guide.html              # User guide
-│   ├── 404.html
-│   └── assets/                 # CSS, JS, Service Worker, samples
-├── docs/                       # Model integration guide & banner
+├── frontend-vue/               # Vue source, tests, and self-contained assets
+├── frontend-dist/              # Generated Pages artifact (ignored locally)
+├── hf-space/                   # FastAPI/Hugging Face Space source and weights
+├── models/                     # Training code and model weights
+├── test-samples/               # Local test images
+├── docs/                       # Model integration and migration guides
 ├── .github/workflows/deploy.yml
 └── LICENSE
 ```
@@ -174,9 +176,9 @@ FreshEye/
 
 | File | Description |
 | :--- | :--- |
-| [`frontend/about.html`](frontend/about.html) | Product, architecture, model, and validation details |
-| [`frontend/guide.html`](frontend/guide.html) | End-user guide and result interpretation |
-| [`frontend/fish.html`](frontend/fish.html) | Fish-eye freshness reference information |
+| [`frontend-vue/src/views/AboutView.vue`](frontend-vue/src/views/AboutView.vue) | Product, architecture, model, and validation details |
+| [`frontend-vue/src/views/GuideView.vue`](frontend-vue/src/views/GuideView.vue) | End-user guide and result interpretation |
+| [`frontend-vue/src/views/FishView.vue`](frontend-vue/src/views/FishView.vue) | Fish-eye freshness reference information |
 | [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md) | Model and API integration reference |
 
 ### License
@@ -205,7 +207,7 @@ MIT License — see [LICENSE](LICENSE).
 | 📊 **结构化分析** | 规则模板：鱼眼外观 / 清澈度 / 颜色 / 纹理 / 质量指标 |
 | 📋 **五大类建议** | 储存 / 食用 / 加工 / 安全 / 最佳实践 |
 | 📄 **PDF 报告** | 含原图、热力图、概率分布和详细分析 |
-| 🌐 **中英文切换** | 中文默认；右上角切换 English，`fresheye-language` 本地持久化；页面、动态结果、历史记录、错误与 PDF 共用语言字典 |
+| 🌐 **中英文切换** | 中文默认；右上角切换 English，`fresheye-language` 本地持久化并兼容旧键；页面、动态结果、历史记录、错误与 PDF 共用语言字典 |
 | 📱 **PWA 支持** | Service Worker 离线缓存 + 手机端拍照取景框（圆形鱼眼引导） |
 | 🧠 **MFED 数据集** | 4800+ 样本、4 种环境、2 种鱼类，开源至 Mendeley Data |
 
@@ -236,7 +238,7 @@ MIT License — see [LICENSE](LICENSE).
 
 | 部分 | 技术栈 | 说明 |
 | :--- | :--- | :--- |
-| 前端 | 纯 HTML/CSS/JS + PWA | 部署于 GitHub Pages，无需构建步骤 |
+| 前端 | Vue 3 + TypeScript + Vite + PWA | GitHub Actions 构建后部署于 GitHub Pages |
 | 后端 | FastAPI + PyTorch + OpenCV | 独立部署于 Hugging Face Spaces |
 | 模型 | FishFreshNetV1 / FishFreshNetV2 | 进程内 CNN 推理 + Grad-CAM |
 
@@ -244,9 +246,9 @@ MIT License — see [LICENSE](LICENSE).
 
 ### 双语界面与报告约定
 
-前端仍保持原生 HTML/CSS/JavaScript 架构：`frontend/assets/locale-zh.js` 与 `locale-en.js` 保存文案，`i18n.js` 将文案应用到带标记的 DOM，右上角按钮把当前语言保存到 `localStorage` 的 `fresheye-language`。后端接口与 `PredictionResult` 字段不变。
+前端使用 Vue 3、TypeScript、Vue Router 和共享 i18n 运行时：`frontend-vue/src/i18n/zh.ts` 与 `en.ts` 保存文案，右上角按钮把当前语言保存到 `localStorage` 的 `fresheye-language`，并兼容旧的 `fresheye_locale`。后端接口与 `PredictionResult` 字段不变。
 
-`frontend/assets/pdf-report.js` 根据结构化预测数据生成单页 A4 报告，沿用后端概率顺序 `高度新鲜 / 新鲜 / 不新鲜`，并提供“打印/存为 PDF”“下载报告 HTML”“关闭”操作。报告仅描述视觉参考，不构成法定食品安全证明。
+`frontend-vue/src/utils/pdfReport.ts` 根据结构化预测数据生成单页 A4 报告，沿用后端概率顺序 `高度新鲜 / 新鲜 / 不新鲜`，并提供“打印/存为 PDF”“下载报告 HTML”“关闭”操作。报告仅描述视觉参考，不构成法定食品安全证明。
 
 <a id="模型"></a>
 
@@ -275,14 +277,12 @@ MIT License — see [LICENSE](LICENSE).
 
 ```text
 FreshEye/
-├── frontend/                   # 生产前端（GitHub Pages）
-│   ├── index.html              # 主分析页
-│   ├── about.html              # 技术架构与模型详情
-│   ├── fish.html               # 鱼种百科
-│   ├── guide.html              # 使用指南
-│   ├── 404.html
-│   └── assets/                 # CSS、JS、Service Worker、示例图
-├── docs/                       # 模型集成指南与横幅
+├── frontend-vue/               # Vue 源码、测试与自包含资源
+├── frontend-dist/              # 构建生成的 Pages 产物（本地忽略）
+├── hf-space/                   # FastAPI/Hugging Face Space 源码与权重
+├── models/                     # 训练代码与模型权重
+├── test-samples/               # 本地测试图片
+├── docs/                       # 模型集成与迁移指南
 ├── .github/workflows/deploy.yml
 └── LICENSE
 ```
@@ -291,9 +291,9 @@ FreshEye/
 
 | 文件 | 说明 |
 | :--- | :--- |
-| [`frontend/about.html`](frontend/about.html) | 产品、架构、模型与验证详情 |
-| [`frontend/guide.html`](frontend/guide.html) | 用户使用指南与结果解读 |
-| [`frontend/fish.html`](frontend/fish.html) | 鱼眼新鲜度参考信息 |
+| [`frontend-vue/src/views/AboutView.vue`](frontend-vue/src/views/AboutView.vue) | 产品、架构、模型与验证详情 |
+| [`frontend-vue/src/views/GuideView.vue`](frontend-vue/src/views/GuideView.vue) | 用户使用指南与结果解读 |
+| [`frontend-vue/src/views/FishView.vue`](frontend-vue/src/views/FishView.vue) | 鱼眼新鲜度参考信息 |
 | [`docs/FishFreshNetV1_Integration_Guide.md`](docs/FishFreshNetV1_Integration_Guide.md) | 模型与 API 集成指南 |
 
 ### 许可协议

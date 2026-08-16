@@ -1,14 +1,14 @@
 # FishFreshNet 模型与 API 集成指南
 
-本文介绍 鲜眸（FreshEye）生产后端（`deploy/`）中 FishFreshNetV1/V2 的模型结构、推理服务、接口约定与部署方式。模型权重体积较大，默认不纳入源码仓库。
+本文介绍鲜眸（FreshEye）生产后端（`hf-space/`）中 FishFreshNetV1/V2 的模型结构、推理服务、接口约定与部署方式。模型权重已随 `hf-space/src/storage/` 纳入开源仓库；训练代码和独立权重副本位于 `models/`。
 
 ## 代码组成
 
 | 模块 | 文件 | 说明 |
 | --- | --- | --- |
-| API 服务 | `deploy/app.py` | FastAPI 推理服务：`/predict`、`/predict_with_gradcam`、`/health` |
-| V1 模型 | `deploy/app.py` | EfficientNet-B0 + CBAM + 三分类头 |
-| V2 模型 | `deploy/src/fishfreshnet_v2_model.py` | EfficientNet-B0 + ECA + Light CRA |
+| API 服务 | `hf-space/app.py` | FastAPI 推理服务：`/predict`、`/predict_with_gradcam`、`/health` |
+| V1 模型 | `hf-space/app.py` | EfficientNet-B0 + CBAM + 三分类头 |
+| V2 模型 | `hf-space/src/fishfreshnet_v2_model.py` | EfficientNet-B0 + ECA + Light CRA |
 
 ## 模型输入输出
 
@@ -32,22 +32,22 @@
 
 ## 前端双语与报告契约
 
-FreshEye 的前端保持原生 HTML/CSS/JavaScript 架构，不要求后端增加语言参数，也不改变上述接口字段。
+FreshEye 的前端使用 Vue 3 + TypeScript，不要求后端增加语言参数，也不改变上述接口字段。
 
 | 前端资源 | 职责 |
 | --- | --- |
-| `frontend/assets/locale-zh.js` | 中文默认文案、动态结果、历史记录、错误与 PDF 文案 |
-| `frontend/assets/locale-en.js` | English 文案覆盖 |
-| `frontend/assets/i18n.js` | 读取 `fresheye-language`、应用 `data-i18n`、维护 `document.lang` 与键盘可用的右上角切换按钮 |
-| `frontend/assets/pdf-report.js` | 由结构化预测数据生成当前语言的单页 A4 报告 |
+| `frontend-vue/src/i18n/zh.ts` | 中文默认文案、动态结果、历史记录、错误与 PDF 文案 |
+| `frontend-vue/src/i18n/en.ts` | English 文案覆盖 |
+| `frontend-vue/src/i18n/index.ts` | 读取 `fresheye-language`、维护 `document.lang` 与右上角语言切换 |
+| `frontend-vue/src/utils/pdfReport.ts` | 由结构化预测数据生成当前语言的单页 A4 报告 |
 
 语言切换只影响前端呈现。预测数据仍使用既有字段；概率展示固定遵循 `高度新鲜 / 新鲜 / 不新鲜`（对应标签 `0 / 1 / 2`）顺序，避免前后端字典顺序变化造成误读。PDF 报告提供打印/存为 PDF、下载 HTML 与关闭操作，且与页面一样明确声明：视觉结果不能替代法定食品安全检测。
 
-The bilingual layer is presentation-only. The API contract and `PredictionResult` fields stay unchanged. `locale-zh.js` is the default dictionary, `locale-en.js` supplies English copy, `i18n.js` persists `fresheye-language`, and `pdf-report.js` renders the active language. Probability order is always label `0 / 1 / 2`: `Highly fresh / Fresh / Not fresh`.
+The bilingual layer is presentation-only. The API contract and `PredictionResult` fields stay unchanged. `src/i18n/zh.ts` is the default dictionary, `src/i18n/en.ts` supplies English copy, `src/i18n/index.ts` persists `fresheye-language`, and `src/utils/pdfReport.ts` renders the active language. Probability order is always label `0 / 1 / 2`: `Highly fresh / Fresh / Not fresh`.
 
 ## 模型权重
 
-- 环境变量 `V1_MODEL_PATH` / `V2_MODEL_PATH` 优先；未设置时默认查找 `deploy/src/storage/fishfreshnet_v1.pth` / `fishfreshnet_v2.pth`。
+- 环境变量 `V1_MODEL_PATH` / `V2_MODEL_PATH` 优先；从 `hf-space/` 运行且未设置时默认查找 `src/storage/fishfreshnet_v1.pth` / `fishfreshnet_v2.pth`。
 - 某个版本权重缺失时自动降级：请求 V1 会回退到 V2（反之亦然）；两个版本都缺失时服务启动失败。
 - 权重使用 PyTorch `weights_only=True` 安全加载，拒绝执行任意 pickle 字节码。
 
@@ -82,12 +82,12 @@ curl -X POST "$FRESHEYE_API_URL/predict_with_gradcam?model_version=v2" \
 ## 部署
 
 ```bash
-cd deploy
+cd hf-space
 docker build -t fresheye-api .
 docker run -p 7860:7860 fresheye-api
 ```
 
-生产环境（Hugging Face Spaces）需配置 `V1_MODEL_PATH`、`V2_MODEL_PATH`、`PORT`、`CORS_ORIGINS` 等环境变量。前端 `frontend/index.html` 中的 `API_BASE_URL` 指向后端地址，`CORS_ORIGINS` 需包含前端页面来源。
+生产环境（Hugging Face Spaces）需配置 `V1_MODEL_PATH`、`V2_MODEL_PATH`、`PORT`、`CORS_ORIGINS` 等环境变量。前端 `frontend-vue/src/config/index.ts` 中的 `API_BASE_URL` 指向后端地址，`CORS_ORIGINS` 需包含 `https://fresheye.yance777.com` 等前端页面来源。
 
 ## 说明与限制
 

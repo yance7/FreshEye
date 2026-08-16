@@ -1,7 +1,21 @@
+# JavaScript / build output
 node_modules/
-__pycache__/
-*.pyc
-.env
-.DS_Store
-frontend-vue/node_modules/
+**/node_modules/
 frontend-vue/dist/
+frontend-dist/
+
+# Python generated files and environments
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+**/.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Local configuration and OS files
+.env
+.env.*
+!.env.example
+.DS_Store

@@ -1,0 +1,28 @@
+{
+  "name": "鲜眸 · FreshEye - AI Visual Freshness Assessment",
+  "short_name": "FreshEye",
+  "description": "鲜眸 · FreshEye：AI-assisted visual freshness assessment from fish-eye images.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#04162b",
+  "theme_color": "#04162b",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
