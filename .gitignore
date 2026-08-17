@@ -3,6 +3,20 @@ node_modules/
 **/node_modules/
 frontend-vue/dist/
 frontend-dist/
+tmp/
+.vite/
+**/.vite/
+coverage/
+**/coverage/
+*.log
+*.tmp
+*.report.html
+
+# Editor and local tool metadata
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
 
 # Python generated files and environments
 __pycache__/
@@ -10,6 +24,10 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 **/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
 *.egg-info/
 .venv/
 venv/

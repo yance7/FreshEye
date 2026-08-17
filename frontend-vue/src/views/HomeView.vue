@@ -31,11 +31,16 @@ watch(modelVersion, (v) => {
 const fileInput = ref<HTMLInputElement | null>(null)
 const cameraInput = ref<HTMLInputElement | null>(null)
 const cameraVideo = ref<HTMLVideoElement | null>(null)
+const cameraOpenButton = ref<HTMLButtonElement | null>(null)
+const cameraCloseButton = ref<HTMLButtonElement | null>(null)
 const cameraModal = ref(false)
 const cameraError = ref(false)
 const cameraStarting = ref(false)
 const cameraFacing = ref<'environment' | 'user'>('environment')
 let cameraStream: MediaStream | null = null
+let cameraRequestId = 0
+let cameraPreviousBodyOverflow = ''
+let cameraLastFocused: HTMLElement | null = null
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref<string>('')
 const previewDataUrl = ref<string>('')   // 预览压缩（1600px）
@@ -162,6 +167,13 @@ function freshnessMeta(level: FreshnessLabel | undefined): { color: string; labe
   if (level === 1) return { color: 'var(--fresh-mid)', label: t('home.result.mid'), key: 'mid' }
   if (level === 2) return { color: 'var(--fresh-low)', label: t('home.result.low'), key: 'low' }
   return { color: 'var(--muted)', label: '-', key: 'all' }
+}
+
+function modelDisplayName(value: string): string {
+  const normalized = value.trim().toLowerCase()
+  if (normalized.includes('v1')) return t('home.model.v1')
+  if (normalized.includes('v2')) return t('home.model.v2')
+  return value.trim() || t('home.model.v2')
 }
 
 // ============ 图片压缩 ============
@@ -312,40 +324,75 @@ function onPaste(e: ClipboardEvent): void {
   }
 }
 
+function stopMediaStream(stream: MediaStream | null): void {
+  stream?.getTracks().forEach((track) => track.stop())
+}
+
 async function startCamera(): Promise<void> {
+  const requestId = cameraRequestId
   if (!navigator.mediaDevices?.getUserMedia) {
     cameraError.value = true
+    cameraStarting.value = false
     return
   }
   cameraStarting.value = true
   cameraError.value = false
   try {
-    cameraStream?.getTracks().forEach((track) => track.stop())
-    cameraStream = await navigator.mediaDevices.getUserMedia({
+    stopMediaStream(cameraStream)
+    cameraStream = null
+    const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: cameraFacing.value }, width: { ideal: 1920 }, height: { ideal: 1080 } },
       audio: false
     })
-    if (cameraVideo.value) {
-      cameraVideo.value.srcObject = cameraStream
-      await cameraVideo.value.play()
+    if (requestId !== cameraRequestId || !cameraModal.value) {
+      stopMediaStream(stream)
+      return
+    }
+    cameraStream = stream
+    const video = cameraVideo.value
+    if (!video) {
+      stopMediaStream(stream)
+      cameraStream = null
+      cameraError.value = true
+      return
+    }
+    video.srcObject = stream
+    await video.play()
+    if (requestId !== cameraRequestId || !cameraModal.value) {
+      if (cameraStream === stream) cameraStream = null
+      if (video.srcObject === stream) video.srcObject = null
+      stopMediaStream(stream)
     }
   } catch {
-    cameraError.value = true
+    if (requestId === cameraRequestId) cameraError.value = true
   } finally {
-    cameraStarting.value = false
+    if (requestId === cameraRequestId) cameraStarting.value = false
   }
 }
 
-function stopCamera(): void {
-  cameraStream?.getTracks().forEach((track) => track.stop())
+function stopCamera(restoreFocus = false): void {
+  cameraRequestId += 1
+  stopMediaStream(cameraStream)
   cameraStream = null
   if (cameraVideo.value) cameraVideo.value.srcObject = null
+  cameraStarting.value = false
+  document.body.style.overflow = cameraPreviousBodyOverflow
+  if (restoreFocus) {
+    const target = cameraLastFocused ?? cameraOpenButton.value
+    cameraLastFocused = null
+    target?.focus()
+  }
 }
 
 async function openCamera(): Promise<void> {
   if (typeof navigator.mediaDevices?.getUserMedia === 'function') {
+    cameraLastFocused = document.activeElement as HTMLElement | null
+    cameraPreviousBodyOverflow = document.body.style.overflow
+    cameraRequestId += 1
     cameraModal.value = true
+    document.body.style.overflow = 'hidden'
     await nextTick()
+    cameraCloseButton.value?.focus()
     await startCamera()
     return
   }
@@ -355,12 +402,35 @@ async function openCamera(): Promise<void> {
 function closeCamera(): void {
   cameraModal.value = false
   cameraError.value = false
-  stopCamera()
+  stopCamera(true)
 }
 
 async function flipCamera(): Promise<void> {
   cameraFacing.value = cameraFacing.value === 'environment' ? 'user' : 'environment'
-  if (cameraModal.value) await startCamera()
+  if (cameraModal.value) {
+    cameraRequestId += 1
+    await startCamera()
+  }
+}
+
+function onCameraKeydown(e: KeyboardEvent): void {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    closeCamera()
+    return
+  }
+  if (e.key !== 'Tab') return
+  const dialog = e.currentTarget as HTMLElement
+  const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled])'))
+  if (focusable.length === 0) return
+  const index = focusable.indexOf(document.activeElement as HTMLElement)
+  if (e.shiftKey && (index <= 0 || index === -1)) {
+    e.preventDefault()
+    focusable[focusable.length - 1].focus()
+  } else if (!e.shiftKey && index === focusable.length - 1) {
+    e.preventDefault()
+    focusable[0].focus()
+  }
 }
 
 async function captureCamera(): Promise<void> {
@@ -855,6 +925,7 @@ function exportPDF(): void {
     durationMs: lastDuration.value,
     timestamp: current.timestamp || lastTimestamp.value || new Date().toISOString(),
     modelVersion: current.model_version,
+    modelDisplayName: modelDisplayName(current.model_version),
     originalImage: lastOriginalImage.value,
     heatmapImage: lastHeatmap.value,
     localizedDescription: detailSections.value[1]?.desc,
@@ -942,6 +1013,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('paste', onPaste)
   window.removeEventListener('keydown', onGlobalKeydown)
   stopCamera()
+  document.body.style.overflow = cameraPreviousBodyOverflow
   if (historyTimer) window.clearInterval(historyTimer)
   stopScanning()
   draggingSlider = false
@@ -961,14 +1033,19 @@ function dismissGuide(): void {
 <template>
   <!-- 相机取景器：优先使用 getUserMedia，权限失败时保留文件选择回退 -->
   <transition name="route-fade">
-    <div v-if="cameraModal" class="camera-overlay" role="dialog" aria-modal="true" :aria-label="t('home.camera.title')" @click.self="closeCamera">
-      <div class="camera-dialog">
+    <div v-if="cameraModal" class="camera-overlay" role="dialog" aria-modal="true" aria-keyshortcuts="Escape" :aria-label="t('home.camera.title')" @click.self="closeCamera">
+      <div class="camera-dialog" @keydown="onCameraKeydown">
         <div class="camera-dialog-head">
           <h2>{{ t('home.camera.title') }}</h2>
-          <button class="icon-btn" type="button" :aria-label="t('home.camera.close')" @click="closeCamera">✕</button>
+          <button ref="cameraCloseButton" class="icon-btn" type="button" :aria-label="t('home.camera.close')" @click="closeCamera">✕</button>
         </div>
         <div class="camera-viewfinder">
           <video ref="cameraVideo" autoplay playsinline muted></video>
+          <div class="camera-guide" aria-hidden="true">
+            <span class="camera-guide-ring"></span>
+            <span class="camera-guide-crosshair"></span>
+          </div>
+          <p class="camera-guide-label">{{ t('home.camera.guide') }}</p>
           <div v-if="cameraStarting" class="camera-status"><span class="spinner"></span>{{ t('home.camera.starting') }}</div>
           <div v-else-if="cameraError" class="camera-status camera-error">⚠️ {{ t('home.camera.error') }}</div>
           <span class="camera-corner top-left" aria-hidden="true"></span><span class="camera-corner top-right" aria-hidden="true"></span>
@@ -1123,10 +1200,13 @@ function dismissGuide(): void {
       <summary><span>{{ t('home.model.advanced') }}</span> <span class="advanced-settings-hint">{{ t('home.model.advanced_hint') }}</span></summary>
       <div class="model-selector">
         <label class="model-selector-label" for="model-version-select">{{ t('home.model.label') }}</label>
-        <select id="model-version-select" v-model="modelVersion" class="model-select" :aria-label="t('home.model.label')">
-          <option value="v2">{{ t('home.model.v2') }}</option>
-          <option value="v1">{{ t('home.model.v1') }}</option>
-        </select>
+        <div class="select-field">
+          <select id="model-version-select" v-model="modelVersion" class="select-field__native" :aria-label="t('home.model.label')">
+            <option value="v2">{{ t('home.model.v2') }}</option>
+            <option value="v1">{{ t('home.model.v1') }}</option>
+          </select>
+          <span class="select-field__chevron" aria-hidden="true">⌄</span>
+        </div>
         <p class="advanced-settings-note">{{ t('home.model.note') }}</p>
       </div>
     </details>
@@ -1152,7 +1232,7 @@ function dismissGuide(): void {
       <p class="privacy-note">{{ t('home.upload.privacy') }}</p>
       <div class="upload-cta-group">
         <button class="upload-cta" type="button" @click.stop="onPickFile">{{ t('home.upload.choose_photo') }}</button>
-        <button class="upload-cta alt" type="button" @click.stop="openCamera">📷 {{ t('home.upload.camera') }}</button>
+        <button ref="cameraOpenButton" class="upload-cta alt" type="button" @click.stop="openCamera">📷 {{ t('home.upload.camera') }}</button>
       </div>
     </div>
 
@@ -1490,13 +1570,16 @@ function dismissGuide(): void {
         type="search"
         :placeholder="t('home.history.search')"
       />
-      <select v-model="filterType" class="history-filter">
-        <option value="all">{{ t('home.history.filter_all') }}</option>
-        <option value="high">{{ t('home.history.filter_high') }}</option>
-        <option value="mid">{{ t('home.history.filter_mid') }}</option>
-        <option value="low">{{ t('home.history.filter_low') }}</option>
-        <option value="fav">{{ t('home.history.filter_fav') }}</option>
-      </select>
+      <div class="select-field">
+        <select v-model="filterType" class="select-field__native" :aria-label="t('home.history.title')">
+          <option value="all">{{ t('home.history.filter_all') }}</option>
+          <option value="high">{{ t('home.history.filter_high') }}</option>
+          <option value="mid">{{ t('home.history.filter_mid') }}</option>
+          <option value="low">{{ t('home.history.filter_low') }}</option>
+          <option value="fav">{{ t('home.history.filter_fav') }}</option>
+        </select>
+        <span class="select-field__chevron" aria-hidden="true">⌄</span>
+      </div>
     </div>
     <div v-if="filteredHistory.length === 0" class="glass-card empty-state">
       {{ t('home.history.empty') }}
@@ -1724,12 +1807,6 @@ function dismissGuide(): void {
 .advanced-settings-hint { margin-left: 8px; color: var(--muted); font-weight: 400; }
 .model-selector { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; padding: 0 14px 14px; }
 .model-selector-label { color: var(--muted); font-size: 12.5px; }
-.model-select, .history-filter {
-  min-height: 40px; padding: 8px 12px; border: 1px solid var(--border);
-  border-radius: var(--radius-md); background: var(--card); color: var(--foam);
-  font: inherit; font-size: 13px;
-}
-.model-select:focus, .history-filter:focus { outline: none; border-color: var(--aqua); }
 .advanced-settings-note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .upload-zone {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -2075,17 +2152,22 @@ function dismissGuide(): void {
 .camera-dialog-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
 .camera-dialog-head h2 { margin:0; font-size:18px; }
 .camera-viewfinder { position:relative; aspect-ratio:16/10; overflow:hidden; display:grid; place-items:center; border-radius:var(--radius-lg); background:#020a16; border:1px solid var(--border); }
-.camera-viewfinder video { width:100%; height:100%; object-fit:cover; transform:scaleX(var(--camera-mirror, 1)); background:#020a16; }
-.camera-status { position:absolute; inset:auto 12px 12px; display:flex; justify-content:center; gap:8px; padding:8px 10px; border-radius:8px; background:rgba(4,22,43,.78); color:var(--foam); font-size:13px; text-align:center; }
+.camera-viewfinder::before { content:""; position:absolute; inset:0; z-index:0; background:#020a16; }
+.camera-viewfinder video { position:relative; z-index:1; width:100%; height:100%; object-fit:cover; transform:scaleX(var(--camera-mirror, 1)); background:#020a16; }
+.camera-guide { position:absolute; inset:0; z-index:2; display:grid; place-items:center; pointer-events:none; }
+.camera-guide-ring { width:min(66%,360px); aspect-ratio:1; border:1px solid rgba(141,243,230,.78); border-radius:50%; box-shadow:0 0 0 999px rgba(2,10,22,.09),0 0 24px rgba(39,208,196,.28),inset 0 0 18px rgba(39,208,196,.08); }
+.camera-guide-crosshair { position:absolute; width:18px; height:18px; border:1px solid rgba(238,252,255,.35); border-radius:50%; }
+.camera-guide-label { position:absolute; z-index:3; left:50%; bottom:10px; width:calc(100% - 24px); transform:translateX(-50%); margin:0; padding:5px 9px; border-radius:7px; background:rgba(4,22,43,.56); color:var(--foam); font-size:12px; line-height:1.5; text-align:center; pointer-events:none; }
+.camera-status { position:absolute; z-index:5; inset:auto 12px 12px; display:flex; justify-content:center; gap:8px; padding:8px 10px; border-radius:8px; background:rgba(4,22,43,.86); color:var(--foam); font-size:13px; text-align:center; }
 .camera-error { color:#ffd1d1; }
-.camera-corner { position:absolute; width:24px; height:24px; border-color:var(--aqua); border-style:solid; filter:drop-shadow(0 0 7px rgba(39,208,196,.45)); }
+.camera-corner { position:absolute; z-index:4; width:24px; height:24px; border-color:var(--aqua); border-style:solid; filter:drop-shadow(0 0 7px rgba(39,208,196,.45)); }
 .camera-corner.top-left { top:14px; left:14px; border-width:2px 0 0 2px; border-radius:6px 0 0 0; }
 .camera-corner.top-right { top:14px; right:14px; border-width:2px 2px 0 0; border-radius:0 6px 0 0; }
 .camera-corner.bottom-left { bottom:14px; left:14px; border-width:0 0 2px 2px; border-radius:0 0 0 6px; }
 .camera-corner.bottom-right { right:14px; bottom:14px; border-width:0 2px 2px 0; border-radius:0 0 6px 0; }
 .camera-help { margin:10px 0 0; color:var(--muted); font-size:13px; text-align:center; }
 .camera-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:16px; }
-@media (max-width:480px) { .camera-overlay { align-items:end; padding:10px; } .camera-dialog { border-radius:20px; padding:14px; } .camera-viewfinder { aspect-ratio:3/4; } .camera-actions .btn { flex:1 1 120px; } }
+@media (max-width:480px) { .camera-overlay { align-items:end; padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left)); } .camera-dialog { border-radius:20px; padding:14px; } .camera-viewfinder { aspect-ratio:3/4; max-height:calc(100svh - 180px); } .camera-guide-ring { width:min(74%,300px); } .camera-actions .btn { flex:1 1 120px; } }
 .compare-img.top {
   position: absolute; top: 0; left: 0; height: 100%; object-fit: cover;
 }
@@ -2160,12 +2242,6 @@ function dismissGuide(): void {
 }
 .history-search:focus { outline: none; border-color: var(--aqua); }
 .history-search::placeholder { color: var(--muted); }
-.history-filter {
-  padding: 10px 14px; border-radius: var(--radius-md); background: var(--card);
-  border: 1px solid var(--border); color: var(--foam); font-size: 14px;
-  font-family: inherit; cursor: pointer; min-width: 120px;
-}
-.history-filter:focus { outline: none; border-color: var(--aqua); }
 .history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .history-item {
   display: flex; align-items: center; gap: var(--space-3); padding: 10px 14px;

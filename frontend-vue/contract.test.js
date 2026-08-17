@@ -183,11 +183,12 @@ test('visual system and Grad-CAM comparison have bounded responsive geometry', (
   assert.match(home, /max-height:\s*min\(/);
 });
 
-test('About restores legacy technical content and linked real references', () => {
+test('About restores legacy technical content and keeps real references as plain citations', () => {
   const about = file('src/views/AboutView.vue');
   const zh = file('src/i18n/zh.ts');
   const en = file('src/i18n/en.ts');
-  assert.match(about, /reference\.url/);
+  assert.doesNotMatch(about, /reference\.url/);
+  assert.match(about, /reference-citation/);
   for (const marker of ['v1FeatureScaling', 'v1CbamIntro', 'v1GradcamResult', 'v2EcaIntro', 'v2CraIntro', 'workflowDuty13', 'journeyResearchText', 'socialResearchText', 'refFfeNote', 'refGb']) {
     assert.match(`${zh}\n${en}`, new RegExp(marker), `missing restored About content marker: ${marker}`);
   }
@@ -205,4 +206,51 @@ test('Vue PDF builder follows the legacy one-page A4 report contract', () => {
   }
   assert.doesNotMatch(report, /class="report-grid"/);
   assert.match(report, /report-toolbar[^>]*style|\.report-toolbar/);
+});
+
+test('English PDF reports reserve a compact single-page layout', () => {
+  const report = file('src/utils/pdfReport.ts');
+  assert.match(report, /locale-' \+ input\.locale/);
+  assert.match(report, /\.pdf-page\.locale-en/);
+});
+
+test('select controls use a dark native skin and readable options', () => {
+  const home = file('src/views/HomeView.vue');
+  const global = file('src/styles/global.css');
+  assert.match(home, /class="select-field"/);
+  assert.match(global, /color-scheme:\s*dark/);
+  assert.match(global, /select-field__native/);
+  assert.match(global, /option\s*\{/);
+  assert.match(global, /@media\s*\(max-width:\s*640px\)[\s\S]*select-field/);
+});
+
+test('camera viewfinder exposes a circular fish-eye guide and safe lifecycle hooks', () => {
+  const home = file('src/views/HomeView.vue');
+  assert.match(home, /camera-guide-ring/);
+  assert.match(home, /cameraRequestId/);
+  assert.match(home, /camera\.guide/);
+  assert.match(home, /camera-viewfinder::before/);
+  assert.match(home, /aria-keyshortcuts="Escape"/);
+});
+
+test('references render as plain citations and reports localize the model name', () => {
+  const about = file('src/views/AboutView.vue');
+  const home = file('src/views/HomeView.vue');
+  const report = file('src/utils/pdfReport.ts');
+  assert.doesNotMatch(about, /<a[^>]+reference\.url/);
+  assert.match(about, /reference-citation/);
+  assert.match(home, /modelDisplayName/);
+  assert.match(report, /modelDisplayName/);
+});
+
+test('PDF footer reuses the localized report timestamp', () => {
+  const report = file('src/utils/pdfReport.ts');
+  assert.match(report, /escapeHtml\(footerText\)[\s\S]*formattedTime/);
+});
+
+test('gitignore excludes generated and local cache payloads', () => {
+  const ignore = readFileSync(join(repo, '.gitignore'), 'utf8');
+  for (const marker of ['.vite/', 'coverage/', '.mypy_cache/', '*.log', 'tmp/']) {
+    assert.match(ignore, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
 });

@@ -47,9 +47,9 @@ const en = {
     camera: {
       title: 'Camera viewfinder', starting: 'Opening camera…', error: 'Camera access failed. Check browser permissions.',
       fallback_help: 'You can also choose an image from this device.', fallback: 'Choose image',
-      flip: 'Flip camera', capture: 'Capture', close: 'Close viewfinder', not_ready: 'Camera is not ready', capture_failed: 'Capture failed. Please retry'
+      flip: 'Flip camera', capture: 'Capture', close: 'Close viewfinder', not_ready: 'Camera is not ready', capture_failed: 'Capture failed. Please retry', guide: 'Place the fish eye inside the circle; keep it front-facing, sharp, and well lit.'
     },
-    model: { v2: 'High-Precision (recommended)', v1: 'Classic', label: 'Model version', advanced: 'Advanced settings', advanced_hint: 'High-Precision is the default', note: 'V2 is the recommended default; V1 is retained for comparison and reproducibility.' },
+    model: { v2: 'High-accuracy model (recommended)', v1: 'Classic model', label: 'Model version', advanced: 'Advanced settings', advanced_hint: 'High-accuracy model is the default', note: 'V2 is the recommended default; V1 is retained for comparison and reproducibility.' },
     result: {
       tabs: { overview: 'Overview', vision: 'AI Vision', detail: 'Detail Report', advice: 'Advice' },
       confidence: 'Confidence',

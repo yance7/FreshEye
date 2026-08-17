@@ -47,7 +47,7 @@ const zh = {
     camera: {
       title: '相机取景器', starting: '正在打开相机…', error: '无法访问相机，请检查浏览器权限。',
       fallback_help: '也可以使用设备文件选择器上传照片。', fallback: '选择图片',
-      flip: '切换镜头', capture: '拍摄', close: '关闭取景器', not_ready: '相机尚未准备好', capture_failed: '拍摄失败，请重试'
+      flip: '切换镜头', capture: '拍摄', close: '关闭取景器', not_ready: '相机尚未准备好', capture_failed: '拍摄失败，请重试', guide: '请将鱼眼置于圆形取景框内，保持正面、清晰、光线充足。'
     },
     model: { v2: '高精度版（推荐）', v1: '经典版', label: '模型版本', advanced: '高级设置', advanced_hint: '默认使用高精度版', note: 'V2 为当前默认推荐版本；V1 仅用于对比与复现实验。' },
     result: {

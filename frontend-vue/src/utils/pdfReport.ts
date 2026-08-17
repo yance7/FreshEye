@@ -39,6 +39,7 @@ export interface PdfReportInput {
   durationMs: number
   timestamp: string
   modelVersion: string
+  modelDisplayName: string
   originalImage?: string
   heatmapImage?: string
   localizedDescription?: string
@@ -152,6 +153,7 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
   const pageMarker = input.locale === 'en' ? 'Page 1 / 1' : '第 1 页 / 共 1 页'
   const footerText = labels.footer + ' · ' + pageMarker
   const title = labels.title
+  const displayModel = input.modelDisplayName || input.modelVersion
 
   const html = [
     '<!doctype html>',
@@ -174,6 +176,7 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
     '.report-actions button:first-child{background:#fde68a;}',
     '.report{width:210mm;margin:16px auto;}',
     '.pdf-page{position:relative;display:flex;flex-direction:column;width:210mm;height:297mm;min-height:297mm;overflow:hidden;margin:0 auto;padding:15mm 12mm 10mm;background:#fff;border:1px solid #d9e4ea;box-shadow:0 12px 34px rgba(15,23,42,.12);break-inside:avoid;}',
+    '@media (min-width:641px){.pdf-page.locale-en{padding-top:13mm;padding-bottom:7mm;}.pdf-page.locale-en .pdf-header{padding-bottom:8px;}.pdf-page.locale-en .pdf-header-divider{margin-bottom:8px;}.pdf-page.locale-en .pdf-section{margin-bottom:7px;}.pdf-page.locale-en .pdf-section-title{margin-bottom:6px;}.pdf-page.locale-en .pdf-detail{margin-bottom:2px;padding:5px 10px;line-height:1.45;}.pdf-page.locale-en .pdf-detail-list{margin-top:2px;line-height:1.4;}.pdf-page.locale-en .pdf-advice-grid{gap:8px;}.pdf-page.locale-en .pdf-advice-card{padding:9px 11px 8px;}.pdf-page.locale-en .pdf-advice-card h3{margin-bottom:3px;}.pdf-page.locale-en .pdf-advice-list li,.pdf-page.locale-en .pdf-safety-list li{line-height:1.45;}.pdf-page.locale-en .pdf-safety-banner{padding:7px 11px;}.pdf-page.locale-en .pdf-scope-note{margin-top:6px;padding:6px 11px;line-height:1.45;}.pdf-page.locale-en .pdf-footer{padding-top:5px;}}',
     '.pdf-page:before{content:"";position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,var(--deep),var(--primary),#34d3c2 72%,#d8fbf5);}',
     '.pdf-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:11px;}',
     '.pdf-header-brand{flex:1;color:#0f172a;letter-spacing:-.3px;}.pdf-brand-main{font-size:16px;font-weight:800;line-height:1.25;}.pdf-brand-sub{margin-top:3px;color:var(--deep);font-size:8.5px;font-weight:650;letter-spacing:.35px;}',
@@ -197,20 +200,20 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
     '<button type="button" id="download-report">' + escapeHtml(labels.download) + '</button>',
     '<button type="button" id="close-report">' + escapeHtml(labels.close) + '</button>',
     '</div></div>',
-    '<main class="report"><div class="pdf-page pdf-single-page" style="--primary:' + tone.primary + ';--deep:' + tone.deep + ';--tone-bg:' + tone.background + ';--tone-badge:' + tone.badge + '">',
+    '<main class="report"><div class="pdf-page pdf-single-page locale-' + input.locale + '" style="--primary:' + tone.primary + ';--deep:' + tone.deep + ';--tone-bg:' + tone.background + ';--tone-badge:' + tone.badge + '">',
     '<header class="pdf-header"><div class="pdf-header-brand"><div class="pdf-brand-main">FreshEye</div><div class="pdf-brand-sub">' + escapeHtml(labels.footer) + '</div></div>',
     '<div class="pdf-header-title"><span class="pdf-title-kicker">FRESHEYE REPORT</span><span class="pdf-title-main">' + escapeHtml(title) + '</span></div>',
-    '<div class="pdf-header-meta"><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.model) + '</strong> ' + escapeHtml(input.modelVersion) + '</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.duration) + '</strong> ' + Math.max(0, Math.round(input.durationMs)) + ' ms</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.time) + '</strong> ' + formattedTime + '</span></div></header>',
+    '<div class="pdf-header-meta"><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.model) + '</strong> ' + escapeHtml(displayModel) + '</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.duration) + '</strong> ' + Math.max(0, Math.round(input.durationMs)) + ' ms</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.time) + '</strong> ' + formattedTime + '</span></div></header>',
     '<hr class="pdf-header-divider" />',
     '<section class="pdf-section"><h2 class="pdf-section-title"><span class="pdf-section-mark">01</span>' + escapeHtml(labels.heading) + '</h2><div class="pdf-overview"><div class="pdf-images">',
     imageBlock(labels.original, input.originalImage, labels.noImage),
     imageBlock(labels.heatmap, input.heatmapImage, labels.noImage),
-    '</div><div class="pdf-conclusion"><div class="pdf-conclusion-kicker">' + escapeHtml(labels.freshness) + '</div><div class="pdf-level-badge"><span class="pdf-badge-icon">' + tone.icon + '</span>' + escapeHtml(levelLabel) + '</div><div class="pdf-conf-label">' + escapeHtml(labels.confidence) + '</div><div class="pdf-conf-num">' + confidencePercent + '%</div><div class="pdf-conf-bar"><div class="pdf-conf-bar-fill" style="width:' + confidencePercent + '%"></div></div><div class="pdf-conf-meta">' + escapeHtml(labels.model) + ' · ' + escapeHtml(input.modelVersion) + ' · AI</div><div class="pdf-conclusion-foot">' + escapeHtml(labels.trend) + ': ' + escapeHtml(detailTrend) + '</div></div></div></section>',
+    '</div><div class="pdf-conclusion"><div class="pdf-conclusion-kicker">' + escapeHtml(labels.freshness) + '</div><div class="pdf-level-badge"><span class="pdf-badge-icon">' + tone.icon + '</span>' + escapeHtml(levelLabel) + '</div><div class="pdf-conf-label">' + escapeHtml(labels.confidence) + '</div><div class="pdf-conf-num">' + confidencePercent + '%</div><div class="pdf-conf-bar"><div class="pdf-conf-bar-fill" style="width:' + confidencePercent + '%"></div></div><div class="pdf-conf-meta">' + escapeHtml(labels.model) + ' · ' + escapeHtml(displayModel) + ' · AI</div><div class="pdf-conclusion-foot">' + escapeHtml(labels.trend) + ': ' + escapeHtml(detailTrend) + '</div></div></div></section>',
     '<section class="pdf-section"><h2 class="pdf-section-title"><span class="pdf-section-mark">02</span>' + escapeHtml(labels.distribution) + '</h2><div class="pdf-stacked-bar">' + stackedProbabilities + '</div><div class="pdf-bar-legend">' + probabilityLegend + '</div><p class="pdf-section-note">' + escapeHtml(labels.probabilityNote || labels.limitationText) + '</p></section>',
     '<section class="pdf-section"><h2 class="pdf-section-title"><span class="pdf-section-mark">03</span>' + escapeHtml(labels.evidence) + '</h2>' + details + '</section>',
     '<section class="pdf-section"><h2 class="pdf-section-title"><span class="pdf-section-mark">04</span>' + escapeHtml(labels.advice) + '</h2><div class="pdf-advice-grid">' + adviceCards + safety + '</div></section>',
     '<aside class="pdf-scope-note"><strong>' + escapeHtml(labels.limitation) + '</strong>' + escapeHtml(labels.limitationText) + '</aside>',
-    '<footer class="pdf-footer"><div class="pdf-footer-main">FreshEye · ' + escapeHtml(footerText) + '</div><div class="pdf-footer-sub">' + escapeHtml(labels.model) + ': ' + escapeHtml(input.modelVersion) + ' · ' + escapeHtml(labels.time) + ': ' + escapeHtml(input.timestamp) + '</div></footer>',
+    '<footer class="pdf-footer"><div class="pdf-footer-main">FreshEye · ' + escapeHtml(footerText) + '</div><div class="pdf-footer-sub">' + escapeHtml(labels.model) + ': ' + escapeHtml(displayModel) + ' · ' + escapeHtml(labels.time) + ': ' + formattedTime + '</div></footer>',
     '</div></main>',
     '<script>(() => {',
     'const print = document.getElementById("print-report");',

@@ -37,7 +37,11 @@ async function handleResponse(res: Response): Promise<any> {
 }
 
 function clampProbability(value: unknown): number {
-  const numeric = Number(value)
+  const numeric = typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim() !== ''
+      ? Number(value)
+      : Number.NaN
   if (!Number.isFinite(numeric)) return 0
   return Math.max(0, Math.min(1, numeric > 1 ? numeric / 100 : numeric))
 }
@@ -62,8 +66,12 @@ function normalizeProbabilities(raw: unknown): ProbabilityMap {
 }
 
 function normalizeLabel(level: unknown, label: unknown, probabilities: ProbabilityMap): FreshnessLabel {
-  const numericLabel = Number(label)
-  if (numericLabel === 0 || numericLabel === 1 || numericLabel === 2) return numericLabel
+  const numericLabel = typeof label === 'number'
+    ? label
+    : typeof label === 'string' && label.trim() !== ''
+      ? Number(label)
+      : Number.NaN
+  if (Number.isFinite(numericLabel) && (numericLabel === 0 || numericLabel === 1 || numericLabel === 2)) return numericLabel
 
   if (typeof level === 'string') {
     const value = level.toLowerCase()

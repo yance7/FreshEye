@@ -366,7 +366,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
     <div class="section-head"><h2 class="section-title">{{ t('about.references_title') }}</h2></div>
     <ol class="reference-list">
       <li v-for="reference in references" :key="reference.citation">
-        <a :href="reference.url" target="_blank" rel="noopener noreferrer">{{ reference.citation }}</a>
+        <span class="reference-citation">{{ reference.citation }}</span>
         <span v-if="reference.note" class="reference-note">{{ reference.note }}</span>
       </li>
     </ol>
@@ -602,10 +602,9 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
 .iteration-focus-card { padding: var(--space-5); border: 1px solid rgba(39, 208, 196, 0.2); border-radius: var(--radius-feature); background: rgba(39, 208, 196, 0.05); }
 .iteration-focus-card h3 { margin: 0 0 9px; color: var(--foam); font-size: 15px; }
 .iteration-focus-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.8; }
-.reference-list { margin: 0; padding-left: 22px; color: var(--muted); font-size: 12px; line-height: 1.8; }
-.reference-list li { padding-left: 4px; }
-.reference-list a { color: var(--aqua); overflow-wrap: anywhere; text-decoration: none; }
-.reference-list a:hover { color: var(--foam); text-decoration: underline; text-underline-offset: 3px; }
+.reference-list { margin: 0; padding-left: 24px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.reference-list li { padding-left: 6px; margin-bottom: 10px; }
+.reference-citation { display: block; color: var(--foam); overflow-wrap: anywhere; }
 .reference-note { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
 
 @media (max-width: 768px) {

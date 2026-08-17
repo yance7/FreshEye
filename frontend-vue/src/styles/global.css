@@ -513,6 +513,50 @@ section { margin-bottom: var(--space-7); }
 .lang-divider { color:rgba(234,246,251,.42); user-select:none; font-weight:500; }
 .mobile-lang-switch { display: none; }
 
+/* ============ 深色原生选择控件 ============ */
+.select-field { position: relative; min-width: 0; }
+.select-field__native {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 44px;
+  min-width: 168px;
+  padding: 9px 38px 9px 13px;
+  border: 1px solid rgba(141, 243, 230, 0.34);
+  border-radius: var(--radius-md);
+  background: #062a4d;
+  color: var(--foam);
+  color-scheme: dark;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+}
+.select-field__native:hover { border-color: var(--border-hover); background: #08355b; }
+.select-field__native:focus-visible {
+  outline: 2px solid var(--aqua);
+  outline-offset: 3px;
+  border-color: var(--aqua);
+  box-shadow: 0 0 0 4px rgba(39, 208, 196, 0.12);
+}
+.select-field__native:disabled { cursor: not-allowed; opacity: 0.58; }
+.select-field__native option { background: #062a4d; color: #eefcff; }
+.select-field__chevron {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  transform: translateY(-58%);
+  color: var(--aqua);
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .select-field { flex: 0 0 100%; min-width: 100%; width: 100%; }
+  .select-field__native { width: 100%; }
+  .select-field__native { min-width: 0; }
+}
+
 /* 汉堡菜单 */
 .nav-toggle {
   display: none;
