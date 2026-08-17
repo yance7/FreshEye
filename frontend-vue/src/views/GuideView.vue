@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // 使用指南视图：页头 + 三步流程 + 拍照教程 + FAQ
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from '@/i18n'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 const sampleImage = `${import.meta.env.BASE_URL}assets/samples/highly-fresh.webp`
 
 interface Step { num: string; icon: string; title: string; text: string }
@@ -19,13 +19,16 @@ const tips = computed<Tip[]>(() => tm<Tip[]>('guide.tips'))
 const faqs = ref<Faq[]>([])
 
 // 初始化 FAQ，标记第一个为展开
-watchEffect(() => {
+function resetFaqs(): void {
   const raw = tm<{ q: string; a: string }[]>('guide.faqs')
   faqs.value = raw.map((f, i) => ({ ...f, open: i === 0 }))
-})
+}
+
+watch(locale, resetFaqs, { immediate: true })
 
 function toggleFaq(idx: number): void {
-  faqs.value[idx].open = !faqs.value[idx].open
+  const faq = faqs.value[idx]
+  if (faq) faq.open = !faq.open
 }
 </script>
 
@@ -66,19 +69,33 @@ function toggleFaq(idx: number): void {
       </div>
       <p class="viewfinder-guide-note">{{ t('guide.photo_text') }}</p>
     </div>
-    <div class="compare-pain photo-check-grid">
-      <div class="pain-card solution">
-        <div class="pain-card-head"><span class="pain-icon" aria-hidden="true">✓</span><span>{{ t('guide.correct_title') }}</span></div>
-        <ul class="pain-list">
-          <li v-for="item in correctChecks" :key="item.title"><strong>{{ item.title }}</strong>: {{ item.text }}</li>
+    <div class="photo-check-grid">
+      <article class="photo-check-card is-correct">
+        <div class="photo-check-card-head">
+          <span class="photo-check-status" aria-hidden="true">✓</span>
+          <div><span class="photo-check-kicker">PASS</span><h3>{{ t('guide.correct_title') }}</h3></div>
+        </div>
+        <p class="photo-check-lead">{{ t('guide.correct_intro') }}</p>
+        <ul class="photo-check-list">
+          <li v-for="item in correctChecks" :key="item.title" class="photo-check-item">
+            <span class="photo-check-mark" aria-hidden="true">✓</span>
+            <span><strong>{{ item.title }}</strong><small>{{ item.text }}</small></span>
+          </li>
         </ul>
-      </div>
-      <div class="pain-card pain">
-        <div class="pain-card-head"><span class="pain-icon" aria-hidden="true">!</span><span>{{ t('guide.incorrect_title') }}</span></div>
-        <ul class="pain-list">
-          <li v-for="item in incorrectChecks" :key="item.title"><strong>{{ item.title }}</strong>: {{ item.text }}</li>
+      </article>
+      <article class="photo-check-card is-incorrect">
+        <div class="photo-check-card-head">
+          <span class="photo-check-status" aria-hidden="true">!</span>
+          <div><span class="photo-check-kicker">CHECK</span><h3>{{ t('guide.incorrect_title') }}</h3></div>
+        </div>
+        <p class="photo-check-lead">{{ t('guide.incorrect_intro') }}</p>
+        <ul class="photo-check-list">
+          <li v-for="item in incorrectChecks" :key="item.title" class="photo-check-item">
+            <span class="photo-check-mark" aria-hidden="true">!</span>
+            <span><strong>{{ item.title }}</strong><small>{{ item.text }}</small></span>
+          </li>
         </ul>
-      </div>
+      </article>
     </div>
   </section>
 
@@ -94,19 +111,18 @@ function toggleFaq(idx: number): void {
         class="accordion"
         :class="{ 'is-open': f.open }"
       >
-        <div
+        <button
+          :id="`guide-faq-toggle-${i}`"
           class="accordion-head"
-          role="button"
-          tabindex="0"
+          type="button"
           :aria-expanded="f.open"
+          :aria-controls="`guide-faq-panel-${i}`"
           @click="toggleFaq(i)"
-          @keydown.enter.prevent="toggleFaq(i)"
-          @keydown.space.prevent="toggleFaq(i)"
         >
           <span class="accordion-title">{{ f.q }}</span>
           <span class="accordion-arrow" aria-hidden="true">▶</span>
-        </div>
-        <div class="accordion-body">
+        </button>
+        <div :id="`guide-faq-panel-${i}`" class="accordion-body">
           <div class="accordion-inner">
             <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">{{ f.a }}</p>
           </div>
@@ -173,7 +189,39 @@ function toggleFaq(idx: number): void {
 .viewfinder-guide-ring { position: absolute; width: 48%; aspect-ratio: 1; left: 26%; top: 17%; border: 2px solid var(--aqua); border-radius: 50%; box-shadow: 0 0 0 999px rgba(4, 16, 29, 0.16), 0 0 24px rgba(39, 208, 196, 0.45); }
 .viewfinder-guide-hint { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; color: var(--white); font-size: 12px; text-shadow: 0 1px 4px #00111f; }
 .viewfinder-guide-note { margin: 0; color: var(--foam); line-height: 1.8; font-size: 13.5px; }
-.photo-check-grid { margin-bottom: var(--space-5); }
+.photo-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+.photo-check-card {
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-feature);
+  background: linear-gradient(150deg, rgba(255,255,255,.065), rgba(0,8,20,.18));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.photo-check-card.is-correct { border-color: rgba(39,208,196,.32); }
+.photo-check-card.is-incorrect { border-color: rgba(239,68,68,.3); }
+.photo-check-card-head { display: flex; align-items: center; gap: 12px; }
+.photo-check-status {
+  display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px;
+  border-radius: 50%; font-size: 17px; font-weight: 800;
+}
+.is-correct .photo-check-status { color: var(--aqua); background: rgba(39,208,196,.14); }
+.is-incorrect .photo-check-status { color: #ff8e8e; background: rgba(239,68,68,.14); }
+.photo-check-kicker { display: block; margin-bottom: 2px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.photo-check-card h3 { margin: 0; color: var(--white); font-size: 17px; }
+.photo-check-lead { margin: var(--space-4) 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.photo-check-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.photo-check-item { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 9px; align-items: start; padding: 10px 11px; border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius-sm); background: rgba(0,8,20,.18); }
+.photo-check-mark { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; font-size: 12px; font-weight: 800; }
+.is-correct .photo-check-mark { color: var(--aqua); background: rgba(39,208,196,.12); }
+.is-incorrect .photo-check-mark { color: #ff8e8e; background: rgba(239,68,68,.12); }
+.photo-check-item strong { display: block; color: var(--foam); font-size: 13px; line-height: 1.45; }
+.photo-check-item small { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-4); }
 .tip-card { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); transition: transform var(--transition), border-color var(--transition); }
 .tip-card:hover { transform: translateY(-3px); border-color: var(--border-hover); }
@@ -184,7 +232,7 @@ function toggleFaq(idx: number): void {
 .faq-list { display: flex; flex-direction: column; gap: var(--space-3); }
 .accordion {
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-card);
   background: var(--card);
   overflow: hidden;
   transition: border-color var(--transition), background var(--transition);
@@ -194,7 +242,11 @@ function toggleFaq(idx: number): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
   padding: 16px 20px;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
   user-select: none;
 }
@@ -205,16 +257,13 @@ function toggleFaq(idx: number): void {
   transition: transform var(--transition);
 }
 .accordion.is-open .accordion-arrow { transform: rotate(90deg); }
-.accordion-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.35s var(--ease-decel);
-}
-.accordion.is-open .accordion-body { max-height: 400px; }
-.accordion-inner { padding: 0 20px 16px; }
+.accordion-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-expand) var(--ease-decel); }
+.accordion.is-open .accordion-body { grid-template-rows: 1fr; }
+.accordion-inner { min-height: 0; overflow: hidden; padding: 0 20px 16px; }
 
 @media (max-width: 640px) {
   .users-grid { grid-template-columns: 1fr; }
   .viewfinder-guide { grid-template-columns: 1fr; }
+  .photo-check-grid { grid-template-columns: 1fr; }
 }
 </style>

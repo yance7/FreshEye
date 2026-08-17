@@ -160,3 +160,49 @@ test('sample selection keeps one detection workspace and bilingual copy stays na
   assert.match(home, /sampleLoading/);
   assert.doesNotMatch(zh, /三步get鲜眸/);
 });
+
+test('collapsible panels use semantic resilient controls without fixed height caps', () => {
+  const home = file('src/views/HomeView.vue');
+  const guide = file('src/views/GuideView.vue');
+  const combined = `${home}\n${guide}`;
+  assert.match(combined, /<button[^>]+class="accordion-head"/);
+  assert.match(combined, /aria-controls=/);
+  assert.match(combined, /grid-template-rows/);
+  assert.doesNotMatch(home, /max-height:\s*500px/);
+  assert.doesNotMatch(guide, /max-height:\s*400px/);
+  assert.match(home, /v-if="a\.desc"/);
+});
+
+test('visual system and Grad-CAM comparison have bounded responsive geometry', () => {
+  const global = file('src/styles/global.css');
+  const home = file('src/views/HomeView.vue');
+  assert.match(global, /--motion-fast/);
+  assert.match(global, /--radius-card:\s*14px/);
+  assert.match(global, /\.lang-switch[\s\S]*min-height:\s*44px/);
+  assert.match(home, /max-width:\s*min\(100%,\s*640px\)/);
+  assert.match(home, /max-height:\s*min\(/);
+});
+
+test('About restores legacy technical content and linked real references', () => {
+  const about = file('src/views/AboutView.vue');
+  const zh = file('src/i18n/zh.ts');
+  const en = file('src/i18n/en.ts');
+  assert.match(about, /reference\.url/);
+  for (const marker of ['v1FeatureScaling', 'v1CbamIntro', 'v1GradcamResult', 'v2EcaIntro', 'v2CraIntro', 'workflowDuty13', 'journeyResearchText', 'socialResearchText', 'refFfeNote', 'refGb']) {
+    assert.match(`${zh}\n${en}`, new RegExp(marker), `missing restored About content marker: ${marker}`);
+  }
+  assert.match(zh, /10\.17632\/xzyx7pbr3w\.1/);
+  assert.match(zh, /10\.1016\/j\.inpa\.2022\.01\.002/);
+  assert.match(zh, /10\.1007\/s00217-024-04493-0/);
+  assert.ok((zh.match(/10\.\d{4,9}\/[^'"\s]+/g) || []).length >= 8, 'expected linked DOI references');
+});
+
+test('Vue PDF builder follows the legacy one-page A4 report contract', () => {
+  const report = file('src/utils/pdfReport.ts');
+  assert.match(report, /@page\s*\{\s*margin:\s*0;\s*size:\s*A4 portrait;/);
+  for (const marker of ['pdf-single-page', 'pdf-overview', 'pdf-images', 'pdf-advice-grid', '@media print', 'Page 1 / 1']) {
+    assert.match(report, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `missing A4 report marker: ${marker}`);
+  }
+  assert.doesNotMatch(report, /class="report-grid"/);
+  assert.match(report, /report-toolbar[^>]*style|\.report-toolbar/);
+});

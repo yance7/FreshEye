@@ -103,6 +103,19 @@ onBeforeUnmount(() => {
     </nav>
 
     <button
+      class="lang-switch mobile-lang-switch"
+      type="button"
+      :aria-label="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')"
+      :aria-pressed="locale === 'en'"
+      :title="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')"
+      @click="toggleLocale"
+    >
+      <span class="lang-option" :class="{ active: locale === 'zh' }">中</span>
+      <span class="lang-divider" aria-hidden="true">/</span>
+      <span class="lang-option" :class="{ active: locale === 'en' }">EN</span>
+    </button>
+
+    <button
       ref="toggleBtn"
       class="nav-toggle"
       :class="{ 'is-open': menuOpen }"

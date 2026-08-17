@@ -115,6 +115,10 @@ const accordions = reactive<Record<string, boolean>>({
   best: false
 })
 
+function toggleAccordion(key: string): void {
+  accordions[key] = !accordions[key]
+}
+
 // ============ Hero 鱼眼 ============
 const pupilX = ref(0)
 const pupilY = ref(0)
@@ -582,6 +586,22 @@ function onComparePointerUp(e: PointerEvent): void {
   const target = e.currentTarget as HTMLElement
   if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId)
 }
+
+function onCompareKeydown(e: KeyboardEvent): void {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+    e.preventDefault()
+    comparePos.value = Math.max(0, comparePos.value - 5)
+  } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+    e.preventDefault()
+    comparePos.value = Math.min(100, comparePos.value + 5)
+  } else if (e.key === 'Home') {
+    e.preventDefault()
+    comparePos.value = 0
+  } else if (e.key === 'End') {
+    e.preventDefault()
+    comparePos.value = 100
+  }
+}
 function updateCompareFromEvent(e: PointerEvent): void {
   if (!compareWrap.value) return
   const rect = compareWrap.value.getBoundingClientRect()
@@ -774,35 +794,35 @@ const adviceSections = computed(() => {
       key: 'storage',
       title: t('home.result.storage'),
       icon: '❄️',
-      desc: item('storage')[0] ?? '',
+      desc: '',
       items: item('storage')
     },
     {
       key: 'consumption',
       title: t('home.result.consumption'),
       icon: '🍽️',
-      desc: item('consumption')[0] ?? '',
+      desc: '',
       items: item('consumption')
     },
     {
       key: 'processing',
       title: t('home.result.processing'),
       icon: '🔪',
-      desc: item('handling')[0] ?? '',
+      desc: '',
       items: item('handling')
     },
     {
       key: 'safety',
       title: t('home.result.safety'),
       icon: '⚠️',
-      desc: item('safety')[0] ?? '',
+      desc: '',
       items: item('safety')
     },
     {
       key: 'best',
       title: t('home.result.best'),
       icon: '✨',
-      desc: item('best')[0] ?? '',
+      desc: '',
       items: item('best')
     }
   ]
@@ -861,6 +881,7 @@ function exportPDF(): void {
       download: t('home.pdf.download'),
       close: t('home.pdf.close'),
       noImage: t('home.pdf.no_image'),
+      probabilityNote: t('home.pdf.probability_note'),
       probabilityLabels: [t('home.result.high'), t('home.result.mid'), t('home.result.low')]
     }
   })
@@ -923,6 +944,7 @@ onBeforeUnmount(() => {
   stopCamera()
   if (historyTimer) window.clearInterval(historyTimer)
   stopScanning()
+  draggingSlider = false
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
 })
 
@@ -1359,11 +1381,18 @@ function dismissGuide(): void {
         <div
           ref="compareWrap"
           class="compare-slider"
+          role="slider"
+          tabindex="0"
+          :aria-label="t('home.result.compare_aria')"
+          :aria-valuenow="Math.round(comparePos)"
+          aria-valuemin="0"
+          aria-valuemax="100"
           @pointerdown="onComparePointerDown"
           @pointermove="onComparePointerMove"
           @pointerup="onComparePointerUp"
           @pointercancel="onComparePointerUp"
           @pointerleave="onComparePointerUp"
+          @keydown="onCompareKeydown"
         >
           <img :src="lastHeatmap" class="compare-img" :alt="t('home.result.heatmap')" />
           <img
@@ -1395,18 +1424,18 @@ function dismissGuide(): void {
         class="accordion"
         :class="{ 'is-open': accordions[sec.key] }"
       >
-        <div
+        <button
+          :id="`detail-toggle-${sec.key}`"
           class="accordion-head"
-          role="button"
-          tabindex="0"
+          type="button"
           :aria-expanded="accordions[sec.key]"
-          @click="accordions[sec.key] = !accordions[sec.key]"
-          @keydown.enter.prevent="accordions[sec.key] = !accordions[sec.key]"
+          :aria-controls="`detail-panel-${sec.key}`"
+          @click="toggleAccordion(sec.key)"
         >
           <span class="accordion-title">{{ sec.title }}</span>
           <span class="accordion-arrow" aria-hidden="true">▶</span>
-        </div>
-        <div class="accordion-body">
+        </button>
+        <div :id="`detail-panel-${sec.key}`" class="accordion-body">
           <div class="accordion-inner">
             <p class="sec-desc">{{ sec.desc }}</p>
             <ul class="sec-items">
@@ -1425,20 +1454,20 @@ function dismissGuide(): void {
         class="accordion"
         :class="{ 'is-open': accordions[a.key] }"
       >
-        <div
+        <button
+          :id="`advice-toggle-${a.key}`"
           class="accordion-head"
-          role="button"
-          tabindex="0"
+          type="button"
           :aria-expanded="accordions[a.key]"
-          @click="accordions[a.key] = !accordions[a.key]"
-          @keydown.enter.prevent="accordions[a.key] = !accordions[a.key]"
+          :aria-controls="`advice-panel-${a.key}`"
+          @click="toggleAccordion(a.key)"
         >
           <span class="accordion-title"><span class="advice-icon" aria-hidden="true">{{ a.icon }}</span> {{ a.title }}</span>
           <span class="accordion-arrow" aria-hidden="true">▶</span>
-        </div>
-        <div class="accordion-body">
+        </button>
+        <div :id="`advice-panel-${a.key}`" class="accordion-body">
           <div class="accordion-inner">
-            <p class="sec-desc">{{ a.desc }}</p>
+            <p v-if="a.desc" class="sec-desc">{{ a.desc }}</p>
             <ul v-if="a.items?.length" class="advice-items">
               <li v-for="(item, i) in a.items" :key="i">{{ item }}</li>
             </ul>
@@ -1893,7 +1922,17 @@ function dismissGuide(): void {
 }
 .result-text { margin: 0 0 var(--space-2); color: var(--foam); font-size: 15px; font-weight: 500; }
 .result-sub { margin: 0; color: var(--muted); font-size: 12.5px; }
-.result-toolbar { display: flex; align-items: center; gap: 10px; }
+.result-toolbar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid rgba(189, 246, 239, 0.12);
+  border-radius: var(--radius-card);
+  background: rgba(0, 8, 20, 0.2);
+}
 .health-chip {
   display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
   border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 11px;
@@ -2013,11 +2052,22 @@ function dismissGuide(): void {
 .compare-wrap { padding: var(--space-4); }
 .block-title { margin-bottom: var(--space-3); }
 .compare-slider {
-  position: relative; overflow: hidden; border-radius: var(--radius-md);
-  user-select: none; touch-action: none; cursor: ew-resize;
+  position: relative;
+  width: min(100%, calc(100svh - 240px));
+  max-width: min(100%, 640px);
+  max-height: min(640px, calc(100svh - 240px));
+  aspect-ratio: 1;
+  margin-inline: auto;
+  overflow: hidden;
+  contain: layout paint;
+  border-radius: var(--radius-card);
+  user-select: none;
+  touch-action: none;
+  cursor: ew-resize;
   background: var(--ink);
 }
-.compare-img { display: block; width: 100%; pointer-events: none; -webkit-user-drag: none; }
+.compare-slider:focus-visible { outline: 2px solid var(--aqua); outline-offset: 4px; }
+.compare-img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
 
 /* ============ 相机取景器 ============ */
 .camera-overlay { position:fixed; inset:0; z-index:var(--z-modal); display:grid; place-items:center; padding:clamp(16px,4vw,32px); background:rgba(2,10,22,.82); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
@@ -2065,22 +2115,27 @@ function dismissGuide(): void {
 
 /* ============ 手风琴 ============ */
 .accordion {
-  border: 1px solid var(--border); border-radius: var(--radius-md);
+  border: 1px solid var(--border); border-radius: var(--radius-card);
   background: var(--card); overflow: hidden; margin-bottom: var(--space-3);
   transition: border-color var(--transition), background var(--transition);
 }
 .accordion:hover { border-color: var(--border-hover); }
 .accordion-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px; cursor: pointer; user-select: none;
+  width: 100%; min-height: 48px; padding: 14px 18px;
+  color: inherit; text-align: left; cursor: pointer; user-select: none;
 }
 .accordion-title { font-size: 14.5px; font-weight: 600; color: var(--foam); display: flex; align-items: center; gap: 8px; }
 .advice-icon { font-size: 16px; }
 .accordion-arrow { font-size: 11px; color: var(--aqua); transition: transform var(--transition); }
 .accordion.is-open .accordion-arrow { transform: rotate(90deg); }
-.accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.35s var(--ease-decel); }
-.accordion.is-open .accordion-body { max-height: 500px; }
-.accordion-inner { padding: 0 18px 16px; }
+.accordion-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--motion-expand) var(--ease-decel);
+}
+.accordion.is-open .accordion-body { grid-template-rows: 1fr; }
+.accordion-inner { min-height: 0; overflow: hidden; padding: 0 18px 16px; }
 .sec-desc { margin: 0 0 var(--space-2); font-size: 13.5px; color: var(--foam); line-height: 1.7; }
 .sec-items { margin: var(--space-2) 0 0; padding-left: 18px; font-size: 13px; color: var(--muted); line-height: 1.8; }
 .sec-items li { margin-bottom: 2px; }

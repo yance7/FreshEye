@@ -14,6 +14,8 @@ interface Phase { title: string; items: string[] }
 interface EvidenceStat { value: string; label: string; accent?: boolean }
 interface TocItem { id: string; label: string }
 interface WorkflowRow { id: string; node: string; type: string; duty: string }
+interface Reference { citation: string; url: string; note?: string }
+interface CompareDetailRow { model: string; accuracy: string; f1: string; params: string; flops: string; size: string; highlight: boolean }
 const compareRows = computed<CompareRow[]>(() => tm<CompareRow[]>('about.compare_rows'))
 const users = computed<InfoCard[]>(() => tm<InfoCard[]>('about.users'))
 const v1Cards = computed<InfoCard[]>(() => tm<InfoCard[]>('about.v1_cards'))
@@ -21,7 +23,7 @@ const v2Cards = computed<InfoCard[]>(() => tm<InfoCard[]>('about.v2_cards'))
 const journey = computed<InfoCard[]>(() => tm<InfoCard[]>('about.journey'))
 const socialValue = computed<InfoCard[]>(() => tm<InfoCard[]>('about.social_value'))
 const iteration = computed<Phase[]>(() => tm<Phase[]>('about.iteration'))
-const references = computed<string[]>(() => tm<string[]>('about.references'))
+const references = computed<Reference[]>(() => tm<Reference[]>('about.references'))
 const tocItems = computed<TocItem[]>(() => tm<TocItem[]>('about.toc_items'))
 const evidenceStats = computed<EvidenceStat[]>(() => tm<EvidenceStat[]>('about.evidence_stats'))
 const whyEye = computed<InfoCard[]>(() => tm<InfoCard[]>('about.why_eye'))
@@ -30,6 +32,26 @@ const v1Details = computed<InfoCard[]>(() => tm<InfoCard[]>('about.v1_details'))
 const v2Details = computed<InfoCard[]>(() => tm<InfoCard[]>('about.v2_details'))
 const workflowRows = computed<WorkflowRow[]>(() => tm<WorkflowRow[]>('about.workflow_rows'))
 const traeWorkflow = computed<InfoCard[]>(() => tm<InfoCard[]>('about.trae_workflow'))
+const iterationFocus = computed<Phase[]>(() => tm<Phase[]>('about.iteration_focus'))
+const v1Technical = computed<InfoCard[]>(() => [
+  { icon: '↗', title: t('about.v1_feature_scaling_title'), text: t('about.v1FeatureScaling') },
+  { icon: '▦', title: t('about.v1_feature_mbconv_title'), text: t('about.v1FeatureMbconv') },
+  { icon: '◎', title: t('about.v1_feature_head_title'), text: t('about.v1FeatureHead') },
+  { icon: '◈', title: t('about.v1ChannelTitle'), text: t('about.v1ChannelText') },
+  { icon: '⌖', title: t('about.v1SpatialTitle'), text: t('about.v1SpatialText') },
+  { icon: '✦', title: t('about.v1RefineTitle'), text: t('about.v1RefineText') },
+  { icon: '🔥', title: t('about.v1GradcamTitle'), text: t('about.v1GradcamResult') }
+])
+const v2Technical = computed<InfoCard[]>(() => [
+  { icon: '⚡', title: t('about.v2EcaTitle'), text: t('about.v2EcaIntro') },
+  { icon: '↔', title: t('about.v2_eca_feature_title'), text: t('about.v2EcaFeature1') },
+  { icon: '◌', title: t('about.v2_eca_interaction_title'), text: t('about.v2EcaFeature2') },
+  { icon: '🎯', title: t('about.v2CraTitle'), text: t('about.v2CraIntro') },
+  { icon: '◉', title: t('about.v2_cra_semantics_title'), text: t('about.v2CraFeature1') },
+  { icon: '⌁', title: t('about.v2_cra_lightweight_title'), text: t('about.v2CraFeature2') },
+  { icon: '📊', title: t('about.v2_cra_ablation_title'), text: t('about.v2CraFeature3') }
+])
+const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>('about.v2_compare_rows'))
 </script>
 
 <template>
@@ -244,6 +266,42 @@ const traeWorkflow = computed<InfoCard[]>(() => tm<InfoCard[]>('about.trae_workf
         </div>
       </details>
     </div>
+    <div class="model-technical-grid">
+      <article class="model-explain-card glass-card">
+        <div class="model-explain-head"><span class="model-explain-badge">V1</span><div><h3>{{ t('about.v1_detail_title') }}</h3><p>{{ t('about.v1Intro') }}</p></div></div>
+        <div class="model-explain-list">
+          <div v-for="card in v1Technical" :key="card.title" class="model-explain-item">
+            <span class="model-explain-icon" aria-hidden="true">{{ card.icon }}</span>
+            <div><h4>{{ card.title }}</h4><p>{{ card.text }}</p></div>
+          </div>
+        </div>
+        <p class="model-explain-note">{{ t('about.v1GradcamIntro') }}</p>
+        <ul class="model-bullet-list">
+          <li>{{ t('about.v1Gradcam1') }}</li>
+          <li>{{ t('about.v1Gradcam2') }}</li>
+          <li>{{ t('about.v1Gradcam3') }}</li>
+        </ul>
+      </article>
+      <article class="model-explain-card glass-card">
+        <div class="model-explain-head"><span class="model-explain-badge is-v2">V2</span><div><h3>{{ t('about.v2_detail_title') }}</h3><p>{{ t('about.v2Intro') }}</p></div></div>
+        <div class="model-explain-list">
+          <div v-for="card in v2Technical" :key="card.title" class="model-explain-item">
+            <span class="model-explain-icon" aria-hidden="true">{{ card.icon }}</span>
+            <div><h4>{{ card.title }}</h4><p>{{ card.text }}</p></div>
+          </div>
+        </div>
+        <p class="model-explain-note">{{ t('about.v2CompareText') }}</p>
+      </article>
+    </div>
+    <div class="model-comparison-card glass-card">
+      <div class="section-head"><h3 class="section-subtitle">{{ t('about.v2CompareTitle') }}</h3></div>
+      <div class="table-wrap">
+        <table class="compare-table model-v2-table">
+          <thead><tr><th>{{ t('about.v2_table_model') }}</th><th>{{ t('about.v2_table_accuracy') }}</th><th>F1</th><th>{{ t('about.v2_table_params') }}</th><th>FLOPs</th><th>{{ t('about.v2_table_size') }}</th></tr></thead>
+          <tbody><tr v-for="row in v2CompareRows" :key="row.model" :class="{ 'compare-table-highlight': row.highlight }"><td>{{ row.model }}</td><td>{{ row.accuracy }}</td><td>{{ row.f1 }}</td><td>{{ row.params }}</td><td>{{ row.flops }}</td><td>{{ row.size }}</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- 检测流程与创作历程 -->
@@ -296,10 +354,22 @@ const traeWorkflow = computed<InfoCard[]>(() => tm<InfoCard[]>('about.trae_workf
   <section id="iteration" class="reveal">
     <div class="section-head"><h2 class="section-title">{{ t('about.iteration_title') }}</h2></div>
     <div class="iteration-grid"><div v-for="phase in iteration" :key="phase.title" class="iteration-card"><h3>{{ phase.title }}</h3><ul><li v-for="item in phase.items" :key="item">{{ item }}</li></ul></div></div>
+    <div class="iteration-focus-grid">
+      <article v-for="phase in iterationFocus" :key="phase.title" class="iteration-focus-card">
+        <span class="section-kicker">{{ t('about.iteration_focus_label') }}</span>
+        <h3>{{ phase.title }}</h3>
+        <ul><li v-for="item in phase.items" :key="item">{{ item }}</li></ul>
+      </article>
+    </div>
   </section>
   <section id="references" class="reveal">
     <div class="section-head"><h2 class="section-title">{{ t('about.references_title') }}</h2></div>
-    <ol class="reference-list"><li v-for="reference in references" :key="reference">{{ reference }}</li></ol>
+    <ol class="reference-list">
+      <li v-for="reference in references" :key="reference.citation">
+        <a :href="reference.url" target="_blank" rel="noopener noreferrer">{{ reference.citation }}</a>
+        <span v-if="reference.note" class="reference-note">{{ reference.note }}</span>
+      </li>
+    </ol>
   </section>
 </template>
 
@@ -497,7 +567,46 @@ const traeWorkflow = computed<InfoCard[]>(() => tm<InfoCard[]>('about.trae_workf
 .iteration-card { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
 .iteration-card h3 { margin: 0 0 10px; color: var(--aqua); font-size: 15px; }
 .iteration-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.8; }
+.users-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.user-card {
+  min-height: 174px;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-feature);
+  background: linear-gradient(145deg, rgba(12, 65, 86, 0.32), rgba(4, 22, 43, 0.62));
+  box-shadow: 0 12px 30px rgba(1, 8, 18, 0.16);
+  transition: transform var(--motion-standard) var(--ease-standard), border-color var(--motion-standard) var(--ease-standard), background var(--motion-standard) var(--ease-standard);
+}
+.user-card:hover { transform: translateY(-3px); border-color: rgba(39, 208, 196, 0.42); background: linear-gradient(145deg, rgba(12, 79, 98, 0.38), rgba(4, 22, 43, 0.72)); }
+.user-icon { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: var(--space-3); border: 1px solid rgba(39, 208, 196, 0.28); border-radius: 13px; color: var(--aqua); background: rgba(39, 208, 196, 0.1); font-size: 22px; }
+.user-title { margin: 0 0 7px; color: var(--white); font-size: 15px; }
+.user-text { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.75; }
+.model-technical-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); margin-top: var(--space-5); }
+.model-explain-card { padding: var(--space-5); border-color: rgba(39, 208, 196, 0.22); }
+.model-explain-head { display: flex; align-items: flex-start; gap: 12px; }
+.model-explain-head h3 { margin: 0 0 7px; color: var(--white); font-size: 17px; }
+.model-explain-head p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.72; }
+.model-explain-badge { display: grid; place-items: center; flex: 0 0 38px; height: 28px; border-radius: 8px; color: var(--ink); background: var(--aqua); font-family: var(--font-display); font-size: 12px; font-weight: 800; }
+.model-explain-badge.is-v2 { color: var(--white); background: #4087ff; }
+.model-explain-list { display: grid; gap: 0; margin-top: var(--space-4); }
+.model-explain-item { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; padding: 12px 0; border-top: 1px solid var(--border); }
+.model-explain-icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; color: var(--aqua); background: rgba(39, 208, 196, 0.1); font-size: 15px; }
+.model-explain-item h4 { margin: 0 0 4px; color: var(--foam); font-size: 13px; }
+.model-explain-item p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.model-explain-note { margin: var(--space-4) 0 0; padding-top: var(--space-4); border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; line-height: 1.75; }
+.model-bullet-list { margin: 10px 0 0; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.75; }
+.model-comparison-card { margin-top: var(--space-5); padding: var(--space-5); border-color: rgba(64, 135, 255, 0.28); }
+.model-comparison-card .section-head { margin-bottom: 0; }
+.model-v2-table th, .model-v2-table td { white-space: nowrap; }
+.iteration-focus-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-top: var(--space-5); }
+.iteration-focus-card { padding: var(--space-5); border: 1px solid rgba(39, 208, 196, 0.2); border-radius: var(--radius-feature); background: rgba(39, 208, 196, 0.05); }
+.iteration-focus-card h3 { margin: 0 0 9px; color: var(--foam); font-size: 15px; }
+.iteration-focus-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.8; }
 .reference-list { margin: 0; padding-left: 22px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.reference-list li { padding-left: 4px; }
+.reference-list a { color: var(--aqua); overflow-wrap: anywhere; text-decoration: none; }
+.reference-list a:hover { color: var(--foam); text-decoration: underline; text-underline-offset: 3px; }
+.reference-note { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
 
 @media (max-width: 768px) {
   .evidence-card-head { flex-direction: column; }
@@ -506,10 +615,12 @@ const traeWorkflow = computed<InfoCard[]>(() => tm<InfoCard[]>('about.trae_workf
   .model-detail-grid, .trae-workflow-grid { grid-template-columns: 1fr; }
   .compare-pain { grid-template-columns: 1fr; }
   .arch-branches { flex-direction: column; }
-  .model-card-grid, .iteration-grid { grid-template-columns: 1fr; }
+  .model-card-grid, .iteration-grid, .model-technical-grid, .iteration-focus-grid { grid-template-columns: 1fr; }
+  .users-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .model-card-grid { grid-template-columns: 1fr; }
+  .model-explain-card, .model-comparison-card { padding: var(--space-4); }
   .evidence-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .evidence-stat { min-height: 72px; padding-inline: 10px; }
   .evidence-stat strong { font-size: 15px; }
