@@ -11,6 +11,9 @@ coverage/
 *.log
 *.tmp
 *.report.html
+**/test-results/
+**/playwright-report/
+**/blob-report/
 
 # Editor and local tool metadata
 .idea/

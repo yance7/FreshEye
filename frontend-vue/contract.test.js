@@ -333,9 +333,32 @@ test('PDF footer reuses the localized report timestamp', () => {
   assert.match(report, /escapeHtml\(footerText\)[\s\S]*formattedTime/);
 });
 
+test('browser acceptance is wired into local verification and deployment', () => {
+  const packageJson = JSON.parse(file('package.json'));
+  const config = file('playwright.config.ts');
+  const vitest = file('vitest.config.ts');
+  const workflow = readFileSync(join(repo, '.github/workflows/deploy.yml'), 'utf8');
+  for (const spec of [
+    'tests/e2e/public-pages.spec.ts',
+    'tests/e2e/home-flow.spec.ts',
+    'tests/e2e/accessibility-responsive.spec.ts',
+    'tests/e2e/report.spec.ts'
+  ]) file(spec);
+
+  assert.equal(packageJson.scripts['test:e2e'], 'playwright test');
+  assert.match(packageJson.scripts.verify, /npm run test:e2e/);
+  assert.match(config, /testDir: ['"]\.\/tests\/e2e['"]/);
+  assert.match(config, /reuseExistingServer: false/);
+  assert.match(vitest, /tests\/e2e\/\*\*/);
+  assert.match(workflow, /Install Playwright Chromium/);
+  assert.match(workflow, /playwright install --with-deps chromium/);
+  assert.match(workflow, /Run browser acceptance tests/);
+  assert.match(workflow, /npm run test:e2e/);
+});
+
 test('gitignore excludes generated and local cache payloads', () => {
   const ignore = readFileSync(join(repo, '.gitignore'), 'utf8');
-  for (const marker of ['.vite/', 'coverage/', '.mypy_cache/', '*.log', 'tmp/']) {
+  for (const marker of ['.vite/', 'coverage/', '.mypy_cache/', '*.log', 'tmp/', 'test-results/']) {
     assert.match(ignore, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });

@@ -5,5 +5,10 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   plugins: [vue()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  test: { environment: 'jsdom', clearMocks: true, restoreMocks: true, exclude: [...configDefaults.exclude, 'contract.test.js'] }
+  test: {
+    environment: 'jsdom',
+    clearMocks: true,
+    restoreMocks: true,
+    exclude: [...configDefaults.exclude, 'contract.test.js', 'tests/e2e/**']
+  }
 })

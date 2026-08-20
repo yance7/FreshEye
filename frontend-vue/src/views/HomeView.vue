@@ -1824,7 +1824,7 @@ function closeLowConfidenceModal(): void {
 .privacy-note { margin: 12px auto 0; max-width: 560px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
 .upload-cta-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: var(--space-4); }
 .upload-cta {
-  padding: 10px 22px; border-radius: var(--radius-md);
+  padding: 10px 22px; min-height: 44px; border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--aqua) 0%, var(--sea) 100%);
   color: var(--ink); font-weight: 600; font-size: 14px;
   box-shadow: 0 6px 20px rgba(39, 208, 196, 0.3);
