@@ -1,9 +1,11 @@
 <script setup lang="ts">
 // 导航栏：品牌 + 5 个路由链接 + 语言切换 + 移动端汉堡菜单
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from '@/i18n'
 
 const { t, locale, toggleLocale } = useI18n()
+const route = useRoute()
 
 const isScrolled = ref(false)
 const menuOpen = ref(false)
@@ -12,6 +14,7 @@ type FocusTarget = HTMLElement | { $el?: HTMLElement }
 const overlayFirstLink = ref<FocusTarget | null>(null)
 const lastFocused = ref<HTMLElement | null>(null)
 let previousBodyOverflow = ''
+let desktopQuery: MediaQueryList | null = null
 
 function focusTarget(target: FocusTarget | null): void {
   const element = target instanceof HTMLElement ? target : target?.$el
@@ -24,7 +27,7 @@ function onScroll(): void {
 }
 
 /** 打开/关闭移动端菜单 */
-async function toggleMenu(open: boolean): Promise<void> {
+async function toggleMenu(open: boolean, restoreFocus = true): Promise<void> {
   if (open) {
     lastFocused.value = document.activeElement as HTMLElement | null
     previousBodyOverflow = document.body.style.overflow
@@ -36,11 +39,32 @@ async function toggleMenu(open: boolean): Promise<void> {
     focusTarget(overlayFirstLink.value)
   } else {
     document.body.style.overflow = previousBodyOverflow
-    const target = lastFocused.value ?? toggleBtn.value
+    const target = restoreFocus ? (lastFocused.value ?? toggleBtn.value) : null
     lastFocused.value = null
     target?.focus()
   }
 }
+
+function onDesktopChange(event: MediaQueryListEvent): void {
+  if (event.matches && menuOpen.value) void toggleMenu(false, false)
+}
+
+function addDesktopListener(): void {
+  if (!desktopQuery) return
+  if (typeof desktopQuery.addEventListener === 'function') desktopQuery.addEventListener('change', onDesktopChange)
+  else desktopQuery.addListener?.(onDesktopChange)
+}
+
+function removeDesktopListener(): void {
+  if (!desktopQuery) return
+  if (typeof desktopQuery.removeEventListener === 'function') desktopQuery.removeEventListener('change', onDesktopChange)
+  else desktopQuery.removeListener?.(onDesktopChange)
+  desktopQuery = null
+}
+
+watch(() => route.fullPath, () => {
+  if (menuOpen.value) void toggleMenu(false)
+})
 
 /** 遮罩内键盘处理：Escape 关闭，Tab 在菜单内循环 */
 function onOverlayKeydown(e: KeyboardEvent): void {
@@ -65,9 +89,12 @@ function onOverlayKeydown(e: KeyboardEvent): void {
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
+  desktopQuery = window.matchMedia('(min-width: 769px)')
+  addDesktopListener()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
+  removeDesktopListener()
   document.body.style.overflow = previousBodyOverflow
 })
 </script>

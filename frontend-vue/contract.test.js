@@ -243,6 +243,27 @@ test('camera viewfinder exposes a circular fish-eye guide and safe lifecycle hoo
   assert.match(camera, /new File\(\[blob\], 'fresheye-camera\.jpg'/);
 });
 
+test('motion policy and navigation focus respond to live device capabilities', () => {
+  const motion = file('src/composables/useMotionPreference.ts');
+  const app = file('src/App.vue');
+  const navbar = file('src/components/AppNavbar.vue');
+  const home = file('src/views/HomeView.vue');
+  const background = file('src/components/DeepBackground.vue');
+  const global = file('src/styles/global.css');
+  for (const marker of ['reduceMotion', 'canHover', 'coarsePointer', 'pageVisible', 'allowDecorativeMotion']) {
+    assert.match(motion, new RegExp(marker));
+  }
+  assert.match(motion, /visibilitychange/);
+  assert.match(app, /function observeTree/);
+  assert.match(app, /mutation\.addedNodes/);
+  assert.match(app, /id="main-content" tabindex="-1"/);
+  assert.match(navbar, /route\.fullPath/);
+  assert.match(navbar, /min-width: 769px/);
+  assert.match(home, /shouldTrackMouse/);
+  assert.match(background, /allowDecorativeMotion/);
+  assert.match(global, /@media \(hover: hover\) and \(pointer: fine\)/);
+});
+
 test('references render as plain citations and reports localize the model name', () => {
   const about = file('src/views/AboutView.vue');
   const home = file('src/views/HomeView.vue');

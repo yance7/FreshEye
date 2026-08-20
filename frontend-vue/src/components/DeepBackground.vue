@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // 深海动态背景层：光晕 + 气泡 + 波浪
 // 根据设备宽度生成 6/12 个气泡，尊重 prefers-reduced-motion
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useMotionPreference } from '@/composables/useMotionPreference'
 
 const isMobile = ref(false)
-const reduceMotion = ref(false)
 const bubbles = ref<Array<{ left: string; size: string; duration: string; delay: string; sway: string }>>([])
+const { allowDecorativeMotion } = useMotionPreference()
 
 function buildBubbles(): void {
   const count = isMobile.value ? 6 : 12
@@ -27,14 +28,18 @@ function updateViewport(): void {
   const mobile = window.matchMedia('(max-width: 640px)').matches
   if (mobile !== isMobile.value) {
     isMobile.value = mobile
-    if (!reduceMotion.value) buildBubbles()
+    if (allowDecorativeMotion.value) buildBubbles()
   }
 }
 
+watch(allowDecorativeMotion, (allowed) => {
+  if (allowed) buildBubbles()
+  else bubbles.value = []
+})
+
 onMounted(() => {
-  reduceMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   isMobile.value = window.matchMedia('(max-width: 640px)').matches
-  if (!reduceMotion.value) buildBubbles()
+  if (allowDecorativeMotion.value) buildBubbles()
   window.addEventListener('resize', updateViewport, { passive: true })
 })
 
@@ -48,7 +53,7 @@ onBeforeUnmount(() => {
     <div class="glow glow-1"></div>
     <div class="glow glow-2"></div>
     <div class="glow glow-3"></div>
-    <div class="bubbles" v-if="!reduceMotion">
+    <div class="bubbles" v-if="allowDecorativeMotion">
       <div
         v-for="(b, i) in bubbles"
         :key="i"
@@ -63,7 +68,7 @@ onBeforeUnmount(() => {
         }"
       ></div>
     </div>
-    <div class="wave wave-1" v-if="!reduceMotion"></div>
-    <div class="wave wave-2" v-if="!reduceMotion"></div>
+    <div class="wave wave-1" v-if="allowDecorativeMotion"></div>
+    <div class="wave wave-2" v-if="allowDecorativeMotion"></div>
   </div>
 </template>

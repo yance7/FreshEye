@@ -259,7 +259,7 @@ section { margin-bottom: var(--space-7); }
   transition: transform var(--transition), box-shadow var(--transition);
   min-height: 44px;
 }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(39, 208, 196, 0.45); }
+.btn:hover { box-shadow: 0 10px 28px rgba(39, 208, 196, 0.45); }
 .btn:active { transform: scale(0.98); }
 
 .card {
@@ -305,7 +305,7 @@ section { margin-bottom: var(--space-7); }
   -webkit-backdrop-filter: blur(8px);
   transition: transform var(--transition), border-color var(--transition), background var(--transition);
 }
-.badge:hover { transform: translateY(-2px); border-color: var(--border-hover); background: var(--card-hover); }
+.badge:hover { border-color: var(--border-hover); background: var(--card-hover); }
 
 /* ============ 深海动态背景层 ============ */
 .bg-layer {
@@ -431,7 +431,7 @@ section { margin-bottom: var(--space-7); }
   flex-shrink: 0;
   transition: transform var(--transition), box-shadow var(--transition);
 }
-.brand:hover .brand-logo { transform: rotate(-8deg) scale(1.05); box-shadow: 0 6px 20px rgba(39, 208, 196, 0.5); }
+.brand:hover .brand-logo { box-shadow: 0 6px 20px rgba(39, 208, 196, 0.5); }
 .brand-eye {
   width: 18px; height: 18px;
   border-radius: 50%;
@@ -821,7 +821,7 @@ footer.competition-footer::before {
   transition: color var(--transition), transform var(--transition);
   width: fit-content;
 }
-.footer-links a:hover { color: var(--aqua); transform: translateX(3px); }
+.footer-links a:hover { color: var(--aqua); }
 .footer-stack { display: flex; flex-wrap: wrap; gap: 7px; }
 .footer-stack span {
   font-size: 11.5px;
@@ -832,7 +832,7 @@ footer.competition-footer::before {
   color: var(--muted);
   transition: color var(--transition), border-color var(--transition), transform var(--transition);
 }
-.footer-stack span:hover { color: var(--aqua); border-color: var(--border-hover); transform: translateY(-1px); }
+.footer-stack span:hover { color: var(--aqua); border-color: var(--border-hover); }
 .footer-bottom {
   max-width: 920px;
   margin: 0 auto;
@@ -968,6 +968,15 @@ footer.competition-footer::before {
 /* 桌面端增强 */
 @media (min-width: 1280px) {
   main { max-width: 1080px; }
+}
+
+/* Hover translation is reserved for devices that can hover with a fine pointer. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { transform: translateY(-2px); }
+  .badge:hover { transform: translateY(-2px); }
+  .brand:hover .brand-logo { transform: rotate(-8deg) scale(1.05); }
+  .footer-links a:hover { transform: translateX(3px); }
+  .footer-stack span:hover { transform: translateY(-1px); }
 }
 
 /* ============ 打印优化 ============ */

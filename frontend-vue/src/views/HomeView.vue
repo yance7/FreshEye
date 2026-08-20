@@ -12,11 +12,14 @@ import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 import { buildReportHtml } from '@/utils/pdfReport'
 import { dataUrlToBlob } from '@/utils/dataUrl'
 import CameraCaptureDialog from '@/components/CameraCaptureDialog.vue'
+import { useMotionPreference } from '@/composables/useMotionPreference'
 
 const { t, tm, locale } = useI18n()
 const { toast } = useToast()
 const { history, initHistory, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
 const { checkApiHealth, callPredictApi } = useApi()
+const { reduceMotion, canHover, coarsePointer, allowDecorativeMotion } = useMotionPreference()
+const shouldTrackMouse = computed(() => canHover.value && !coarsePointer.value && allowDecorativeMotion.value)
 
 // ============ 模型版本（持久化） ============
 const modelVersion = ref<'v1' | 'v2'>('v2')
@@ -550,6 +553,7 @@ function updateCompareFromEvent(e: PointerEvent): void {
 
 // ============ Hero 鱼眼追踪 ============
 function onMouseMove(e: MouseEvent): void {
+  if (!shouldTrackMouse.value) return
   lastMoveTime = performance.now()
   if (!heroEyeWrap.value) return
   const rect = heroEyeWrap.value.getBoundingClientRect()
@@ -566,13 +570,18 @@ function onMouseMove(e: MouseEvent): void {
 }
 
 function startIdleDrift(): void {
-  if (idleTimer) return
+  if (idleTimer || !allowDecorativeMotion.value) return
   idleTimer = window.setInterval(() => {
-    if (performance.now() - lastMoveTime > 2000) {
+    if (allowDecorativeMotion.value && performance.now() - lastMoveTime > 2000) {
       pupilX.value = (Math.random() * 2 - 1) * 8
       pupilY.value = (Math.random() * 2 - 1) * 6
     }
   }, 2500)
+}
+
+function stopIdleDrift(): void {
+  if (idleTimer) window.clearInterval(idleTimer)
+  idleTimer = null
 }
 
 // ============ 鱼眼随置信度变色 ============
@@ -584,19 +593,43 @@ const eyeColors = computed(() => {
 })
 
 // ============ countUp ============
+const countTargets = { acc: 99, resp: 2, cls: 3 }
+const countDuration = 1500
+let countFrame: number | null = null
+let countElapsed = 0
+
+function setFinalBadgeValues(): void {
+  badgeValues.acc = countTargets.acc
+  badgeValues.resp = countTargets.resp
+  badgeValues.cls = countTargets.cls
+}
+
 function runCountUp(): void {
-  const targets = { acc: 99, resp: 2, cls: 3 }
-  const duration = 1500
-  const start = performance.now()
-  function step(now: number): void {
-    const p = clamp((now - start) / duration, 0, 1)
-    const eased = 1 - Math.pow(1 - p, 3)
-    badgeValues.acc = Math.round(targets.acc * eased)
-    badgeValues.resp = Math.round(targets.resp * eased)
-    badgeValues.cls = Math.round(targets.cls * eased)
-    if (p < 1) requestAnimationFrame(step)
+  if (countFrame !== null) cancelAnimationFrame(countFrame)
+  countFrame = null
+  if (reduceMotion.value) {
+    countElapsed = countDuration
+    setFinalBadgeValues()
+    return
   }
-  requestAnimationFrame(step)
+  if (!allowDecorativeMotion.value) return
+  const start = performance.now() - countElapsed
+  function step(now: number): void {
+    if (!allowDecorativeMotion.value) {
+      countElapsed = clamp(now - start, 0, countDuration)
+      countFrame = null
+      return
+    }
+    countElapsed = clamp(now - start, 0, countDuration)
+    const p = countElapsed / countDuration
+    const eased = 1 - Math.pow(1 - p, 3)
+    badgeValues.acc = Math.round(countTargets.acc * eased)
+    badgeValues.resp = Math.round(countTargets.resp * eased)
+    badgeValues.cls = Math.round(countTargets.cls * eased)
+    if (p < 1) countFrame = requestAnimationFrame(step)
+    else countFrame = null
+  }
+  countFrame = requestAnimationFrame(step)
 }
 
 const badgeDisplay = computed(() => {
@@ -851,6 +884,26 @@ function exportPDF(): void {
 
 // ============ 生命周期 ============
 let mouseMoveHandler: ((e: MouseEvent) => void) | null = null
+let mouseTrackingEnabled = false
+
+function syncMouseTracking(enabled: boolean): void {
+  if (!mouseMoveHandler || enabled === mouseTrackingEnabled) return
+  mouseTrackingEnabled = enabled
+  if (enabled) window.addEventListener('mousemove', mouseMoveHandler)
+  else window.removeEventListener('mousemove', mouseMoveHandler)
+}
+
+watch(shouldTrackMouse, syncMouseTracking)
+watch(allowDecorativeMotion, (allowed) => {
+  if (allowed) {
+    startIdleDrift()
+    runCountUp()
+  } else {
+    stopIdleDrift()
+    runCountUp()
+  }
+})
+watch(reduceMotion, () => { runCountUp() })
 
 onMounted(() => {
   initHistory()
@@ -858,8 +911,8 @@ onMounted(() => {
   checkApiHealth().then((ok) => { apiHealthy.value = ok }).catch(() => { apiHealthy.value = false })
   // 鼠标追踪
   mouseMoveHandler = onMouseMove
-  window.addEventListener('mousemove', mouseMoveHandler)
-  startIdleDrift()
+  syncMouseTracking(shouldTrackMouse.value)
+  if (allowDecorativeMotion.value) startIdleDrift()
   // countUp
   runCountUp()
   // 粘贴监听
@@ -876,8 +929,10 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  if (mouseMoveHandler) window.removeEventListener('mousemove', mouseMoveHandler)
-  if (idleTimer) window.clearInterval(idleTimer)
+  syncMouseTracking(false)
+  stopIdleDrift()
+  if (countFrame !== null) cancelAnimationFrame(countFrame)
+  countFrame = null
   window.removeEventListener('paste', onPaste)
   if (historyTimer) window.clearInterval(historyTimer)
   stopScanning()
@@ -1571,9 +1626,9 @@ function dismissGuide(): void {
   transition: transform var(--transition), background var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 .hero-action-primary { gap: 12px; color: var(--ink); background: linear-gradient(135deg, var(--aqua), var(--sea)); box-shadow: 0 8px 22px rgba(39, 208, 196, 0.24); }
-.hero-action-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(39, 208, 196, 0.34); }
+.hero-action-primary:hover { box-shadow: 0 12px 28px rgba(39, 208, 196, 0.34); }
 .hero-action-secondary { color: var(--foam); border: 1px solid var(--border-hover); background: rgba(255, 255, 255, 0.035); }
-.hero-action-secondary:hover { transform: translateY(-2px); border-color: var(--aqua); background: rgba(39, 208, 196, 0.08); }
+.hero-action-secondary:hover { border-color: var(--aqua); background: rgba(39, 208, 196, 0.08); }
 .hero-action-primary:focus-visible, .hero-action-secondary:focus-visible { outline: 2px solid var(--aqua); outline-offset: 3px; }
 .hero-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
 .hero-evidence-strip { gap: 0; margin-top: 4px; }
@@ -1590,7 +1645,7 @@ function dismissGuide(): void {
   font-size: 11px; font-weight: 700; text-decoration: none;
   transition: color var(--transition), transform var(--transition);
 }
-.hero-evidence-link:hover { color: var(--foam); transform: translateX(2px); }
+.hero-evidence-link:hover { color: var(--foam); }
 .hero-evidence-link:focus-visible { outline: 2px solid var(--aqua); outline-offset: 4px; border-radius: 3px; }
 .badge .count { font-family: var(--font-display); font-weight: 800; color: var(--aqua); margin-right: 1px; }
 .scroll-hint {
@@ -1659,7 +1714,7 @@ function dismissGuide(): void {
   min-height: 240px;
 }
 .upload-zone:hover, .upload-zone:focus-visible {
-  border-color: var(--aqua); background: var(--card-hover); transform: translateY(-2px);
+  border-color: var(--aqua); background: var(--card-hover);
   outline: none;
 }
 .upload-zone.is-drag {
@@ -1699,7 +1754,7 @@ function dismissGuide(): void {
   box-shadow: 0 6px 20px rgba(39, 208, 196, 0.3);
   transition: transform var(--transition), box-shadow var(--transition);
 }
-.upload-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(39, 208, 196, 0.45); }
+.upload-cta:hover { box-shadow: 0 10px 28px rgba(39, 208, 196, 0.45); }
 .upload-cta.alt {
   background: var(--card); color: var(--foam); border: 1px solid var(--border);
   box-shadow: none;
@@ -1717,7 +1772,7 @@ function dismissGuide(): void {
   overflow: hidden; border: 1px solid var(--border); padding: 0;
   transition: transform var(--transition), border-color var(--transition);
 }
-.sample-thumb:hover { transform: translateY(-3px) scale(1.04); border-color: var(--border-hover); }
+.sample-thumb:hover { border-color: var(--border-hover); }
 .sample-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sample-tag {
   position: absolute; left: 0; right: 0; bottom: 0;
@@ -1781,7 +1836,7 @@ function dismissGuide(): void {
   background: var(--card); color: var(--foam); border: 1px solid var(--border);
   box-shadow: none;
 }
-.btn.alt:hover { border-color: var(--border-hover); background: var(--card-hover); transform: translateY(-2px); }
+.btn.alt:hover { border-color: var(--border-hover); background: var(--card-hover); }
 .btn.small { padding: 7px 14px; font-size: 13px; min-height: 36px; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .btn .spinner { margin-right: 2px; }
@@ -2064,7 +2119,7 @@ function dismissGuide(): void {
   border-radius: var(--radius-md); background: var(--card); border: 1px solid var(--border);
   cursor: pointer; transition: border-color var(--transition), background var(--transition), transform var(--transition);
 }
-.history-item:hover { border-color: var(--border-hover); background: var(--card-hover); transform: translateX(3px); }
+.history-item:hover { border-color: var(--border-hover); background: var(--card-hover); }
 .history-item:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
 .history-thumb {
   width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover;
@@ -2116,6 +2171,16 @@ function dismissGuide(): void {
 }
 .confidence-modal-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .confidence-modal-actions .btn { flex: 1 1 150px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-action-primary:hover, .hero-action-secondary:hover { transform: translateY(-2px); }
+  .hero-evidence-link:hover { transform: translateX(2px); }
+  .upload-zone:hover { transform: translateY(-2px); }
+  .upload-cta:hover { transform: translateY(-2px); }
+  .sample-thumb:hover { transform: translateY(-3px) scale(1.04); }
+  .btn.alt:hover { transform: translateY(-2px); }
+  .history-item:hover { transform: translateX(3px); }
+}
 
 /* ============ 响应式 ============ */
 @media (max-width: 768px) {
