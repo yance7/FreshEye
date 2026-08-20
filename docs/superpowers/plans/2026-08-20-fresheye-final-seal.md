@@ -381,6 +381,7 @@ git commit -m "feat: isolate camera capture lifecycle"
 - Modify: `frontend-vue/src/components/DeepBackground.vue`
 - Modify: `frontend-vue/src/App.vue`
 - Modify: `frontend-vue/src/components/AppNavbar.vue`
+- Modify: `frontend-vue/src/views/HomeView.vue`
 - Modify: `frontend-vue/src/styles/global.css`
 - Modify: `frontend-vue/contract.test.js`
 
@@ -451,7 +452,7 @@ npm run typecheck
 - [ ] **Step 8: Commit Task 4**
 
 ```powershell
-git add frontend-vue/src/composables/useMotionPreference.ts frontend-vue/tests/unit/useMotionPreference.test.ts frontend-vue/src/components/DeepBackground.vue frontend-vue/src/App.vue frontend-vue/src/components/AppNavbar.vue frontend-vue/src/styles/global.css frontend-vue/contract.test.js
+git add frontend-vue/src/composables/useMotionPreference.ts frontend-vue/tests/unit/useMotionPreference.test.ts frontend-vue/src/components/DeepBackground.vue frontend-vue/src/App.vue frontend-vue/src/components/AppNavbar.vue frontend-vue/src/views/HomeView.vue frontend-vue/src/styles/global.css frontend-vue/contract.test.js
 git commit -m "feat: unify motion and navigation lifecycle"
 ```
 
