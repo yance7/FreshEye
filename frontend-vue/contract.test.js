@@ -264,6 +264,24 @@ test('motion policy and navigation focus respond to live device capabilities', (
   assert.match(global, /@media \(hover: hover\) and \(pointer: fine\)/);
 });
 
+test('analysis lifecycle rejects stale work and modal interactions stay accessible', () => {
+  const home = file('src/views/HomeView.vue');
+  const api = file('src/composables/useApi.ts');
+  const dialog = file('src/components/AccessibleDialog.vue');
+
+  for (const marker of ['fileGeneration', 'analysisGeneration', 'AbortController', 'resetPreparedFile', 'retryLowConfidence']) {
+    assert.match(home, new RegExp(marker), `missing analysis lifecycle marker: ${marker}`);
+  }
+  assert.match(home, /<AccessibleDialog/);
+  assert.match(home, /@close="dismissGuide"/);
+  assert.match(home, /@close="closeLowConfidenceModal"/);
+  assert.match(api, /signal\?: AbortSignal/);
+  assert.match(api, /removeEventListener\('abort'/);
+  assert.match(dialog, /role="dialog"/);
+  assert.match(dialog, /aria-modal="true"/);
+  assert.match(dialog, /event\.key === 'Escape'/);
+});
+
 test('references render as plain citations and reports localize the model name', () => {
   const about = file('src/views/AboutView.vue');
   const home = file('src/views/HomeView.vue');

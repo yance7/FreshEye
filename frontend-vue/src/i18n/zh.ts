@@ -161,21 +161,23 @@ const zh = {
       unavailable: '模型服务暂时不可用',
       rate_limit: '请求过于频繁，请稍后再试',
       format: '图片格式不支持',
-      size: '图片过大'
+      size: '图片过大',
+      preprocess: '图像读取或处理失败，请重试'
     },
     export: '导出 PDF 报告',
     lang_switch: 'EN',
     guide_modal: {
       title: '欢迎使用鲜眸',
       text: '上传一张鱼眼照片，AI 会自动分析新鲜度并生成可解释热力图。支持拖拽、粘贴与拍照。',
-      button: '开始使用'
+      button: '开始使用',
+      close: '关闭引导'
     },
     low_conf_modal: {
       title: 'AI 对这张图片的判断不够确定',
       text: '当前模型分数为 {{confidence}}%。低分可能来自模糊、反光、边界样本、未覆盖鱼种或模型判断困难，并不等于图片不是鱼眼。',
       advice: '建议重新拍摄清晰的鱼眼特写；若仍然偏低，请结合鱼鳃、气味与肉质判断。',
       retry: '📸 重新拍摄', view_anyway: '仍要查看结果',
-      button: '我知道了'
+      button: '我知道了', close: '关闭提示'
     },
     scan: { connecting: '正在连接 AI 服务', starting: '服务已连接，准备分析', analyzing: '正在分析鱼眼特征', heatmap: '正在生成热力图', done: '分析完成' },
     status: { checking: '正在检查 AI 服务', online: 'AI 服务在线', offline: 'AI 服务暂时离线' },

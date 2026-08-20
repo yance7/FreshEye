@@ -161,21 +161,23 @@ const en = {
       unavailable: 'Model service temporarily unavailable',
       rate_limit: 'Too many requests. Please try again later.',
       format: 'Unsupported format',
-      size: 'Image too large'
+      size: 'Image too large',
+      preprocess: 'Could not read or process the image. Please retry.'
     },
     export: 'Export PDF report',
     lang_switch: '中',
     guide_modal: {
       title: 'Welcome to FreshEye',
       text: 'Upload a fish eye photo, AI will analyze freshness and generate an explainable heatmap. Drag, paste or camera supported.',
-      button: 'Get Started'
+      button: 'Get Started',
+      close: 'Close welcome guide'
     },
     low_conf_modal: {
       title: 'The model is uncertain about this image',
       text: 'The current model score is {{confidence}}%. Low scores can result from blur, glare, boundary samples, uncovered species, or difficult cases; they do not mean the image is not a fish eye.',
       advice: 'Retake a clear close-up of the fish eye. If the score remains low, combine it with gills, smell, and texture.',
       retry: '📸 Retake photo', view_anyway: 'View result anyway',
-      button: 'OK'
+      button: 'OK', close: 'Close confidence notice'
     },
     scan: { connecting: 'Connecting to AI service', starting: 'Service ready · preparing analysis', analyzing: 'Analyzing fish-eye features', heatmap: 'Generating Grad-CAM heatmap', done: 'Analysis complete' },
     status: { checking: 'Checking AI service', online: 'AI service online', offline: 'AI service temporarily offline' },

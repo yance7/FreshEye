@@ -13,6 +13,7 @@ import { buildReportHtml } from '@/utils/pdfReport'
 import { dataUrlToBlob } from '@/utils/dataUrl'
 import CameraCaptureDialog from '@/components/CameraCaptureDialog.vue'
 import { useMotionPreference } from '@/composables/useMotionPreference'
+import AccessibleDialog from '@/components/AccessibleDialog.vue'
 
 const { t, tm, locale } = useI18n()
 const { toast } = useToast()
@@ -27,8 +28,9 @@ try {
   const saved = localStorage.getItem(MODEL_KEY) ?? localStorage.getItem(LEGACY_MODEL_KEY)
   if (saved === 'v1' || saved === 'v2') modelVersion.value = saved
 } catch { /* ignore */ }
-watch(modelVersion, (v) => {
+watch(modelVersion, (v, previous) => {
   try { localStorage.setItem(MODEL_KEY, v) } catch { /* ignore */ }
+  if (previous && v !== previous && analyzing.value) cancelAnalysis()
 })
 
 // ============ 文件 / 预览 ============
@@ -62,6 +64,13 @@ const showLowWarning = ref(true)
 const showOnboardingTip = ref(false)
 const scanStage = ref(0)
 let scanTimer: number | null = null
+let fileGeneration = 0
+let analysisGeneration = 0
+let analysisAbortController: AbortController | null = null
+const guideDialogTitleId = 'home-guide-dialog-title'
+const guideDialogDescriptionId = 'home-guide-dialog-description'
+const lowConfidenceDialogTitleId = 'home-low-confidence-dialog-title'
+const lowConfidenceDialogDescriptionId = 'home-low-confidence-dialog-description'
 
 // ============ Tab ============
 const activeTab = ref(0)
@@ -219,6 +228,30 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function cancelAnalysis(): void {
+  analysisGeneration += 1
+  analysisAbortController?.abort()
+  analysisAbortController = null
+  analyzing.value = false
+  stopScanning()
+}
+
+function resetPreparedFile(message = ''): void {
+  selectedFile.value = null
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+  previewUrl.value = ''
+  previewDataUrl.value = ''
+  uploadDataUrl.value = ''
+  imageDimensions.value = null
+  lastResult.value = null
+  lastHeatmap.value = ''
+  lastOriginalImage.value = ''
+  lastDuration.value = 0
+  lastTimestamp.value = ''
+  activeTab.value = 0
+  errorMsg.value = message
+}
+
 // ============ 文件校验 & 处理 ============
 function validateFile(file: File): boolean {
   const type = file.type.toLowerCase()
@@ -237,30 +270,47 @@ function validateFile(file: File): boolean {
   return true
 }
 
-async function handleFile(file: File): Promise<void> {
-  if (!validateFile(file)) return
+async function handleFile(file: File): Promise<boolean> {
+  if (!validateFile(file)) return false
+  const generation = ++fileGeneration
+  cancelAnalysis()
   errorMsg.value = ''
-  lastResult.value = null
-  lastHeatmap.value = ''
-  lastOriginalImage.value = ''
-  imageDimensions.value = null
-  activeTab.value = 0
-  selectedFile.value = file
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
-  previewUrl.value = URL.createObjectURL(file)
+  showLowConfidenceModal.value = false
+  const nextPreviewUrl = URL.createObjectURL(file)
   try {
     const full = await fileToDataUrl(file)
-    previewDataUrl.value = full
-    imageDimensions.value = await readImageDimensions(full)
-    uploadDataUrl.value = file.size > COMPRESS_THRESHOLD
+    const dimensions = await readImageDimensions(full)
+    const upload = file.size > COMPRESS_THRESHOLD
       ? await compressImage(full, 1280, 0.9)
       : full
+    if (generation !== fileGeneration) {
+      URL.revokeObjectURL(nextPreviewUrl)
+      return false
+    }
+
+    if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+    selectedFile.value = file
+    previewUrl.value = nextPreviewUrl
+    previewDataUrl.value = full
+    imageDimensions.value = dimensions
+    uploadDataUrl.value = upload
+    lastResult.value = null
+    lastHeatmap.value = ''
+    lastOriginalImage.value = ''
+    lastDuration.value = 0
+    lastTimestamp.value = ''
+    activeTab.value = 0
   } catch {
-    previewDataUrl.value = ''
-    uploadDataUrl.value = ''
+    URL.revokeObjectURL(nextPreviewUrl)
+    if (generation === fileGeneration) {
+      resetPreparedFile(t('home.errors.preprocess'))
+      toast.error(t('home.errors.preprocess'))
+    }
+    return false
   }
   toast.info(t('home.upload.analyze'))
   showOnboardingTip.value = false
+  return true
 }
 
 function onPickFile(): void {
@@ -318,9 +368,9 @@ function onPaste(e: ClipboardEvent): void {
   }
 }
 
-function onCameraCapture(file: File): void {
+async function onCameraCapture(file: File): Promise<void> {
   cameraModal.value = false
-  void handleFile(file)
+  await handleFile(file)
 }
 
 function openCamera(): void {
@@ -342,9 +392,10 @@ async function loadSample(src: string): Promise<void> {
     const blob = await res.blob()
     const extension = src.endsWith('.png') ? 'png' : 'webp'
     const file = new File([blob], `sample.${extension}`, { type: blob.type || `image/${extension}` })
-    await handleFile(file)
-    await nextTick()
-    document.getElementById('preview-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (await handleFile(file)) {
+      await nextTick()
+      document.getElementById('preview-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
   } catch {
     toast.error(t('home.errors.network'))
   } finally {
@@ -381,36 +432,47 @@ async function analyze(): Promise<void> {
     return
   }
   if (analyzing.value) return
+  analysisAbortController?.abort()
+  const request = ++analysisGeneration
+  const controller = new AbortController()
+  analysisAbortController = controller
+  const sourceFile = selectedFile.value
+  const sourcePreviewDataUrl = previewDataUrl.value
+  const sourceUploadDataUrl = uploadDataUrl.value
+  const sourceModel = modelVersion.value
   analyzing.value = true
   errorMsg.value = ''
+  showLowConfidenceModal.value = false
   showMidWarning.value = true
   showLowWarning.value = true
   startScanning()
   const start = performance.now()
   try {
-    const sourceFile = selectedFile.value
     let file = sourceFile
-    if (uploadDataUrl.value !== previewDataUrl.value) {
-      const uploadBlob = dataUrlToBlob(uploadDataUrl.value)
+    if (sourceUploadDataUrl !== sourcePreviewDataUrl) {
+      const uploadBlob = dataUrlToBlob(sourceUploadDataUrl)
       file = new File([uploadBlob], sourceFile.name || 'upload.jpg', {
         type: uploadBlob.type || sourceFile.type || 'image/jpeg'
       })
     }
-    const { prediction, heatmap_image } = await callPredictApi(file, modelVersion.value)
+    const { prediction, heatmap_image } = await callPredictApi(file, sourceModel, controller.signal)
+    if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value || sourceUploadDataUrl !== uploadDataUrl.value) return
     const duration = Math.round(performance.now() - start)
     lastResult.value = prediction
     lastHeatmap.value = heatmap_image
-    lastOriginalImage.value = previewDataUrl.value
+    lastOriginalImage.value = sourcePreviewDataUrl
     lastDuration.value = duration
     lastTimestamp.value = prediction.timestamp
     activeTab.value = 0
     const lvl = warningLevel(prediction.confidence_score)
     if (lvl === 'low') showLowConfidenceModal.value = true
-    await addHistoryRecord(previewDataUrl.value, duration, prediction, heatmap_image)
+    await addHistoryRecord(sourcePreviewDataUrl, duration, prediction, heatmap_image)
+    if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value) return
     toast.success(lvl === 'low'
       ? t('home.confidence_warn.low')
       : lvl === 'mid' ? t('home.confidence_warn.mid') : t('home.confidence_warn.high'))
   } catch (err) {
+    if (request !== analysisGeneration || controller.signal.aborted) return
     if (err instanceof ApiError) {
       errorMsg.value = t(`home.errors.${err.code}`)
     } else {
@@ -418,24 +480,19 @@ async function analyze(): Promise<void> {
     }
     toast.error(errorMsg.value)
   } finally {
-    analyzing.value = false
-    stopScanning()
+    if (request === analysisGeneration) {
+      analyzing.value = false
+      stopScanning()
+      if (analysisAbortController === controller) analysisAbortController = null
+    }
   }
 }
 
 function resetAll(): void {
+  fileGeneration += 1
+  cancelAnalysis()
   showLowConfidenceModal.value = false
-  selectedFile.value = null
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
-  previewUrl.value = ''
-  previewDataUrl.value = ''
-  uploadDataUrl.value = ''
-  lastResult.value = null
-  lastHeatmap.value = ''
-  lastOriginalImage.value = ''
-  imageDimensions.value = null
-  errorMsg.value = ''
-  activeTab.value = 0
+  resetPreparedFile()
   showMidWarning.value = true
   showLowWarning.value = true
 }
@@ -453,6 +510,9 @@ function retryLowConfidence(): void {
 // ============ 加载历史记录 ============
 function loadHistoryRecord(rec: HistoryRecord): void {
   if (rec.prediction) {
+    fileGeneration += 1
+    cancelAnalysis()
+    showLowConfidenceModal.value = false
     if (previewUrl.value && previewUrl.value.startsWith('blob:')) URL.revokeObjectURL(previewUrl.value)
     selectedFile.value = null
     uploadDataUrl.value = ''
@@ -929,6 +989,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  fileGeneration += 1
+  cancelAnalysis()
   syncMouseTracking(false)
   stopIdleDrift()
   if (countFrame !== null) cancelAnimationFrame(countFrame)
@@ -944,6 +1006,10 @@ function dismissGuide(): void {
   showGuide.value = false
   try { localStorage.setItem(GUIDE_KEY, '1') } catch { /* ignore */ }
 }
+
+function closeLowConfidenceModal(): void {
+  showLowConfidenceModal.value = false
+}
 </script>
 
 <template>
@@ -955,34 +1021,42 @@ function dismissGuide(): void {
   />
 
   <!-- 新手引导弹窗 -->
-  <transition name="route-fade">
-    <div v-if="showGuide" class="guide-overlay" @click="dismissGuide">
-      <div class="guide-modal" @click.stop>
-        <div class="guide-emoji">🐟</div>
-        <h3 class="guide-title">{{ t('home.guide_modal.title') }}</h3>
-        <p class="guide-text">{{ t('home.guide_modal.text') }}</p>
-        <button class="btn" type="button" @click="dismissGuide">{{ t('home.guide_modal.button') }}</button>
-      </div>
+  <AccessibleDialog
+    :open="showGuide"
+    :title-id="guideDialogTitleId"
+    :description-id="guideDialogDescriptionId"
+    panel-class="guide-dialog-panel"
+    @close="dismissGuide"
+  >
+    <div class="guide-modal">
+      <div class="guide-emoji">🐟</div>
+      <h3 :id="guideDialogTitleId" class="guide-title">{{ t('home.guide_modal.title') }}</h3>
+      <p :id="guideDialogDescriptionId" class="guide-text">{{ t('home.guide_modal.text') }}</p>
+      <button data-testid="guide-dismiss" class="btn" type="button" :aria-label="t('home.guide_modal.close')" @click="dismissGuide">{{ t('home.guide_modal.button') }}</button>
     </div>
-  </transition>
+  </AccessibleDialog>
 
   <!-- 低置信度警告弹窗 -->
-  <transition name="route-fade">
-    <div v-if="showLowConfidenceModal" class="guide-overlay" @click="showLowConfidenceModal = false">
-      <div class="guide-modal" @click.stop>
-        <div class="guide-emoji warn">⚠️</div>
-        <h3 class="guide-title">{{ t('home.low_conf_modal.title') }}</h3>
-        <p class="guide-text">
-          {{ formatMessage('home.low_conf_modal.text', { confidence: Math.round((lastResult?.confidence_score ?? 0) * 100) }) }}
-          <br />{{ t('home.low_conf_modal.advice') }}
-        </p>
-        <div class="confidence-modal-actions">
-          <button class="btn" type="button" @click="retryLowConfidence">{{ t('home.low_conf_modal.retry') }}</button>
-          <button class="btn alt" type="button" @click="showLowConfidenceModal = false">{{ t('home.low_conf_modal.view_anyway') }}</button>
-        </div>
+  <AccessibleDialog
+    :open="showLowConfidenceModal"
+    :title-id="lowConfidenceDialogTitleId"
+    :description-id="lowConfidenceDialogDescriptionId"
+    panel-class="guide-dialog-panel"
+    @close="closeLowConfidenceModal"
+  >
+    <div class="guide-modal">
+      <div class="guide-emoji warn">⚠️</div>
+      <h3 :id="lowConfidenceDialogTitleId" class="guide-title">{{ t('home.low_conf_modal.title') }}</h3>
+      <p :id="lowConfidenceDialogDescriptionId" class="guide-text">
+        {{ formatMessage('home.low_conf_modal.text', { confidence: Math.round((lastResult?.confidence_score ?? 0) * 100) }) }}
+        <br />{{ t('home.low_conf_modal.advice') }}
+      </p>
+      <div class="confidence-modal-actions">
+        <button data-testid="low-confidence-retry" class="btn" type="button" @click="retryLowConfidence">{{ t('home.low_conf_modal.retry') }}</button>
+        <button data-testid="low-confidence-view" class="btn alt" type="button" :aria-label="t('home.low_conf_modal.close')" @click="closeLowConfidenceModal">{{ t('home.low_conf_modal.view_anyway') }}</button>
       </div>
     </div>
-  </transition>
+  </AccessibleDialog>
 
   <!-- ============ Hero ============ -->
   <section class="hero reveal" aria-labelledby="hero-title">
@@ -1128,6 +1202,8 @@ function dismissGuide(): void {
         <button class="upload-cta alt" type="button" @click.stop="openCamera">📷 {{ t('home.upload.camera') }}</button>
       </div>
     </div>
+
+    <p v-if="errorMsg && !previewUrl" class="error-msg upload-error">⚠️ {{ errorMsg }}</p>
 
     <!-- 示例图片 -->
     <div id="sample-card" class="samples">
@@ -1845,6 +1921,7 @@ function dismissGuide(): void {
   padding: 10px 14px; background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md);
 }
+.upload-error { margin-inline: 0; }
 
 /* ============ 骨架屏 ============ */
 .skeleton-grid {
@@ -2140,11 +2217,13 @@ function dismissGuide(): void {
 .icon-btn.del:hover { color: var(--fresh-low); border-color: rgba(239, 68, 68, 0.5); }
 
 /* ============ 引导弹窗 ============ */
-.guide-overlay {
-  position: fixed; inset: 0; z-index: var(--z-modal);
-  display: grid; place-items: center; padding: var(--space-4);
-  background: rgba(4, 22, 43, 0.78); backdrop-filter: blur(8px);
-  animation: overlay-fade 0.25s ease;
+:global(.guide-dialog-panel) {
+  width: min(100%, 420px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
 }
 .guide-modal {
   max-width: 380px; width: 100%; padding: var(--space-6);

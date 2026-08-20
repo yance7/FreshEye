@@ -32,4 +32,22 @@ describe('prediction API adapter', () => {
       timestamp: '2026-08-20T00:00:00.000Z'
     })
   })
+
+  it('bridges a caller abort into the request timeout contract', async () => {
+    const external = new AbortController()
+    vi.stubGlobal('fetch', vi.fn((_: RequestInfo | URL, init?: RequestInit) => new Promise<never>((_, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        reject(new DOMException('aborted', 'AbortError'))
+      }, { once: true })
+    })))
+
+    const request = useApi().callPredictApi(
+      new File(['fish eye'], 'fish-eye.jpg', { type: 'image/jpeg' }),
+      'v2',
+      external.signal
+    )
+    external.abort()
+
+    await expect(request).rejects.toMatchObject({ name: 'ApiError', code: 'timeout' })
+  })
 })

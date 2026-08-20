@@ -63,9 +63,13 @@ export function useApi() {
    */
   async function callPredictApi(
     file: File,
-    modelVersion: 'v1' | 'v2' = 'v2'
+    modelVersion: 'v1' | 'v2' = 'v2',
+    signal?: AbortSignal
   ): Promise<GradCAMResult> {
     const { controller, timer } = createTimeoutController()
+    const abortFromCaller = (): void => controller.abort()
+    if (signal?.aborted) controller.abort()
+    else signal?.addEventListener('abort', abortFromCaller, { once: true })
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -97,6 +101,7 @@ export function useApi() {
       }
       throw new ApiError('network', '网络错误，请检查连接')
     } finally {
+      signal?.removeEventListener('abort', abortFromCaller)
       window.clearTimeout(timer)
     }
   }
