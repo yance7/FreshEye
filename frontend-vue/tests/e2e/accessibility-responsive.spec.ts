@@ -23,7 +23,10 @@ async function mockHealth(page: Page): Promise<void> {
 
 async function dismissGuide(page: Page): Promise<void> {
   const dismiss = page.getByTestId('guide-dismiss')
-  if (await dismiss.count()) await dismiss.click()
+  if (await dismiss.count()) {
+    await dismiss.click()
+    await expect(dismiss).toHaveCount(0)
+  }
 }
 
 test.beforeEach(async ({ page }) => {
@@ -52,7 +55,10 @@ test('keeps the page within the viewport matrix and preserves touch target sizes
         const rect = element.getBoundingClientRect()
         return rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44)
       })
-      .map((element) => `${element.tagName}.${element.className}`))
+      .map((element) => {
+        const rect = element.getBoundingClientRect()
+        return `${element.tagName}.${element.className} ${Math.round(rect.width)}x${Math.round(rect.height)} ${element.textContent?.trim().slice(0, 40) ?? ''}`
+      }))
     expect(undersizedControls, `${viewport.width}x${viewport.height}`).toEqual([])
   }
 

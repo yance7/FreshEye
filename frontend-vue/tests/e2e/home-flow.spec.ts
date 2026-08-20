@@ -24,7 +24,7 @@ function responseFor(fixture: Fixture): object {
       model_version: 'v2',
       timestamp: '2026-08-20T12:34:56.000Z'
     },
-    heatmap_image: 'data:image/png;base64,aGVhdG1hcA=='
+    heatmap_image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAJUlEQVR4nGMUWbCAgYFBTu4NAwMDEwMSYPywypyBgeHNdH50GQC+SgXm21VQBAAAAABJRU5ErkJggg=='
   }
 }
 

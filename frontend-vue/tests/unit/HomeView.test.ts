@@ -193,6 +193,7 @@ describe('HomeView interaction lifecycle', () => {
     first.resolve(prediction(2, 0.41))
     await settle()
 
+    await vi.waitFor(() => expect(wrapper.find('#result-section').exists()).toBe(true))
     const resultText = wrapper.find('#result-section').text()
     expect(resultText).toContain('高度新鲜')
     expect(resultText).not.toContain('当前等级: 不新鲜')
