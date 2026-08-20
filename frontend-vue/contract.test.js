@@ -302,6 +302,22 @@ test('responsive contract covers safe viewports, touch targets, and short landsc
   assert.doesNotMatch(responsive, /\.app-dialog-surface\s*\{[^}]*height:\s*\d+px/);
 });
 
+test('bilingual packs and reports have deterministic safety contracts', () => {
+  const zh = file('src/i18n/zh.ts');
+  const en = file('src/i18n/en.ts');
+  const report = file('src/utils/pdfReport.ts');
+  file('tests/unit/i18n.test.ts');
+  file('tests/unit/pdfReport.test.ts');
+
+  assert.match(zh, /guide_modal:[\s\S]*close:/);
+  assert.match(en, /guide_modal:[\s\S]*close:/);
+  assert.match(report, /export function buildReportHtml/);
+  assert.match(report, /function clampFinite/);
+  assert.match(report, /class="pdf-page pdf-single-page locale-/);
+  assert.match(report, /Page 1 \/ 1/);
+  assert.doesNotMatch(report, /https?:\/\/[^"']+\.(?:woff2?|ttf)/i);
+});
+
 test('references render as plain citations and reports localize the model name', () => {
   const about = file('src/views/AboutView.vue');
   const home = file('src/views/HomeView.vue');

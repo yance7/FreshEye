@@ -73,6 +73,12 @@ function safeImageSource(value: string | undefined): string {
   return ''
 }
 
+function clampFinite(value: unknown, min: number, max: number, fallback = 0): number {
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return fallback
+  return Math.min(max, Math.max(min, numeric))
+}
+
 function listHtml(items: string[] | undefined, className = 'pdf-list'): string {
   if (!items?.length) return ''
   return '<ul class="' + className + '">' + items.map((item) => '<li>' + escapeHtml(item) + '</li>').join('') + '</ul>'
@@ -117,20 +123,21 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
   ]
   const tone = palette[level] ?? palette[1]
   const levelLabel = labels.probabilityLabels[level] ?? labels.noImage
-  const confidence = Math.max(0, Math.min(1, Number(prediction.confidence_score) || 0))
+  const confidence = clampFinite(prediction.confidence_score, 0, 1)
   const confidencePercent = (confidence * 100).toFixed(1)
+  const durationMs = Math.round(clampFinite(input.durationMs, 0, 999999))
   const time = new Date(input.timestamp)
   const formattedTime = Number.isNaN(time.getTime())
     ? escapeHtml(input.timestamp)
     : escapeHtml(time.toLocaleString(input.locale === 'zh' ? 'zh-CN' : 'en-US'))
   const stackedProbabilities = ([0, 1, 2] as FreshnessLabel[]).map((probabilityLevel, index) => {
-    const value = Math.max(0, Math.min(1, Number(prediction.all_probabilities[probabilityLevel]) || 0))
+    const value = clampFinite(prediction.all_probabilities[probabilityLevel], 0, 1)
     const percent = (value * 100).toFixed(1)
     const text = value >= 0.1 ? escapeHtml(labels.probabilityLabels[index]) + ' ' + percent + '%' : ''
     return '<div class="pdf-bar-segment" style="flex:' + Math.max(value, 0.0001).toFixed(4) + ';background:' + palette[index].primary + '">' + text + '</div>'
   }).join('')
   const probabilityLegend = ([0, 1, 2] as FreshnessLabel[]).map((probabilityLevel, index) => {
-    const value = Math.max(0, Math.min(1, Number(prediction.all_probabilities[probabilityLevel]) || 0))
+    const value = clampFinite(prediction.all_probabilities[probabilityLevel], 0, 1)
     return '<span class="pdf-legend-item"><i style="background:' + palette[index].primary + '"></i>' +
       escapeHtml(labels.probabilityLabels[index]) + ' ' + (value * 100).toFixed(1) + '%</span>'
   }).join('')
@@ -203,7 +210,7 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
     '<main class="report"><div class="pdf-page pdf-single-page locale-' + input.locale + '" style="--primary:' + tone.primary + ';--deep:' + tone.deep + ';--tone-bg:' + tone.background + ';--tone-badge:' + tone.badge + '">',
     '<header class="pdf-header"><div class="pdf-header-brand"><div class="pdf-brand-main">FreshEye</div><div class="pdf-brand-sub">' + escapeHtml(labels.footer) + '</div></div>',
     '<div class="pdf-header-title"><span class="pdf-title-kicker">FRESHEYE REPORT</span><span class="pdf-title-main">' + escapeHtml(title) + '</span></div>',
-    '<div class="pdf-header-meta"><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.model) + '</strong> ' + escapeHtml(displayModel) + '</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.duration) + '</strong> ' + Math.max(0, Math.round(input.durationMs)) + ' ms</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.time) + '</strong> ' + formattedTime + '</span></div></header>',
+    '<div class="pdf-header-meta"><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.model) + '</strong> ' + escapeHtml(displayModel) + '</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.duration) + '</strong> ' + durationMs + ' ms</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.time) + '</strong> ' + formattedTime + '</span></div></header>',
     '<hr class="pdf-header-divider" />',
     '<section class="pdf-section"><h2 class="pdf-section-title"><span class="pdf-section-mark">01</span>' + escapeHtml(labels.heading) + '</h2><div class="pdf-overview"><div class="pdf-images">',
     imageBlock(labels.original, input.originalImage, labels.noImage),
