@@ -24,9 +24,10 @@ test('Vue source exposes the application and view contract', () => {
   }
 
   const home = file('src/views/HomeView.vue');
+  const camera = file('src/components/CameraCaptureDialog.vue');
   const fish = file('src/views/FishView.vue');
   const about = file('src/views/AboutView.vue');
-  assert.match(home, /getUserMedia/);
+  assert.match(camera, /getUserMedia/);
   assert.match(home, /buildReportHtml/);
   assert.match(home, /low_conf_modal/);
   assert.match(fish, /buyingTips/);
@@ -67,6 +68,7 @@ test('API and history adapters retain the legacy browser contract', () => {
 
 test('Vue preserves the legacy interaction surface', () => {
   const home = file('src/views/HomeView.vue');
+  const camera = file('src/components/CameraCaptureDialog.vue');
   const app = file('src/App.vue');
   const entry = file('src/main.ts');
   const router = file('src/router/index.ts');
@@ -74,9 +76,10 @@ test('Vue preserves the legacy interaction surface', () => {
   const api = file('src/composables/useApi.ts');
   const report = file('src/utils/pdfReport.ts');
 
-  for (const marker of ['onDrop', 'onPaste', 'getUserMedia', 'modelVersion', 'lastHeatmap', 'showLowConfidenceModal', 'toggleFavorite', 'clearAllHistory', 'exportPDF', 'localStorage']) {
+  for (const marker of ['onDrop', 'onPaste', 'modelVersion', 'lastHeatmap', 'showLowConfidenceModal', 'toggleFavorite', 'clearAllHistory', 'exportPDF', 'localStorage']) {
     assert.match(home, new RegExp(marker.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')), `missing Home behavior: ${marker}`);
   }
+  assert.match(camera, /getUserMedia/);
   assert.match(api, /predict_with_gradcam/);
   assert.match(report, /window\.print/);
   assert.match(router, /guide\.html/);
@@ -230,11 +233,14 @@ test('select controls use a dark native skin and readable options', () => {
 
 test('camera viewfinder exposes a circular fish-eye guide and safe lifecycle hooks', () => {
   const home = file('src/views/HomeView.vue');
-  assert.match(home, /camera-guide-ring/);
-  assert.match(home, /cameraRequestId/);
-  assert.match(home, /camera\.guide/);
-  assert.match(home, /camera-viewfinder::before/);
-  assert.match(home, /aria-keyshortcuts="Escape"/);
+  const camera = file('src/components/CameraCaptureDialog.vue');
+  assert.match(home, /CameraCaptureDialog/);
+  assert.match(camera, /camera-guide-ring/);
+  assert.match(camera, /requestGeneration/);
+  assert.match(camera, /camera\.guide/);
+  assert.match(camera, /camera-viewfinder::before/);
+  assert.match(camera, /getTracks\(\)\.forEach/);
+  assert.match(camera, /new File\(\[blob\], 'fresheye-camera\.jpg'/);
 });
 
 test('references render as plain citations and reports localize the model name', () => {
