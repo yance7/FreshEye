@@ -53,11 +53,15 @@ test('shared shell and bilingual runtime are present', () => {
 test('API and history adapters retain the legacy browser contract', () => {
   const api = file('src/composables/useApi.ts');
   const history = file('src/composables/useHistory.ts');
+  const prediction = file('src/utils/prediction.ts');
 
   assert.match(api, /predict_with_gradcam/);
   assert.match(api, /model_version/);
   assert.match(api, /health/);
+  assert.match(api, /normalizePrediction/);
   assert.match(history, /localStorage/);
+  assert.match(history, /normalizePrediction/);
+  assert.match(prediction, /export function normalizePrediction/);
   assert.match(file('src/config/index.ts'), /fresheye-history/);
 });
 

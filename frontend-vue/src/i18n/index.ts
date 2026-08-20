@@ -6,10 +6,18 @@ import en from './en'
 import { LEGACY_LOCALE_KEYS, LOCALE_KEY } from '@/config'
 import type { Locale } from '@/types'
 
+type TranslationShape<T> = T extends string
+  ? string
+  : T extends readonly (infer U)[]
+    ? TranslationShape<U>[]
+    : T extends object
+      ? { [K in keyof T]: TranslationShape<T[K]> }
+      : T
+
 /** 全部语言包映射 */
-const messages: Record<Locale, typeof zh> = {
+const messages: Record<Locale, TranslationShape<typeof zh>> = {
   zh,
-  en: en as unknown as typeof zh
+  en
 }
 
 /** 读取本地存储的初始语言，默认 zh */

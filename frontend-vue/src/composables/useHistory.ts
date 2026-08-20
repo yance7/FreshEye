@@ -2,7 +2,8 @@
 // localStorage 持久化，最多 50 条，缩略图自动压缩。
 import { ref } from 'vue'
 import { FAVORITES_KEY, HISTORY_KEY, LEGACY_FAVORITES_KEYS, LEGACY_HISTORY_KEYS, MAX_HISTORY } from '@/config'
-import type { FreshnessLabel, HistoryRecord, PredictionResult, ProbabilityMap } from '@/types'
+import type { HistoryRecord, PredictionResult } from '@/types'
+import { normalizePrediction } from '@/utils/prediction'
 
 /** 全局共享的历史记录列表 */
 const history = ref<HistoryRecord[]>([])
@@ -46,65 +47,24 @@ function saveHistory(list: HistoryRecord[]): void {
   }
 }
 
-function normalizeLevel(level: unknown, label: unknown, probabilities: ProbabilityMap): FreshnessLabel {
-  const numeric = Number(label)
-  if (numeric === 0 || numeric === 1 || numeric === 2) return numeric
-  if (typeof level === 'string') {
-    const value = level.toLowerCase()
-    if (value.includes('高度') || value.includes('highly')) return 0
-    if (value === '新鲜' || value === 'fresh') return 1
-    if (value.includes('不新鲜') || value.includes('not fresh')) return 2
-  }
-  return ([0, 1, 2] as FreshnessLabel[]).reduce((best, current) =>
-    probabilities[current] > probabilities[best] ? current : best, 0 as FreshnessLabel)
-}
-
-function normalizeProbabilities(raw: unknown): ProbabilityMap {
-  const source: Record<string, unknown> = Array.isArray(raw)
-    ? { 0: raw[0], 1: raw[1], 2: raw[2] }
-    : (raw && typeof raw === 'object' ? raw as Record<string, unknown> : {})
-  const valueAt = (index: FreshnessLabel): unknown => {
-    const aliases: Record<FreshnessLabel, string[]> = {
-      0: ['0', '高度新鲜', 'Highly Fresh', 'highly_fresh', 'highlyFresh'],
-      1: ['1', '新鲜', 'Fresh', 'fresh'],
-      2: ['2', '不新鲜', 'Not Fresh', 'not_fresh', 'notFresh']
-    }
-    return aliases[index].map((key) => source[key]).find((value) => value !== undefined) ?? 0
-  }
-  const value = (input: unknown): number => {
-    const numeric = Number(input)
-    if (!Number.isFinite(numeric)) return 0
-    return Math.max(0, Math.min(1, numeric > 1 ? numeric / 100 : numeric))
-  }
-  return { 0: value(valueAt(0)), 1: value(valueAt(1)), 2: value(valueAt(2)) }
-}
-
 /** 兼容旧版 HTML 前端写入的历史记录字段，避免迁移后历史记录“消失”。 */
 function normalizeRecord(raw: unknown): HistoryRecord | null {
   if (!raw || typeof raw !== 'object') return null
-  const source = raw as Record<string, any>
-  const probabilities = normalizeProbabilities(
-    source.prediction?.probabilityValues
-      ?? source.probabilityValues
-      ?? source.prediction?.all_probabilities
-      ?? source.probabilities
-  )
-  const level = normalizeLevel(
-    source.prediction?.freshness_level ?? source.prediction?.freshnessLevel ?? source.freshnessLevel,
-    source.prediction?.freshness_label ?? source.prediction?.freshnessLabel ?? source.freshnessLabel,
-    probabilities
-  )
+  const source = raw as Record<string, unknown>
+  const nestedPrediction = source.prediction && typeof source.prediction === 'object'
+    ? source.prediction as Record<string, unknown>
+    : {}
   const hasPrediction = Boolean(source.prediction) || 'freshnessLevel' in source || 'freshnessLabel' in source || 'confidenceScore' in source || 'probabilityValues' in source
   const prediction: PredictionResult | undefined = hasPrediction
-    ? {
-        freshness_level: level,
-        freshness_label: level,
-        confidence_score: Math.max(0, Math.min(1, Number(source.prediction?.confidence_score ?? source.confidenceScore ?? 0) || 0)),
-        all_probabilities: probabilities,
-        description: source.prediction?.description ?? source.description ?? '',
-        model_version: source.prediction?.model_version ?? source.modelVersion ?? 'v2',
-        timestamp: source.prediction?.timestamp ?? source.timestamp ?? new Date().toISOString()
-      }
+    ? normalizePrediction({
+        freshness_level: nestedPrediction.freshness_level ?? nestedPrediction.freshnessLevel ?? source.freshnessLevel,
+        freshness_label: nestedPrediction.freshness_label ?? nestedPrediction.freshnessLabel ?? source.freshnessLabel,
+        confidence_score: nestedPrediction.confidence_score ?? nestedPrediction.confidenceScore ?? source.confidenceScore,
+        all_probabilities: nestedPrediction.all_probabilities ?? nestedPrediction.probabilityValues ?? source.probabilityValues ?? source.probabilities,
+        description: nestedPrediction.description ?? source.description,
+        model_version: nestedPrediction.model_version ?? nestedPrediction.modelVersion ?? source.modelVersion,
+        timestamp: nestedPrediction.timestamp ?? source.timestamp
+      }, 'v2')
     : undefined
   const data = source.data ?? source.thumbnail
   if (typeof data !== 'string' || !data) return null

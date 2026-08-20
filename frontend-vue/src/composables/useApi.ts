@@ -1,7 +1,8 @@
 // 鲜眸 FreshEye · API 调用 composable
 // 封装健康检查与 /predict_with_gradcam 推理请求，含 AbortController 超时控制。
 import { API_BASE_URL, API_TIMEOUT } from '@/config'
-import type { GradCAMResult, PredictionResult, FreshnessLabel, ProbabilityMap } from '@/types'
+import type { GradCAMResult } from '@/types'
+import { normalizePrediction } from '@/utils/prediction'
 
 /** 自定义 API 错误，附带可读的错误码便于上层 i18n 提示 */
 export class ApiError extends Error {
@@ -34,54 +35,6 @@ async function handleResponse(res: Response): Promise<any> {
   if (!res.ok) throw new ApiError('server', `AI服务暂时不可用 (${res.status})`)
   const data = await res.json()
   return data
-}
-
-function clampProbability(value: unknown): number {
-  const numeric = typeof value === 'number'
-    ? value
-    : typeof value === 'string' && value.trim() !== ''
-      ? Number(value)
-      : Number.NaN
-  if (!Number.isFinite(numeric)) return 0
-  return Math.max(0, Math.min(1, numeric > 1 ? numeric / 100 : numeric))
-}
-
-function normalizeProbabilities(raw: unknown): ProbabilityMap {
-  const source = Array.isArray(raw)
-    ? { 0: raw[0], 1: raw[1], 2: raw[2] } as Record<string, unknown>
-    : (raw && typeof raw === 'object' ? raw as Record<string, unknown> : {})
-  const valueAt = (index: FreshnessLabel): unknown => {
-    const aliases: Record<FreshnessLabel, string[]> = {
-      0: ['0', '高度新鲜', 'Highly Fresh', 'highly_fresh', 'highlyFresh'],
-      1: ['1', '新鲜', 'Fresh', 'fresh'],
-      2: ['2', '不新鲜', 'Not Fresh', 'not_fresh', 'notFresh']
-    }
-    return aliases[index].map((key) => source[key]).find((value) => value !== undefined) ?? 0
-  }
-  return {
-    0: clampProbability(valueAt(0)),
-    1: clampProbability(valueAt(1)),
-    2: clampProbability(valueAt(2))
-  }
-}
-
-function normalizeLabel(level: unknown, label: unknown, probabilities: ProbabilityMap): FreshnessLabel {
-  const numericLabel = typeof label === 'number'
-    ? label
-    : typeof label === 'string' && label.trim() !== ''
-      ? Number(label)
-      : Number.NaN
-  if (Number.isFinite(numericLabel) && (numericLabel === 0 || numericLabel === 1 || numericLabel === 2)) return numericLabel
-
-  if (typeof level === 'string') {
-    const value = level.toLowerCase()
-    if (value.includes('高度') || value.includes('highly') || value.includes('very')) return 0
-    if (value === '新鲜' || value === 'fresh') return 1
-    if (value.includes('不新鲜') || value.includes('not fresh') || value.includes('stale')) return 2
-  }
-
-  const entries = [0, 1, 2] as FreshnessLabel[]
-  return entries.reduce((best, current) => probabilities[current] > probabilities[best] ? current : best, 0 as FreshnessLabel)
 }
 
 /** 健康检查：探测 AI 服务是否在线 */
@@ -128,18 +81,7 @@ export function useApi() {
       const raw = await handleResponse(res)
 
       // 适配后端返回结构：prediction 字段 + heatmap_image 字段
-      const source = raw.prediction ?? raw
-      const allProbabilities = normalizeProbabilities(source.all_probabilities ?? raw.all_probabilities)
-      const label = normalizeLabel(source.freshness_level, source.freshness_label, allProbabilities)
-      const prediction: PredictionResult = {
-        freshness_level: label,
-        freshness_label: label,
-        confidence_score: clampProbability(source.confidence_score ?? raw.confidence_score),
-        all_probabilities: allProbabilities,
-        description: source.description ?? raw.description ?? '',
-        model_version: source.model_version ?? raw.model_version ?? modelVersion,
-        timestamp: source.timestamp ?? raw.timestamp ?? new Date().toISOString()
-      }
+      const prediction = normalizePrediction({ ...raw, ...(raw.prediction ?? {}) }, modelVersion)
 
       let heatmap = raw.heatmap_image ?? raw.heatmap ?? ''
       // 补全 data URI 前缀
