@@ -517,7 +517,11 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
 
 /* 对比表 */
 .table-wrap {
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--card);

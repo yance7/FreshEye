@@ -197,7 +197,7 @@ onBeforeUnmount(invalidateAndStop)
       </div>
 
       <p v-if="cameraError" class="camera-help">{{ t('home.camera.fallback_help') }}</p>
-      <div class="camera-actions">
+      <div class="camera-actions action-row">
         <button data-testid="camera-flip" class="btn alt" type="button" :disabled="cameraStarting || cameraError" @click="flipCamera">↻ {{ t('home.camera.flip') }}</button>
         <button data-testid="camera-capture" class="btn" type="button" :disabled="cameraStarting || cameraError || capturing" @click="captureCamera">⌾ {{ t('home.camera.capture') }}</button>
         <button v-if="cameraError" data-testid="camera-fallback" class="btn alt" type="button" @click="handleFallback">{{ t('home.camera.fallback') }}</button>
@@ -256,7 +256,7 @@ onBeforeUnmount(invalidateAndStop)
 
 @media (max-width: 480px) {
   :global(.camera-dialog-shell) { padding: 14px; }
-  .camera-actions > * { flex: 1 1 140px; }
+  .camera-actions > * { flex: 1 1 100%; width: 100%; }
 }
 
 @media (max-height: 520px) and (orientation: landscape) {

@@ -282,6 +282,26 @@ test('analysis lifecycle rejects stale work and modal interactions stay accessib
   assert.match(dialog, /event\.key === 'Escape'/);
 });
 
+test('responsive contract covers safe viewports, touch targets, and short landscape', () => {
+  const global = file('src/styles/global.css');
+  const about = file('src/views/AboutView.vue');
+  const dialog = file('src/components/AccessibleDialog.vue');
+  const camera = file('src/components/CameraCaptureDialog.vue');
+  const responsive = `${global}\n${about}\n${dialog}\n${camera}`;
+
+  assert.match(global, /min-height:\s*100svh/);
+  assert.match(global, /\.table-wrap[\s\S]*max-width:\s*100%/);
+  assert.match(about, /\.table-wrap[\s\S]*overscroll-behavior-inline:\s*contain/);
+  assert.match(global, /\.btn[\s\S]*min-height:\s*44px/);
+  assert.match(global, /\.select-field__native[\s\S]*min-height:\s*44px/);
+  assert.match(global, /\.nav-toggle[\s\S]*min-height:\s*44px/);
+  assert.match(responsive, /@media \(max-height:\s*520px\) and \(orientation:\s*landscape\)[\s\S]*\.app-dialog-overlay[\s\S]*place-items:\s*start center/);
+  assert.match(camera, /@media \(max-height:\s*520px\) and \(orientation:\s*landscape\)[\s\S]*\.camera-dialog-shell[\s\S]*margin-block:\s*8px/);
+  assert.match(camera, /@media \(max-width:\s*480px\)[\s\S]*\.camera-actions\s*>\s*\*\s*\{\s*flex:\s*1 1 100%/);
+  assert.match(global, /button:disabled[\s\S]*cursor:\s*not-allowed/);
+  assert.doesNotMatch(responsive, /\.app-dialog-surface\s*\{[^}]*height:\s*\d+px/);
+});
+
 test('references render as plain citations and reports localize the model name', () => {
   const about = file('src/views/AboutView.vue');
   const home = file('src/views/HomeView.vue');
