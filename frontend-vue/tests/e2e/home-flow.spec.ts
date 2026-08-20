@@ -58,7 +58,11 @@ async function prepareSample(page: Page, index = 1): Promise<void> {
 
 async function analyze(page: Page): Promise<void> {
   await page.locator('.preview-actions .btn').first().click()
-  await expect(page.locator('#result-section')).toBeVisible()
+  await expect.poll(() => page.locator('#result-section').count()).toBe(1)
+  await expect.poll(
+    () => page.locator('#result-section').evaluate((element) => getComputedStyle(element).opacity),
+    { timeout: 2_000, message: 'analysis results should be revealed after completion' }
+  ).toBe('1')
 }
 
 test('completes the mocked analysis workflow and protects interaction state', async ({ page }) => {

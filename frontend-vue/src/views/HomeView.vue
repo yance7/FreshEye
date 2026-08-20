@@ -1281,7 +1281,7 @@ function closeLowConfidenceModal(): void {
     </div>
   </section>
 
-  <section v-if="lastResult" id="result-section" class="reveal">
+  <section v-if="lastResult" id="result-section" class="reveal" :class="{ revealed: Boolean(lastResult) }">
     <div class="section-head">
       <h2 class="section-title">{{ t('home.result.report_title') }}</h2>
       <div class="result-toolbar">
@@ -1656,7 +1656,8 @@ function closeLowConfidenceModal(): void {
 }
 .hero-scroll-cue {
   margin-top: var(--space-5); display: inline-flex; flex-direction: column;
-  align-items: center; gap: 4px; color: var(--muted); font-size: 12px;
+  align-items: center; justify-content: center; min-height: 44px; padding: 10px 6px;
+  gap: 4px; color: var(--muted); font-size: 12px;
   letter-spacing: 1.5px; text-decoration: none; transition: color var(--transition);
   animation: fadeUp 0.9s ease 0.6s both;
 }
@@ -1718,7 +1719,7 @@ function closeLowConfidenceModal(): void {
 .hero-evidence-item strong { color: var(--foam); font-weight: 700; font-variant-numeric: tabular-nums; }
 .hero-evidence-link {
   display: inline-flex; align-items: center; gap: 7px; color: var(--aqua);
-  font-size: 11px; font-weight: 700; text-decoration: none;
+  min-height: 44px; padding: 10px 0; font-size: 11px; font-weight: 700; text-decoration: none;
   transition: color var(--transition), transform var(--transition);
 }
 .hero-evidence-link:hover { color: var(--foam); }
@@ -1913,7 +1914,7 @@ function closeLowConfidenceModal(): void {
   box-shadow: none;
 }
 .btn.alt:hover { border-color: var(--border-hover); background: var(--card-hover); }
-.btn.small { padding: 7px 14px; font-size: 13px; min-height: 36px; }
+.btn.small { padding: 9px 14px; font-size: 13px; min-height: 44px; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .btn .spinner { margin-right: 2px; }
 .error-msg {
@@ -2008,7 +2009,15 @@ function closeLowConfidenceModal(): void {
 .result-action-block { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(189, 246, 239, 0.14); }
 .result-action { margin: 7px 0 0; max-width: 46em; color: var(--foam); font-size: 15px; line-height: 1.7; }
 .result-primary-links { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 16px; }
-.result-link { color: var(--aqua); font-size: 13px; font-weight: 700; }
+.result-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 0;
+  color: var(--aqua);
+  font-size: 13px;
+  font-weight: 700;
+}
 .result-link:hover { color: var(--foam); }
 .result-link-muted { color: var(--muted); }
 .result-primary-confidence { display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 16px; border: 1px solid rgba(189, 246, 239, 0.1); border-radius: var(--radius-lg); background: rgba(0, 8, 20, 0.22); }
@@ -2040,7 +2049,7 @@ function closeLowConfidenceModal(): void {
   overflow-x: auto;
 }
 .tab {
-  flex: 1; min-width: 80px; padding: 10px 14px; border-radius: var(--radius-sm);
+  flex: 1; min-width: 80px; min-height: 44px; padding: 10px 14px; border-radius: var(--radius-sm);
   font-size: 13.5px; font-weight: 600; color: var(--muted);
   transition: color var(--transition), background var(--transition);
   white-space: nowrap;
@@ -2208,7 +2217,7 @@ function closeLowConfidenceModal(): void {
 .history-time { font-size: 11.5px; color: var(--muted); }
 .history-actions { display: flex; gap: 4px; flex-shrink: 0; }
 .icon-btn {
-  width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center;
   font-size: 14px; color: var(--muted); background: transparent;
   border: 1px solid var(--border); transition: all var(--transition);
 }
