@@ -614,6 +614,40 @@ section { margin-bottom: var(--space-7); }
 .nav-overlay-links a:hover, .nav-overlay-links a.router-link-active { color: var(--aqua); }
 .nav-overlay-links .lang-switch { margin: 8px auto 0; }
 
+/* ============ 通用无障碍弹窗 ============ */
+.app-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+           max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(1, 12, 28, 0.76);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.app-dialog-surface {
+  width: min(100%, 640px);
+  max-height: calc(100svh - 32px);
+  overflow: auto;
+  padding: var(--space-5);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(145deg, rgba(8, 49, 82, 0.98), rgba(4, 22, 43, 0.99));
+  color: var(--foam);
+  box-shadow: 0 24px 64px rgba(1, 8, 18, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.app-dialog-surface:focus-visible { outline: 2px solid var(--aqua); outline-offset: 3px; }
+@supports (height: 100dvh) { .app-dialog-surface { max-height: calc(100dvh - 32px); } }
+.app-dialog-enter-active, .app-dialog-leave-active {
+  transition: opacity var(--transition), transform var(--transition);
+}
+.app-dialog-enter-from, .app-dialog-leave-to { opacity: 0; }
+.app-dialog-enter-from .app-dialog-surface, .app-dialog-leave-to .app-dialog-surface { transform: translateY(12px) scale(0.98); }
+
 .sr-only {
   position: absolute !important;
   width: 1px !important;
