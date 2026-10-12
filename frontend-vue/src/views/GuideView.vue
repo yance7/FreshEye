@@ -28,7 +28,10 @@ watch(locale, resetFaqs, { immediate: true })
 
 function toggleFaq(idx: number): void {
   const faq = faqs.value[idx]
-  if (faq) faq.open = !faq.open
+  if (!faq) return
+  const shouldOpen = !faq.open
+  faqs.value.forEach((item) => { item.open = false })
+  faq.open = shouldOpen
 }
 </script>
 
@@ -120,9 +123,16 @@ function toggleFaq(idx: number): void {
           @click="toggleFaq(i)"
         >
           <span class="accordion-title">{{ f.q }}</span>
-          <span class="accordion-arrow" aria-hidden="true">▶</span>
+          <span class="accordion-chevron" aria-hidden="true"></span>
         </button>
-        <div :id="`guide-faq-panel-${i}`" class="accordion-body">
+        <div
+          :id="`guide-faq-panel-${i}`"
+          class="accordion-body"
+          role="region"
+          :aria-labelledby="`guide-faq-toggle-${i}`"
+          :aria-hidden="!f.open"
+          :inert="!f.open"
+        >
           <div class="accordion-inner">
             <p style="margin:0; font-size:13.5px; color:var(--foam); line-height:1.7;">{{ f.a }}</p>
           </div>
@@ -230,37 +240,6 @@ function toggleFaq(idx: number): void {
 .tip-card p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
 
 .faq-list { display: flex; flex-direction: column; gap: var(--space-3); }
-.accordion {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--card);
-  overflow: hidden;
-  transition: border-color var(--transition), background var(--transition);
-}
-.accordion:hover { border-color: var(--border-hover); }
-.accordion-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 48px;
-  padding: 16px 20px;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  user-select: none;
-}
-.accordion-title { font-size: 15px; font-weight: 600; color: var(--foam); }
-.accordion-arrow {
-  font-size: 11px;
-  color: var(--aqua);
-  transition: transform var(--transition);
-}
-.accordion.is-open .accordion-arrow { transform: rotate(90deg); }
-.accordion-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-expand) var(--ease-decel); }
-.accordion.is-open .accordion-body { grid-template-rows: 1fr; }
-.accordion-inner { min-height: 0; overflow: hidden; padding: 0 20px 16px; }
-
 @media (max-width: 640px) {
   .users-grid { grid-template-columns: 1fr; }
   .viewfinder-guide { grid-template-columns: 1fr; }

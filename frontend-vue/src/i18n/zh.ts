@@ -612,7 +612,7 @@ const zh = {
   },
   footer: {
     inference: '推理流水线',
-    desc: '上传鱼眼照片，AI 秒级分析水产品新鲜度。轻量化模型 + Grad-CAM 可解释热力图，让每一次判断都有据可依。',
+    desc: '基于鱼眼图像与 Grad-CAM 的水产品视觉新鲜度辅助评估。',
     nav_title: '快速导航',
     stack_title: '技术栈',
     nav_home: '首页 · 开始检测',
@@ -620,9 +620,9 @@ const zh = {
     nav_fish: '鱼种百科',
     nav_about: '技术细节',
     nav_source: '开源代码 ↗',
-    competition1: '🏆 TRAE AI 创造力大赛',
-    competition2: '🏷 社会服务赛道',
-    competition3: '👤 参赛者：祈雨柒',
+    competition1: 'TRAE AI 创造力大赛',
+    competition2: '社会服务赛道',
+    competition3: '参赛者 · 祈雨柒',
     copy: '鲜眸 · FreshEye © 2026 · 一拍知鲜，吃得放心'
   },
   common: { back_top: '回到顶部', skip: '跳到主内容', language_changed: '已切换为中文' }

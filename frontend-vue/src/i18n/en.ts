@@ -610,7 +610,7 @@ const en = {
   },
   footer: {
     inference: 'Inference pipeline',
-    desc: 'Upload a fish eye photo, AI analyzes freshness in seconds. Lightweight model + Grad-CAM heatmap — every judgment backed by evidence.',
+    desc: 'Fish-eye image freshness assessment with explainable Grad-CAM evidence.',
     nav_title: 'Quick Links',
     stack_title: 'Tech Stack',
     nav_home: 'Home · Detect',
@@ -618,9 +618,9 @@ const en = {
     nav_fish: 'Species Encyclopedia',
     nav_about: 'Tech Details',
     nav_source: 'Source Code ↗',
-    competition1: '🏆 TRAE AI Creativity Contest',
-    competition2: '🏷 Social Service Track',
-    competition3: '👤 Contestant: Qiyuqi',
+    competition1: 'TRAE AI Creativity Contest',
+    competition2: 'Social Service Track',
+    competition3: 'Contestant · Qiyuqi',
     copy: 'FreshEye © 2026 · Snap to know, eat with confidence'
   },
   common: { back_top: 'Back to top', skip: 'Skip to main content', language_changed: 'Language switched to English' }

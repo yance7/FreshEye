@@ -123,9 +123,16 @@ const accordions = reactive<Record<string, boolean>>({
   safety: false,
   best: false
 })
+const detailAccordionKeys = ['appearance', 'trend', 'standard'] as const
+const adviceAccordionKeys = ['storage', 'consumption', 'processing', 'safety', 'best'] as const
 
 function toggleAccordion(key: string): void {
-  accordions[key] = !accordions[key]
+  const shouldOpen = !accordions[key]
+  const group = detailAccordionKeys.includes(key as typeof detailAccordionKeys[number])
+    ? detailAccordionKeys
+    : adviceAccordionKeys
+  group.forEach((item) => { accordions[item] = false })
+  accordions[key] = shouldOpen
 }
 
 // ============ Hero 鱼眼 ============
@@ -1440,9 +1447,16 @@ function closeLowConfidenceModal(): void {
           @click="toggleAccordion(sec.key)"
         >
           <span class="accordion-title">{{ sec.title }}</span>
-          <span class="accordion-arrow" aria-hidden="true">▶</span>
+          <span class="accordion-chevron" aria-hidden="true"></span>
         </button>
-        <div :id="`detail-panel-${sec.key}`" class="accordion-body">
+        <div
+          :id="`detail-panel-${sec.key}`"
+          class="accordion-body"
+          role="region"
+          :aria-labelledby="`detail-toggle-${sec.key}`"
+          :aria-hidden="!accordions[sec.key]"
+          :inert="!accordions[sec.key]"
+        >
           <div class="accordion-inner">
             <p class="sec-desc">{{ sec.desc }}</p>
             <ul class="sec-items">
@@ -1456,7 +1470,7 @@ function closeLowConfidenceModal(): void {
     <!-- Tab 4: 处理建议 -->
     <div v-show="activeTab === 3" role="tabpanel" aria-labelledby="tab-3" class="tab-panel">
       <div
-        v-for="a in adviceSections"
+        v-for="(a, index) in adviceSections"
         :key="a.key"
         class="accordion"
         :class="{ 'is-open': accordions[a.key] }"
@@ -1469,10 +1483,20 @@ function closeLowConfidenceModal(): void {
           :aria-controls="`advice-panel-${a.key}`"
           @click="toggleAccordion(a.key)"
         >
-          <span class="accordion-title"><span class="advice-icon" aria-hidden="true">{{ a.icon }}</span> {{ a.title }}</span>
-          <span class="accordion-arrow" aria-hidden="true">▶</span>
+          <span class="accordion-title">
+            <span class="advice-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
+            {{ a.title }}
+          </span>
+          <span class="accordion-chevron" aria-hidden="true"></span>
         </button>
-        <div :id="`advice-panel-${a.key}`" class="accordion-body">
+        <div
+          :id="`advice-panel-${a.key}`"
+          class="accordion-body"
+          role="region"
+          :aria-labelledby="`advice-toggle-${a.key}`"
+          :aria-hidden="!accordions[a.key]"
+          :inert="!accordions[a.key]"
+        >
           <div class="accordion-inner">
             <p v-if="a.desc" class="sec-desc">{{ a.desc }}</p>
             <ul v-if="a.items?.length" class="advice-items">
@@ -2109,35 +2133,6 @@ function closeLowConfidenceModal(): void {
 .compare-hint { margin: var(--space-3) 0 0; font-size: 12.5px; color: var(--muted); text-align: center; }
 .vision-explain { margin: 10px auto 0; max-width: 70ch; color: var(--foam); font-size: 13px; line-height: 1.7; text-align: center; }
 .vision-explain.muted { color: var(--muted); }
-
-/* ============ 手风琴 ============ */
-.accordion {
-  border: 1px solid var(--border); border-radius: var(--radius-card);
-  background: var(--card); overflow: hidden; margin-bottom: var(--space-3);
-  transition: border-color var(--transition), background var(--transition);
-}
-.accordion:hover { border-color: var(--border-hover); }
-.accordion-head {
-  display: flex; align-items: center; justify-content: space-between;
-  width: 100%; min-height: 48px; padding: 14px 18px;
-  color: inherit; text-align: left; cursor: pointer; user-select: none;
-}
-.accordion-title { font-size: 14.5px; font-weight: 600; color: var(--foam); display: flex; align-items: center; gap: 8px; }
-.advice-icon { font-size: 16px; }
-.accordion-arrow { font-size: 11px; color: var(--aqua); transition: transform var(--transition); }
-.accordion.is-open .accordion-arrow { transform: rotate(90deg); }
-.accordion-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--motion-expand) var(--ease-decel);
-}
-.accordion.is-open .accordion-body { grid-template-rows: 1fr; }
-.accordion-inner { min-height: 0; overflow: hidden; padding: 0 18px 16px; }
-.sec-desc { margin: 0 0 var(--space-2); font-size: 13.5px; color: var(--foam); line-height: 1.7; }
-.sec-items { margin: var(--space-2) 0 0; padding-left: 18px; font-size: 13px; color: var(--muted); line-height: 1.8; }
-.sec-items li { margin-bottom: 2px; }
-.advice-items { margin: var(--space-2) 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.8; }
-.advice-items li { margin-bottom: 3px; }
 
 /* ============ 空状态 ============ */
 .empty-state {

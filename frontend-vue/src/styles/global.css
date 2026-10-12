@@ -784,11 +784,135 @@ section { margin-bottom: var(--space-7); }
 .back-to-top:active { transform: scale(0.92); }
 .back-to-top:focus-visible { outline: 2px solid var(--aqua); outline-offset: 2px; }
 
+/* ============ 折叠卡片 ============ */
+.accordion {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: linear-gradient(135deg, rgba(255, 255, 255, .065), rgba(255, 255, 255, .035));
+  transition: border-color var(--transition), background var(--transition);
+}
+.accordion::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  width: 3px;
+  background: transparent;
+  transition: background var(--transition);
+}
+.accordion:hover { border-color: var(--border-hover); }
+.accordion.is-open {
+  border-color: rgba(39, 208, 196, .34);
+  background: linear-gradient(135deg, rgba(39, 208, 196, .08), rgba(255, 255, 255, .04));
+}
+.accordion.is-open::before { background: var(--aqua); }
+.accordion-head {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 13px 18px;
+  gap: var(--space-3);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background var(--transition-fast);
+}
+.accordion-head:hover { background: rgba(255, 255, 255, .035); }
+.accordion-head:focus-visible {
+  outline: 2px solid var(--aqua);
+  outline-offset: -3px;
+}
+.accordion-title {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  color: var(--foam);
+  font-size: 14.5px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.advice-index {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 1px solid rgba(39, 208, 196, .24);
+  border-radius: 9px;
+  background: rgba(39, 208, 196, .08);
+  color: var(--aqua);
+  font-size: 10.5px;
+  font-weight: 750;
+}
+.accordion-chevron {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  margin-left: var(--space-2);
+  border-right: 2px solid var(--aqua);
+  border-bottom: 2px solid var(--aqua);
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform var(--motion-standard) var(--ease-decel);
+}
+.accordion.is-open .accordion-chevron {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+.accordion-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--motion-expand) var(--ease-decel),
+    opacity var(--motion-fast) ease,
+    visibility 0s linear var(--motion-expand);
+}
+.accordion.is-open .accordion-body {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+.accordion-inner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 18px;
+}
+.accordion.is-open .accordion-inner {
+  padding: 2px 18px 18px 20px;
+}
+.sec-desc {
+  margin: 0 0 var(--space-2);
+  color: var(--foam);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.sec-items,
+.advice-items {
+  margin: var(--space-2) 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+.sec-items li,
+.advice-items li { margin-bottom: 3px; }
+
 /* ============ 页脚 ============ */
 footer.competition-footer {
   position: relative;
-  padding: var(--space-6) var(--space-4);
-  text-align: center;
+  padding: var(--space-6) var(--space-5) 20px;
+  text-align: left;
   border-top: none;
   background: linear-gradient(180deg, transparent, rgba(4, 22, 43, 0.72));
 }
@@ -803,16 +927,16 @@ footer.competition-footer::before {
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1.2fr;
+  grid-template-columns: minmax(260px, 1.35fr) minmax(320px, 1fr) minmax(260px, 1fr);
+  align-items: center;
   gap: var(--space-6);
-  max-width: 920px;
-  margin: 0 auto var(--space-6);
-  text-align: left;
+  max-width: 1120px;
+  margin: 0 auto var(--space-5);
 }
-.footer-brand { display: flex; flex-direction: column; gap: 10px; }
+.footer-brand { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
 .footer-brand-row { display: flex; align-items: center; gap: 10px; }
 .footer-brand-logo {
-  width: 34px; height: 34px;
+  width: 32px; height: 32px;
   border-radius: 50%;
   display: grid; place-items: center;
   background: linear-gradient(135deg, var(--aqua), var(--sea));
@@ -828,68 +952,77 @@ footer.competition-footer::before {
   letter-spacing: 0.5px;
 }
 .footer-brand-desc {
-  font-size: 12.5px;
-  color: var(--muted);
-  line-height: 1.7;
+  max-width: 52ch;
   margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.55;
 }
 .footer-col-title {
   font-size: 12px;
   font-weight: 700;
   color: var(--foam);
   letter-spacing: 1.5px;
-  margin: 0 0 12px;
+  margin: 0 0 6px;
   text-transform: uppercase;
 }
-.footer-links { display: flex; flex-direction: column; gap: 9px; }
+.footer-links {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 2px 14px;
+}
 .footer-links a {
   color: var(--muted);
   font-size: 13px;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 42px;
   transition: color var(--transition), transform var(--transition);
   width: fit-content;
 }
 .footer-links a:hover { color: var(--aqua); }
-.footer-stack { display: flex; flex-wrap: wrap; gap: 7px; }
+.footer-stack { display: flex; flex-wrap: wrap; gap: 6px; }
 .footer-stack span {
-  font-size: 11.5px;
-  padding: 4px 11px;
+  padding: 4px 9px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
   transition: color var(--transition), border-color var(--transition), transform var(--transition);
 }
 .footer-stack span:hover { color: var(--aqua); border-color: var(--border-hover); }
 .footer-bottom {
-  max-width: 920px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding-top: var(--space-4);
+  padding-top: var(--space-3);
   border-top: 1px solid var(--border);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
 }
-.competition-info, .tech-stack {
+.competition-info {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: var(--space-3);
+  align-items: center;
+  gap: 8px;
+  margin: 0;
 }
 .competition-info .badge {
-  font-size: 12.5px;
-  padding: 5px 12px;
+  min-height: 32px;
+  padding: 5px 10px;
   color: var(--aqua);
+  font-size: 11.5px;
 }
 .footer-copy {
-  margin-top: var(--space-3);
+  margin: 0;
   font-size: 11.5px;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 /* ============ 404 页 ============ */
@@ -962,14 +1095,15 @@ footer.competition-footer::before {
   .brand-sub { display: none; }
   .section-head { flex-direction: column; align-items: flex-start; gap: 4px; }
   .footer-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-5);
-    text-align: center;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4) var(--space-5);
   }
-  .footer-brand { align-items: center; }
-  .footer-links { align-items: center; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-grid > :last-child { grid-column: 2; }
+  .footer-links { align-items: flex-start; }
   .footer-links a:hover { transform: none; }
-  .footer-stack { justify-content: center; }
+  .footer-stack { justify-content: flex-start; }
+  .footer-bottom { flex-wrap: wrap; }
   .back-to-top { width: 44px; height: 44px; font-size: 16px; right: 14px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 640px) {
@@ -987,6 +1121,25 @@ footer.competition-footer::before {
     max-width: 420px;
   }
   .action-row > * { flex: 1 1 100%; width: 100%; }
+  footer.competition-footer { padding: var(--space-5) var(--space-4) var(--space-4); text-align: center; }
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .footer-brand,
+  .footer-grid > :last-child { grid-column: auto; }
+  .footer-brand { align-items: center; }
+  .footer-brand-desc { max-width: 44ch; }
+  .footer-links { align-items: center; justify-content: center; }
+  .footer-links a { min-height: 44px; }
+  .footer-stack { justify-content: center; }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: center;
+  }
+  .competition-info { justify-content: center; }
+  .footer-copy { white-space: normal; }
 }
 @media (max-width: 375px) {
   .nav-links a:nth-child(3) { display: none; }

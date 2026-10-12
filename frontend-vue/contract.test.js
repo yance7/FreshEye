@@ -171,10 +171,13 @@ test('sample selection keeps one detection workspace and bilingual copy stays na
 test('collapsible panels use semantic resilient controls without fixed height caps', () => {
   const home = file('src/views/HomeView.vue');
   const guide = file('src/views/GuideView.vue');
+  const global = file('src/styles/global.css');
   const combined = `${home}\n${guide}`;
   assert.match(combined, /<button[^>]+class="accordion-head"/);
   assert.match(combined, /aria-controls=/);
-  assert.match(combined, /grid-template-rows/);
+  assert.match(combined, /aria-hidden=/);
+  assert.match(global, /grid-template-rows/);
+  assert.match(global, /visibility:\s*hidden/);
   assert.doesNotMatch(home, /max-height:\s*500px/);
   assert.doesNotMatch(guide, /max-height:\s*400px/);
   assert.match(home, /v-if="a\.desc"/);
