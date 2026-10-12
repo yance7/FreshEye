@@ -108,13 +108,13 @@ test('canonical pages use clean HTML5 history navigation', () => {
   }
 });
 
-test('analysis converts local data URLs without a CSP-blocked fetch', () => {
+test('analysis prepares local image blobs without a CSP-blocked fetch', () => {
   const home = file('src/views/HomeView.vue');
-  const dataUrl = file('src/utils/dataUrl.ts');
-  assert.match(home, /dataUrlToBlob|dataUrlToFile/);
-  assert.doesNotMatch(home, /fetch\(uploadDataUrl\.value\)/);
-  assert.match(dataUrl, /atob/);
-  assert.match(dataUrl, /Uint8Array/);
+  const imageAssets = file('src/utils/imageAssets.ts');
+  assert.match(home, /prepareImageAssets/);
+  assert.match(imageAssets, /createImageBitmap/);
+  assert.match(imageAssets, /toBlob/);
+  assert.doesNotMatch(home, /fetch\((?:uploadFile|previewUrl|thumbnailDataUrl)\.value\)/);
 });
 
 test('English locale has no accidental visible Chinese copy', () => {
@@ -156,8 +156,8 @@ test('open-source repository payload excludes local test data and uses the renam
 test('history previews cannot trigger a stale file re-analysis', () => {
   const home = file('src/views/HomeView.vue');
   assert.match(home, /selectedFile\.value = null/);
-  assert.match(home, /uploadDataUrl\.value = ''/);
-  assert.match(home, /v-if="selectedFile && uploadDataUrl"/);
+  assert.match(home, /uploadFile\.value = null/);
+  assert.match(home, /v-if="selectedFile && uploadFile"/);
 });
 
 test('sample selection keeps one detection workspace and bilingual copy stays natural', () => {

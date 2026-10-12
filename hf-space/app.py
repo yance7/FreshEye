@@ -33,9 +33,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel
 import uvicorn
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import cv2
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -174,6 +171,8 @@ def _load_state_dict_strict(
             for key, value in checkpoint.items()
         )
     model.load_state_dict(checkpoint, strict=True)
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
     model.eval()
     model.to(dev)
     return model
@@ -481,7 +480,8 @@ def get_model(model_version: str = "v2") -> Tuple[nn.Module, str]:
 def overlay_heatmap(original_image: np.ndarray, heatmap: np.ndarray, alpha: float = 0.4) -> np.ndarray:
     if original_image.shape[:2] != (224, 224):
         original_image = np.array(Image.fromarray(original_image).resize((224, 224)))
-    heatmap_colored = np.uint8(plt.cm.jet(heatmap)[:, :, :3] * 255)
+    heatmap_colored = cv2.applyColorMap(np.uint8(np.clip(heatmap, 0, 1) * 255), cv2.COLORMAP_JET)
+    heatmap_colored = cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB)
     overlay = cv2.addWeighted(original_image, 1 - alpha, heatmap_colored, alpha, 0)
     return overlay
 
@@ -629,8 +629,7 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
                     probs = F.softmax(outputs, dim=1)
                     confidence, predicted = torch.max(probs, 1)
                     label_idx = int(predicted.item())
-                    model.zero_grad()
-                    outputs[0, label_idx].backward()
+                    torch.autograd.grad(outputs[0, label_idx], input_tensor_gc)
             except Exception as exc:
                 logger.warning(f"前向/反向传播失败，降级为纯预测: {exc}")
                 with torch.no_grad():

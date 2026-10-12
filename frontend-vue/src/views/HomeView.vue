@@ -10,7 +10,7 @@ import { useApi, ApiError } from '@/composables/useApi'
 import { GUIDE_KEY, LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY, MODEL_KEY } from '@/config'
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 import { buildReportHtml } from '@/utils/pdfReport'
-import { dataUrlToBlob } from '@/utils/dataUrl'
+import { blobToDataUrl, prepareImageAssets } from '@/utils/imageAssets'
 import CameraCaptureDialog from '@/components/CameraCaptureDialog.vue'
 import { useMotionPreference } from '@/composables/useMotionPreference'
 import AccessibleDialog from '@/components/AccessibleDialog.vue'
@@ -39,14 +39,14 @@ const cameraInput = ref<HTMLInputElement | null>(null)
 const cameraModal = ref(false)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref<string>('')
-const previewDataUrl = ref<string>('')   // 预览压缩（1600px）
-const uploadDataUrl = ref<string>('')    // 上传压缩（1280px JPEG q=0.9）
+const previewBlob = ref<Blob | null>(null)
+const uploadFile = ref<File | null>(null)
+const thumbnailDataUrl = ref<string>('')
 const imageDimensions = ref<{ width: number; height: number } | null>(null)
 const dragging = ref(false)
 const sampleLoading = ref(false)
 
 const MAX_SIZE = 25 * 1024 * 1024 // 25MB
-const COMPRESS_THRESHOLD = 2 * 1024 * 1024
 const ACCEPT_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
 // ============ 分析状态 ============
@@ -55,6 +55,7 @@ const errorMsg = ref<string>('')
 const lastResult = ref<PredictionResult | null>(null)
 const lastHeatmap = ref<string>('')
 const lastOriginalImage = ref<string>('') // 对比滑块用的原图 data URL
+const lastOriginalBlob = ref<Blob | null>(null)
 const lastDuration = ref<number>(0)
 const lastTimestamp = ref<string>('')
 const apiHealthy = ref<boolean | null>(null)
@@ -179,49 +180,6 @@ function modelDisplayName(value: string): string {
   return value.trim() || t('home.model.v2')
 }
 
-// ============ 图片压缩 ============
-function compressImage(src: string, maxSize: number, quality: number): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => {
-      try {
-        const scale = Math.min(1, maxSize / Math.max(img.width, img.height))
-        const w = Math.max(1, Math.round(img.width * scale))
-        const h = Math.max(1, Math.round(img.height * scale))
-        const canvas = document.createElement('canvas')
-        canvas.width = w
-        canvas.height = h
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return resolve(src)
-        ctx.drawImage(img, 0, 0, w, h)
-        resolve(canvas.toDataURL('image/jpeg', quality))
-      } catch {
-        resolve(src)
-      }
-    }
-    img.onerror = () => resolve(src)
-    img.src = src
-  })
-}
-
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(new Error('read error'))
-    reader.readAsDataURL(file)
-  })
-}
-
-function readImageDimensions(dataUrl: string): Promise<{ width: number; height: number } | null> {
-  return new Promise((resolve) => {
-    const image = new Image()
-    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight })
-    image.onerror = () => resolve(null)
-    image.src = dataUrl
-  })
-}
-
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -240,12 +198,14 @@ function resetPreparedFile(message = ''): void {
   selectedFile.value = null
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   previewUrl.value = ''
-  previewDataUrl.value = ''
-  uploadDataUrl.value = ''
+  previewBlob.value = null
+  uploadFile.value = null
+  thumbnailDataUrl.value = ''
   imageDimensions.value = null
   lastResult.value = null
   lastHeatmap.value = ''
   lastOriginalImage.value = ''
+  lastOriginalBlob.value = null
   lastDuration.value = 0
   lastTimestamp.value = ''
   activeTab.value = 0
@@ -276,32 +236,29 @@ async function handleFile(file: File): Promise<boolean> {
   cancelAnalysis()
   errorMsg.value = ''
   showLowConfidenceModal.value = false
-  const nextPreviewUrl = URL.createObjectURL(file)
   try {
-    const full = await fileToDataUrl(file)
-    const dimensions = await readImageDimensions(full)
-    const upload = file.size > COMPRESS_THRESHOLD
-      ? await compressImage(full, 1280, 0.9)
-      : full
+    const assets = await prepareImageAssets(file)
+    const thumbnail = await blobToDataUrl(assets.thumbnail)
     if (generation !== fileGeneration) {
-      URL.revokeObjectURL(nextPreviewUrl)
       return false
     }
 
+    const nextPreviewUrl = URL.createObjectURL(assets.preview)
     if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
     selectedFile.value = file
     previewUrl.value = nextPreviewUrl
-    previewDataUrl.value = full
-    imageDimensions.value = dimensions
-    uploadDataUrl.value = upload
+    previewBlob.value = assets.preview
+    uploadFile.value = new File([assets.upload], file.name || 'upload.jpg', { type: 'image/jpeg' })
+    thumbnailDataUrl.value = thumbnail
+    imageDimensions.value = { width: assets.width, height: assets.height }
     lastResult.value = null
     lastHeatmap.value = ''
     lastOriginalImage.value = ''
+    lastOriginalBlob.value = null
     lastDuration.value = 0
     lastTimestamp.value = ''
     activeTab.value = 0
   } catch {
-    URL.revokeObjectURL(nextPreviewUrl)
     if (generation === fileGeneration) {
       resetPreparedFile(t('home.errors.preprocess'))
       toast.error(t('home.errors.preprocess'))
@@ -427,7 +384,7 @@ function stopScanning(): void {
 }
 
 async function analyze(): Promise<void> {
-  if (!selectedFile.value || !uploadDataUrl.value) {
+  if (!selectedFile.value || !uploadFile.value) {
     toast.error(t('home.upload.hint'))
     return
   }
@@ -437,8 +394,10 @@ async function analyze(): Promise<void> {
   const controller = new AbortController()
   analysisAbortController = controller
   const sourceFile = selectedFile.value
-  const sourcePreviewDataUrl = previewDataUrl.value
-  const sourceUploadDataUrl = uploadDataUrl.value
+  const sourcePreviewBlob = previewBlob.value
+  const sourceThumbnailDataUrl = thumbnailDataUrl.value
+  const sourceUploadFile = uploadFile.value
+  const sourcePreviewUrl = previewUrl.value
   const sourceModel = modelVersion.value
   analyzing.value = true
   errorMsg.value = ''
@@ -448,25 +407,19 @@ async function analyze(): Promise<void> {
   startScanning()
   const start = performance.now()
   try {
-    let file = sourceFile
-    if (sourceUploadDataUrl !== sourcePreviewDataUrl) {
-      const uploadBlob = dataUrlToBlob(sourceUploadDataUrl)
-      file = new File([uploadBlob], sourceFile.name || 'upload.jpg', {
-        type: uploadBlob.type || sourceFile.type || 'image/jpeg'
-      })
-    }
-    const { prediction, heatmap_image } = await callPredictApi(file, sourceModel, controller.signal)
-    if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value || sourceUploadDataUrl !== uploadDataUrl.value) return
+    const { prediction, heatmap_image } = await callPredictApi(sourceUploadFile, sourceModel, controller.signal)
+    if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value || sourceUploadFile !== uploadFile.value) return
     const duration = Math.round(performance.now() - start)
     lastResult.value = prediction
     lastHeatmap.value = heatmap_image
-    lastOriginalImage.value = sourcePreviewDataUrl
+    lastOriginalImage.value = sourcePreviewUrl
+    lastOriginalBlob.value = sourcePreviewBlob
     lastDuration.value = duration
     lastTimestamp.value = prediction.timestamp
     activeTab.value = 0
     const lvl = warningLevel(prediction.confidence_score)
     if (lvl === 'low') showLowConfidenceModal.value = true
-    await addHistoryRecord(sourcePreviewDataUrl, duration, prediction, heatmap_image)
+    await addHistoryRecord(sourceThumbnailDataUrl, duration, prediction, heatmap_image)
     if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value) return
     toast.success(lvl === 'low'
       ? t('home.confidence_warn.low')
@@ -515,16 +468,18 @@ function loadHistoryRecord(rec: HistoryRecord): void {
     showLowConfidenceModal.value = false
     if (previewUrl.value && previewUrl.value.startsWith('blob:')) URL.revokeObjectURL(previewUrl.value)
     selectedFile.value = null
-    uploadDataUrl.value = ''
+    uploadFile.value = null
+    previewBlob.value = null
+    thumbnailDataUrl.value = ''
     imageDimensions.value = null
     lastResult.value = rec.prediction
     lastHeatmap.value = rec.heatmap || ''
     lastOriginalImage.value = rec.data
+    lastOriginalBlob.value = null
     lastDuration.value = rec.duration
     lastTimestamp.value = rec.timestamp
     activeTab.value = 0
     previewUrl.value = rec.data
-    previewDataUrl.value = rec.data
     errorMsg.value = ''
     nextTick(() => {
       document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' })
@@ -875,12 +830,15 @@ const resultActionText = computed(() => {
 })
 
 // ============ PDF 导出 ============
-function exportPDF(): void {
+async function exportPDF(): Promise<void> {
   if (!lastResult.value) {
     toast.info(t('home.upload.analyze'))
     return
   }
   const current = lastResult.value
+  const originalImage = lastOriginalBlob.value
+    ? await blobToDataUrl(lastOriginalBlob.value)
+    : lastOriginalImage.value
   const report = buildReportHtml({
     locale: locale.value,
     prediction: current,
@@ -888,7 +846,7 @@ function exportPDF(): void {
     timestamp: current.timestamp || lastTimestamp.value || new Date().toISOString(),
     modelVersion: current.model_version,
     modelDisplayName: modelDisplayName(current.model_version),
-    originalImage: lastOriginalImage.value,
+    originalImage,
     heatmapImage: lastHeatmap.value,
     localizedDescription: detailSections.value[1]?.desc,
     detailSections: detailSections.value,
@@ -1244,7 +1202,7 @@ function closeLowConfidenceModal(): void {
         <span>🔲 <strong>{{ fileInfo.dimensions }}</strong></span>
       </div>
       <div class="preview-actions">
-        <button v-if="selectedFile && uploadDataUrl" class="btn" type="button" :disabled="analyzing" @click="analyze">
+        <button v-if="selectedFile && uploadFile" class="btn" type="button" :disabled="analyzing" @click="analyze">
           <span v-if="analyzing" class="spinner small"></span>
           {{ analyzing ? t('home.upload.analyzing') : (errorMsg ? t('home.upload.retry') : t('home.upload.analyze')) }}
         </button>

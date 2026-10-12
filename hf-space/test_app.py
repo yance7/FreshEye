@@ -117,6 +117,18 @@ def test_predict_with_gradcam(c):
     assert len(data["heatmap_image"]) > 100  # base64 字符串非空
 
 
+def test_gradcam_does_not_accumulate_parameter_gradients(c):
+    """Grad-CAM 只需要输入/特征图梯度，不应给模型参数留下梯度缓冲。"""
+    buf = _make_test_image(color=(120, 160, 80))
+    resp = c.post(
+        "/predict_with_gradcam?model_version=v2",
+        files={"file": ("gradient-check.jpg", buf, "image/jpeg")},
+    )
+    assert resp.status_code == 200
+    from app import v2_model
+    assert all(param.grad is None for param in v2_model.parameters())
+
+
 def test_invalid_file_format(c):
     """非图片文件应返回 400"""
     resp = c.post(

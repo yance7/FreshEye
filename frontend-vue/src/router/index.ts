@@ -2,10 +2,6 @@
 // 使用 HTML5 history，与 Vite 的多页面静态入口配合，避免公开 URL 出现 #/
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
-import GuideView from '@/views/GuideView.vue'
-import FishView from '@/views/FishView.vue'
-import AboutView from '@/views/AboutView.vue'
-import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -17,25 +13,25 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/guide.html',
     name: 'guide',
-    component: GuideView,
+    component: () => import('@/views/GuideView.vue'),
     meta: { titleKey: 'guide', metaKey: 'guide' }
   },
   {
     path: '/fish.html',
     name: 'fish',
-    component: FishView,
+    component: () => import('@/views/FishView.vue'),
     meta: { titleKey: 'fish', metaKey: 'fish' }
   },
   {
     path: '/about.html',
     name: 'about',
-    component: AboutView,
+    component: () => import('@/views/AboutView.vue'),
     meta: { titleKey: 'about', metaKey: 'about' }
   },
   {
     path: '/404.html',
     name: 'not-found',
-    component: NotFoundView,
+    component: () => import('@/views/NotFoundView.vue'),
     meta: { titleKey: 'notfound', metaKey: 'notfound' }
   },
   {
@@ -53,7 +49,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found-fallback',
-    component: NotFoundView,
+    component: () => import('@/views/NotFoundView.vue'),
     meta: { titleKey: 'notfound', metaKey: 'notfound' }
   }
 ]

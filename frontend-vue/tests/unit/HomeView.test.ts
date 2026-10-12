@@ -22,6 +22,7 @@ vi.mock('@/composables/useApi', () => ({
 
 const wrappers: VueWrapper[] = []
 const originalImage = globalThis.Image
+const originalCreateImageBitmap = globalThis.createImageBitmap
 const originalCreateObjectURL = URL.createObjectURL
 const originalRevokeObjectURL = URL.revokeObjectURL
 const originalScrollIntoView = Element.prototype.scrollIntoView
@@ -110,8 +111,20 @@ beforeEach(() => {
     onerror: (() => void) | null = null
     set src(_value: string) { queueMicrotask(() => this.onload?.()) }
   })
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ drawImage: vi.fn() } as unknown as CanvasRenderingContext2D)
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ drawImage: vi.fn(), fillRect: vi.fn() } as unknown as CanvasRenderingContext2D)
   vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/jpeg;base64,dGh1bWI=')
+  vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((_callback: BlobCallback) => {
+    _callback(new Blob(['canvas-output'], { type: 'image/jpeg' }))
+  })
+  vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(function (this: FileReader) {
+    Object.defineProperty(this, 'result', { configurable: true, value: 'data:image/jpeg;base64,dGh1bWI=' })
+    this.onload?.(new Event('load'))
+  })
+  vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue({
+    width: 100,
+    height: 100,
+    close: vi.fn()
+  }))
 })
 
 afterEach(() => {
@@ -128,6 +141,7 @@ afterEach(() => {
     delete (Element.prototype as Partial<Element>).scrollIntoView
   }
   globalThis.Image = originalImage
+  globalThis.createImageBitmap = originalCreateImageBitmap
 })
 
 describe('HomeView interaction lifecycle', () => {
