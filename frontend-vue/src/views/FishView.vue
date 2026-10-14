@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n'
 const { t, tm, locale } = useI18n()
 
 interface Level { icon: string; title: string; text: string; color: string }
-interface Species { icon: string; name: string; tag: string; tag_en: string; desc: string; angle: string; cook: string }
+interface Species { name: string; tag: string; tag_en: string; desc: string; angle: string; cook: string }
 interface InfoCard { icon: string; title: string; text?: string; items?: string[] }
 interface TimelineItem { icon: string; title: string; text: string; color: string }
 
@@ -53,14 +53,14 @@ const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips')
     <p class="intro-sub">{{ t('fish.species_intro') }}</p>
     <div class="species-grid">
       <div v-for="s in species" :key="s.name" class="species-card">
-        <div class="species-icon" aria-hidden="true">{{ s.icon }}</div>
         <h3 class="species-name">
           {{ s.name }}
           <span class="tag-pill" :class="s.tag_en === 'seawater' ? 'tag-sea' : ''">{{ s.tag }}</span>
         </h3>
         <p class="species-desc">{{ s.desc }}</p>
         <p class="species-meta">
-          📷 {{ t('fish.best_angle') }}: {{ s.angle }}<br />🍳 {{ t('fish.recommended_cook') }}: {{ s.cook }}
+          <span>{{ t('fish.best_angle') }}: {{ s.angle }}</span>
+          <span>{{ t('fish.recommended_cook') }}: {{ s.cook }}</span>
         </p>
       </div>
     </div>
@@ -176,7 +176,6 @@ const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips')
   transition: transform var(--transition), border-color var(--transition), background var(--transition);
 }
 .species-card:hover { transform: translateY(-3px); border-color: var(--border-hover); background: var(--card-hover); }
-.species-icon { font-size: 30px; margin-bottom: var(--space-2); }
 .species-name {
   font-size: 16px; font-weight: 700; color: var(--white);
   margin: 0 0 var(--space-2);
@@ -191,16 +190,16 @@ const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips')
 }
 .tag-pill.tag-sea { background: rgba(39, 208, 196, 0.18); color: var(--aqua); border-color: rgba(39, 208, 196, 0.35); }
 .species-desc { font-size: 13px; color: var(--foam); line-height: 1.7; margin: 0 0 var(--space-2); }
-.species-meta { font-size: 12px; color: var(--muted); line-height: 1.8; margin: 0; }
+.species-meta { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0; }
 
 .timeline { position: relative; margin: 0 auto; max-width: 820px; padding-left: 36px; }
-.timeline::before { content: ""; position: absolute; left: 12px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--aqua), rgba(39, 208, 196, 0.1)); }
+.timeline::before { content: ""; position: absolute; left: 12px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--fresh-high), var(--fresh-mid), var(--fresh-low)); }
 .timeline-item { position: relative; margin-bottom: var(--space-4); }
 .timeline-item:last-child { margin-bottom: 0; }
-.timeline-dot { position: absolute; left: -36px; top: 16px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); font-size: 12px; font-weight: 800; border: 2px solid var(--bg); box-shadow: 0 0 0 1px var(--border); background: linear-gradient(135deg, var(--aqua), var(--sea)); }
-.dot-green { background: linear-gradient(135deg, #27ae60, #2ecc71); }
-.dot-gold { background: linear-gradient(135deg, #f5b54a, #ffd06a); }
-.dot-red { background: linear-gradient(135deg, #ef4444, #f87171); }
+.timeline-dot { position: absolute; left: -36px; top: 16px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); font-size: 12px; font-weight: 800; border: 2px solid var(--abyss); box-shadow: 0 0 0 1px var(--border); background: var(--fresh-high); }
+.dot-green { background: var(--fresh-high); }
+.dot-gold { background: var(--fresh-mid); }
+.dot-red { background: var(--fresh-low); }
 .timeline-content { padding: var(--space-4) var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
 .timeline-content h3 { margin: 0 0 var(--space-2); color: var(--white); font-size: 15px; }
 .timeline-content p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.75; }

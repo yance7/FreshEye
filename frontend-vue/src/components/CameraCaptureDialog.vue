@@ -191,7 +191,7 @@ onBeforeUnmount(invalidateAndStop)
         </div>
         <p class="camera-guide-label" aria-hidden="true">{{ t('home.camera.guide') }}</p>
         <div v-if="cameraStarting" class="camera-status" role="status" aria-live="polite"><span class="spinner"></span>{{ t('home.camera.starting') }}</div>
-        <div v-else-if="cameraError" class="camera-status camera-error" role="alert">⚠️ {{ t('home.camera.error') }}</div>
+        <div v-else-if="cameraError" class="camera-status camera-error" role="alert">{{ t('home.camera.error') }}</div>
         <span class="camera-corner top-left" aria-hidden="true"></span><span class="camera-corner top-right" aria-hidden="true"></span>
         <span class="camera-corner bottom-left" aria-hidden="true"></span><span class="camera-corner bottom-right" aria-hidden="true"></span>
       </div>

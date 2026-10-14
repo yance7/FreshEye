@@ -40,3 +40,6 @@ venv/
 .env.*
 !.env.example
 .DS_Store
+
+# Local assistant workspace: project memory and review artifacts, never published
+.workbuddy-ai/

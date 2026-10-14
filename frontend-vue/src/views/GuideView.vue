@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n'
 const { t, tm, locale } = useI18n()
 const sampleImage = `${import.meta.env.BASE_URL}assets/samples/highly-fresh.webp`
 
-interface Step { num: string; icon: string; title: string; text: string }
+interface Step { num: string; title: string; text: string }
 interface Faq { q: string; a: string; open: boolean }
 interface PhotoCheck { title: string; text: string }
 interface Tip { icon: string; title: string; text: string }
@@ -51,7 +51,6 @@ function toggleFaq(idx: number): void {
     <div class="users-grid">
       <div v-for="s in steps" :key="s.num" class="user-card step-card">
         <span class="step-num" aria-hidden="true">{{ s.num }}</span>
-        <div class="user-icon" aria-hidden="true">{{ s.icon }}</div>
         <h3 class="user-title">{{ s.title }}</h3>
         <p class="user-text">{{ s.text }}</p>
       </div>
@@ -76,7 +75,7 @@ function toggleFaq(idx: number): void {
       <article class="photo-check-card is-correct">
         <div class="photo-check-card-head">
           <span class="photo-check-status" aria-hidden="true">✓</span>
-          <div><span class="photo-check-kicker">PASS</span><h3>{{ t('guide.correct_title') }}</h3></div>
+          <div><span class="photo-check-kicker">{{ t('guide.kicker_pass') }}</span><h3>{{ t('guide.correct_title') }}</h3></div>
         </div>
         <p class="photo-check-lead">{{ t('guide.correct_intro') }}</p>
         <ul class="photo-check-list">
@@ -89,7 +88,7 @@ function toggleFaq(idx: number): void {
       <article class="photo-check-card is-incorrect">
         <div class="photo-check-card-head">
           <span class="photo-check-status" aria-hidden="true">!</span>
-          <div><span class="photo-check-kicker">CHECK</span><h3>{{ t('guide.incorrect_title') }}</h3></div>
+          <div><span class="photo-check-kicker">{{ t('guide.kicker_check') }}</span><h3>{{ t('guide.incorrect_title') }}</h3></div>
         </div>
         <p class="photo-check-lead">{{ t('guide.incorrect_intro') }}</p>
         <ul class="photo-check-list">
@@ -189,7 +188,6 @@ function toggleFaq(idx: number): void {
   background: linear-gradient(135deg, var(--aqua), var(--sea));
   box-shadow: 0 6px 18px rgba(39, 208, 196, 0.4);
 }
-.user-icon { font-size: 36px; margin-bottom: var(--space-3); }
 .user-title { font-size: 17px; font-weight: 700; color: var(--white); margin: 0 0 var(--space-2); }
 .user-text { font-size: 13px; color: var(--muted); line-height: 1.7; margin: 0; }
 
@@ -210,7 +208,7 @@ function toggleFaq(idx: number): void {
   padding: var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-feature);
-  background: linear-gradient(150deg, rgba(255,255,255,.065), rgba(0,8,20,.18));
+  background: linear-gradient(150deg, rgba(9, 32, 56, .9), rgba(6, 24, 44, .82));
   box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
 }
 .photo-check-card.is-correct { border-color: rgba(39,208,196,.32); }

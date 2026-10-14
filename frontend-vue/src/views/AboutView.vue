@@ -34,22 +34,22 @@ const workflowRows = computed<WorkflowRow[]>(() => tm<WorkflowRow[]>('about.work
 const traeWorkflow = computed<InfoCard[]>(() => tm<InfoCard[]>('about.trae_workflow'))
 const iterationFocus = computed<Phase[]>(() => tm<Phase[]>('about.iteration_focus'))
 const v1Technical = computed<InfoCard[]>(() => [
-  { icon: '↗', title: t('about.v1_feature_scaling_title'), text: t('about.v1FeatureScaling') },
+  { icon: '◌', title: t('about.v1_feature_scaling_title'), text: t('about.v1FeatureScaling') },
   { icon: '▦', title: t('about.v1_feature_mbconv_title'), text: t('about.v1FeatureMbconv') },
   { icon: '◎', title: t('about.v1_feature_head_title'), text: t('about.v1FeatureHead') },
   { icon: '◈', title: t('about.v1ChannelTitle'), text: t('about.v1ChannelText') },
   { icon: '⌖', title: t('about.v1SpatialTitle'), text: t('about.v1SpatialText') },
   { icon: '✦', title: t('about.v1RefineTitle'), text: t('about.v1RefineText') },
-  { icon: '🔥', title: t('about.v1GradcamTitle'), text: t('about.v1GradcamResult') }
+  { icon: '⌁', title: t('about.v1GradcamTitle'), text: t('about.v1GradcamResult') }
 ])
 const v2Technical = computed<InfoCard[]>(() => [
-  { icon: '⚡', title: t('about.v2EcaTitle'), text: t('about.v2EcaIntro') },
-  { icon: '↔', title: t('about.v2_eca_feature_title'), text: t('about.v2EcaFeature1') },
+  { icon: '⌁', title: t('about.v2EcaTitle'), text: t('about.v2EcaIntro') },
+  { icon: '◉', title: t('about.v2_eca_feature_title'), text: t('about.v2EcaFeature1') },
   { icon: '◌', title: t('about.v2_eca_interaction_title'), text: t('about.v2EcaFeature2') },
-  { icon: '🎯', title: t('about.v2CraTitle'), text: t('about.v2CraIntro') },
+  { icon: '◎', title: t('about.v2CraTitle'), text: t('about.v2CraIntro') },
   { icon: '◉', title: t('about.v2_cra_semantics_title'), text: t('about.v2CraFeature1') },
   { icon: '⌁', title: t('about.v2_cra_lightweight_title'), text: t('about.v2CraFeature2') },
-  { icon: '📊', title: t('about.v2_cra_ablation_title'), text: t('about.v2CraFeature3') }
+  { icon: '◈', title: t('about.v2_cra_ablation_title'), text: t('about.v2CraFeature3') }
 ])
 const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>('about.v2_compare_rows'))
 </script>
@@ -73,13 +73,13 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
   <!-- 可验证事实卡 -->
   <section id="evidence-card" class="reveal evidence-card-section">
     <div class="section-head">
-      <span class="section-kicker">EVIDENCE CARD</span>
+      <span class="section-kicker">{{ t('about.kicker_evidence') }}</span>
       <h2 class="section-title">{{ t('about.evidence_title') }}</h2>
     </div>
     <div class="evidence-card glass-card">
       <div class="evidence-card-head">
         <div>
-          <span class="evidence-card-label">FRESHEYE / PROJECT SNAPSHOT</span>
+          <span class="evidence-card-label">{{ t('about.snapshot_label') }}</span>
           <h3>{{ t('about.evidence_heading') }}</h3>
         </div>
         <a class="evidence-card-link" href="#model-card">{{ t('about.evidence_link') }} <span aria-hidden="true">→</span></a>
@@ -105,10 +105,10 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
       <div class="arch-layer">
         <div class="arch-layer-title">{{ t('about.arch_layer_frontend') }}</div>
         <div class="arch-boxes">
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">🏠</span><span>{{ t('about.arch_boxes.home') }}<br /><small>{{ t('about.arch_boxes.home_sub') }}</small></span></div>
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">📖</span><span>{{ t('about.arch_boxes.guide') }}<br /><small>{{ t('about.arch_boxes.guide_sub') }}</small></span></div>
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">🐟</span><span>{{ t('about.arch_boxes.fish') }}<br /><small>{{ t('about.arch_boxes.fish_sub') }}</small></span></div>
-          <div class="arch-box"><span class="arch-box-icon" aria-hidden="true">📋</span><span>{{ t('about.arch_boxes.about') }}<br /><small>{{ t('about.arch_boxes.about_sub') }}</small></span></div>
+          <div class="arch-box"><span>{{ t('about.arch_boxes.home') }}<br /><small>{{ t('about.arch_boxes.home_sub') }}</small></span></div>
+          <div class="arch-box"><span>{{ t('about.arch_boxes.guide') }}<br /><small>{{ t('about.arch_boxes.guide_sub') }}</small></span></div>
+          <div class="arch-box"><span>{{ t('about.arch_boxes.fish') }}<br /><small>{{ t('about.arch_boxes.fish_sub') }}</small></span></div>
+          <div class="arch-box"><span>{{ t('about.arch_boxes.about') }}<br /><small>{{ t('about.arch_boxes.about_sub') }}</small></span></div>
         </div>
       </div>
       <div class="arch-arrow">↓ HTTPS POST /predict_with_gradcam</div>
@@ -141,7 +141,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
   <!-- 为什么选择鱼眼 -->
   <section id="why-fish-eye" class="reveal">
     <div class="section-head">
-      <span class="section-kicker">WHY FISH EYE</span>
+      <span class="section-kicker">{{ t('about.kicker_why_eye') }}</span>
       <h2 class="section-title">{{ t('about.why_eye_title') }}</h2>
     </div>
     <p class="intro-sub">{{ t('about.why_eye_intro') }}</p>
@@ -232,15 +232,15 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
     <div class="section-head"><h2 class="section-title">{{ t('about.models_title') }}</h2></div>
     <p class="intro-sub">{{ t('about.models_intro') }}</p>
     <div class="model-flow">
-      <div class="model-flow-node"><span class="model-flow-icon">📷</span><span class="model-flow-label">{{ t('about.flow_input') }}<br /><small>224×224</small></span></div>
+      <div class="model-flow-node"><span class="model-flow-icon" aria-hidden="true">◉</span><span class="model-flow-label">{{ t('about.flow_input') }}<br /><small>224×224</small></span></div>
       <div class="model-flow-arrow" aria-hidden="true">→</div>
-      <div class="model-flow-node model-flow-core"><span class="model-flow-icon">🧠</span><span class="model-flow-label">EfficientNet-B0<br /><small>{{ t('about.flow_backbone') }}</small></span></div>
+      <div class="model-flow-node model-flow-core"><span class="model-flow-icon" aria-hidden="true">▦</span><span class="model-flow-label">EfficientNet-B0<br /><small>{{ t('about.flow_backbone') }}</small></span></div>
       <div class="model-flow-arrow" aria-hidden="true">→</div>
-      <div class="model-flow-node model-flow-core"><span class="model-flow-icon">🎯</span><span class="model-flow-label">{{ t('about.flow_attention') }}<br /><small>{{ t('about.flow_attention_sub') }}</small></span></div>
+      <div class="model-flow-node model-flow-core"><span class="model-flow-icon" aria-hidden="true">◎</span><span class="model-flow-label">{{ t('about.flow_attention') }}<br /><small>{{ t('about.flow_attention_sub') }}</small></span></div>
       <div class="model-flow-arrow" aria-hidden="true">→</div>
-      <div class="model-flow-node"><span class="model-flow-icon">📊</span><span class="model-flow-label">{{ t('about.flow_classifier') }}<br /><small>3 {{ t('about.flow_classes') }}</small></span></div>
+      <div class="model-flow-node"><span class="model-flow-icon" aria-hidden="true">◈</span><span class="model-flow-label">{{ t('about.flow_classifier') }}<br /><small>3 {{ t('about.flow_classes') }}</small></span></div>
       <div class="model-flow-arrow model-flow-arrow-branch" aria-hidden="true">→</div>
-      <div class="model-flow-node model-flow-aux"><span class="model-flow-icon">🔥</span><span class="model-flow-label">Grad-CAM<br /><small>{{ t('about.flow_explain') }}</small></span></div>
+      <div class="model-flow-node model-flow-aux"><span class="model-flow-icon" aria-hidden="true">⌁</span><span class="model-flow-label">Grad-CAM<br /><small>{{ t('about.flow_explain') }}</small></span></div>
     </div>
     <div class="model-card-grid">
       <div class="model-card glass-card">
@@ -333,7 +333,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
   <!-- TRAE 协作方式 -->
   <section id="trae-workflow" class="reveal">
     <div class="section-head">
-      <span class="section-kicker">BUILT WITH TRAE</span>
+      <span class="section-kicker">{{ t('about.kicker_trae') }}</span>
       <h2 class="section-title">{{ t('about.trae_title') }}</h2>
     </div>
     <p class="intro-sub">{{ t('about.trae_intro') }}</p>
@@ -391,7 +391,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
 .about-toc a { color: var(--muted); font-size: 12.5px; text-decoration: none; }
 .about-toc a:hover { color: var(--aqua); }
 .evidence-card-section .section-head { align-items: flex-end; }
-.evidence-card { border-color: rgba(39, 208, 196, 0.25); background: linear-gradient(145deg, rgba(15, 86, 102, 0.25), rgba(4, 22, 43, 0.62)); }
+.evidence-card { border-color: rgba(39, 208, 196, 0.25); background: linear-gradient(145deg, rgba(13, 62, 78, 0.62), rgba(6, 24, 44, 0.9)); }
 .evidence-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .evidence-card-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; }
 .evidence-card-head h3 { max-width: 32em; margin: 8px 0 0; color: var(--white); font-size: clamp(19px, 3vw, 26px); line-height: 1.35; }
@@ -455,7 +455,6 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
 }
 .arch-box small { color: var(--muted); font-size: 11px; }
 .arch-box-wide { width: 100%; justify-content: center; }
-.arch-box-icon { font-size: 18px; }
 .arch-arrow {
   text-align: center;
   font-size: 12px; color: var(--muted);
@@ -577,11 +576,11 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
   padding: var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-feature);
-  background: linear-gradient(145deg, rgba(12, 65, 86, 0.32), rgba(4, 22, 43, 0.62));
+  background: linear-gradient(145deg, rgba(11, 52, 72, 0.68), rgba(6, 24, 44, 0.88));
   box-shadow: 0 12px 30px rgba(1, 8, 18, 0.16);
   transition: transform var(--motion-standard) var(--ease-standard), border-color var(--motion-standard) var(--ease-standard), background var(--motion-standard) var(--ease-standard);
 }
-.user-card:hover { transform: translateY(-3px); border-color: rgba(39, 208, 196, 0.42); background: linear-gradient(145deg, rgba(12, 79, 98, 0.38), rgba(4, 22, 43, 0.72)); }
+.user-card:hover { transform: translateY(-3px); border-color: rgba(39, 208, 196, 0.42); background: linear-gradient(145deg, rgba(13, 62, 84, 0.78), rgba(6, 24, 44, 0.92)); }
 .user-icon { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: var(--space-3); border: 1px solid rgba(39, 208, 196, 0.28); border-radius: 13px; color: var(--aqua); background: rgba(39, 208, 196, 0.1); font-size: 22px; }
 .user-title { margin: 0 0 7px; color: var(--white); font-size: 15px; }
 .user-text { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.75; }
@@ -603,7 +602,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
 .model-comparison-card .section-head { margin-bottom: 0; }
 .model-v2-table th, .model-v2-table td { white-space: nowrap; }
 .iteration-focus-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-top: var(--space-5); }
-.iteration-focus-card { padding: var(--space-5); border: 1px solid rgba(39, 208, 196, 0.2); border-radius: var(--radius-feature); background: rgba(39, 208, 196, 0.05); }
+.iteration-focus-card { padding: var(--space-5); border: 1px solid rgba(39, 208, 196, 0.2); border-radius: var(--radius-feature); background: rgba(9, 32, 56, 0.82); }
 .iteration-focus-card h3 { margin: 0 0 9px; color: var(--foam); font-size: 15px; }
 .iteration-focus-card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; line-height: 1.8; }
 .reference-list { margin: 0; padding-left: 24px; color: var(--muted); font-size: 12px; line-height: 1.8; }
@@ -615,6 +614,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
   .evidence-card-head { flex-direction: column; }
   .evidence-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .evidence-stat:nth-child(2n) { border-right: 0; }
+  .evidence-stat:nth-child(7) { grid-column: 1 / -1; }
   .model-detail-grid, .trae-workflow-grid { grid-template-columns: 1fr; }
   .compare-pain { grid-template-columns: 1fr; }
   .arch-branches { flex-direction: column; }

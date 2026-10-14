@@ -19,7 +19,7 @@ const { t, tm, locale } = useI18n()
 const { toast } = useToast()
 const { history, initHistory, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
 const { checkApiHealth, callPredictApi } = useApi()
-const { reduceMotion, canHover, coarsePointer, allowDecorativeMotion } = useMotionPreference()
+const { canHover, coarsePointer, allowDecorativeMotion } = useMotionPreference()
 const shouldTrackMouse = computed(() => canHover.value && !coarsePointer.value && allowDecorativeMotion.value)
 
 // ============ 模型版本（持久化） ============
@@ -141,11 +141,6 @@ const pupilY = ref(0)
 const heroEyeWrap = ref<HTMLElement | null>(null)
 let idleTimer: number | null = null
 let lastMoveTime = 0
-
-// ============ countUp ============
-const badgeValues = reactive<{ acc: number; resp: number; cls: number }>({
-  acc: 0, resp: 0, cls: 0
-})
 
 // ============ 新手引导 ============
 const showGuide = ref(false)
@@ -614,57 +609,7 @@ const eyeColors = computed(() => {
   return { deep: '#3a0a0a', mid: '#8a0a0a', sea: '#c41818', aqua: '#ef4444' }
 })
 
-// ============ countUp ============
-const countTargets = { acc: 99, resp: 2, cls: 3 }
-const countDuration = 1500
-let countFrame: number | null = null
-let countElapsed = 0
-
-function setFinalBadgeValues(): void {
-  badgeValues.acc = countTargets.acc
-  badgeValues.resp = countTargets.resp
-  badgeValues.cls = countTargets.cls
-}
-
-function runCountUp(): void {
-  if (countFrame !== null) cancelAnimationFrame(countFrame)
-  countFrame = null
-  if (reduceMotion.value) {
-    countElapsed = countDuration
-    setFinalBadgeValues()
-    return
-  }
-  if (!allowDecorativeMotion.value) return
-  const start = performance.now() - countElapsed
-  function step(now: number): void {
-    if (!allowDecorativeMotion.value) {
-      countElapsed = clamp(now - start, 0, countDuration)
-      countFrame = null
-      return
-    }
-    countElapsed = clamp(now - start, 0, countDuration)
-    const p = countElapsed / countDuration
-    const eased = 1 - Math.pow(1 - p, 3)
-    badgeValues.acc = Math.round(countTargets.acc * eased)
-    badgeValues.resp = Math.round(countTargets.resp * eased)
-    badgeValues.cls = Math.round(countTargets.cls * eased)
-    if (p < 1) countFrame = requestAnimationFrame(step)
-    else countFrame = null
-  }
-  countFrame = requestAnimationFrame(step)
-}
-
-const badgeDisplay = computed(() => {
-  const b1 = t('home.hero.badge1')
-  const b2 = t('home.hero.badge2')
-  const b3 = t('home.hero.badge3')
-  return [
-    { icon: '🎯', num: badgeValues.acc, suffix: b1.replace(/^[\d.]+\+?/, '') },
-    { icon: '⚡', num: badgeValues.resp, suffix: b2.replace(/^[\d.]+\+?/, '') },
-    { icon: '📊', num: badgeValues.cls, suffix: b3.replace(/^[\d.]+\+?/, '') }
-  ]
-})
-
+// ============ 结果元信息 ============
 const evidenceItems = computed(() => [
   { value: t('home.hero.evidence_mfed_value'), label: t('home.hero.evidence_mfed') },
   { value: t('home.hero.evidence_classes_value'), label: t('home.hero.evidence_classes') },
@@ -681,7 +626,6 @@ const fileInfo = computed(() => {
   }
 })
 
-const resultHint = computed(() => lastResult.value ? t('home.result.result_hint_ready') : t('home.result.result_hint_empty'))
 const healthLabel = computed(() => apiHealthy.value === null
   ? t('home.status.checking')
   : apiHealthy.value ? t('home.status.online') : t('home.status.offline'))
@@ -724,14 +668,6 @@ const probEntries = computed(() => {
     return { level: k, value: p[k] ?? 0, color: meta.color, label: meta.label }
   })
 })
-
-// ============ 工作流徽标 ============
-const workflowSteps = computed(() => [
-  t('home.workflow_steps.preprocess'),
-  t('home.workflow_steps.extract'),
-  t('home.workflow_steps.classify'),
-  t('home.workflow_steps.gradcam')
-])
 
 // ============ 详细报告内容 ============
 const detailSections = computed(() => {
@@ -787,35 +723,30 @@ const adviceSections = computed(() => {
     {
       key: 'storage',
       title: t('home.result.storage'),
-      icon: '❄️',
       desc: '',
       items: item('storage')
     },
     {
       key: 'consumption',
       title: t('home.result.consumption'),
-      icon: '🍽️',
       desc: '',
       items: item('consumption')
     },
     {
       key: 'processing',
       title: t('home.result.processing'),
-      icon: '🔪',
       desc: '',
       items: item('handling')
     },
     {
       key: 'safety',
       title: t('home.result.safety'),
-      icon: '⚠️',
       desc: '',
       items: item('safety')
     },
     {
       key: 'best',
       title: t('home.result.best'),
-      icon: '✨',
       desc: '',
       items: item('best')
     }
@@ -920,15 +851,9 @@ function syncMouseTracking(enabled: boolean): void {
 
 watch(shouldTrackMouse, syncMouseTracking)
 watch(allowDecorativeMotion, (allowed) => {
-  if (allowed) {
-    startIdleDrift()
-    runCountUp()
-  } else {
-    stopIdleDrift()
-    runCountUp()
-  }
+  if (allowed) startIdleDrift()
+  else stopIdleDrift()
 })
-watch(reduceMotion, () => { runCountUp() })
 
 onMounted(() => {
   initHistory()
@@ -938,8 +863,6 @@ onMounted(() => {
   mouseMoveHandler = onMouseMove
   syncMouseTracking(shouldTrackMouse.value)
   if (allowDecorativeMotion.value) startIdleDrift()
-  // countUp
-  runCountUp()
   // 粘贴监听
   window.addEventListener('paste', onPaste)
   // 历史相对时间每分钟刷新
@@ -958,8 +881,6 @@ onBeforeUnmount(() => {
   cancelAnalysis()
   syncMouseTracking(false)
   stopIdleDrift()
-  if (countFrame !== null) cancelAnimationFrame(countFrame)
-  countFrame = null
   window.removeEventListener('paste', onPaste)
   if (historyTimer) window.clearInterval(historyTimer)
   stopScanning()
@@ -994,7 +915,7 @@ function closeLowConfidenceModal(): void {
     @close="dismissGuide"
   >
     <div class="guide-modal">
-      <div class="guide-emoji">🐟</div>
+      <div class="guide-mark" aria-hidden="true"><span class="guide-eye"></span></div>
       <h3 :id="guideDialogTitleId" class="guide-title">{{ t('home.guide_modal.title') }}</h3>
       <p :id="guideDialogDescriptionId" class="guide-text">{{ t('home.guide_modal.text') }}</p>
       <button data-testid="guide-dismiss" class="btn" type="button" :aria-label="t('home.guide_modal.close')" @click="dismissGuide">{{ t('home.guide_modal.button') }}</button>
@@ -1010,7 +931,7 @@ function closeLowConfidenceModal(): void {
     @close="closeLowConfidenceModal"
   >
     <div class="guide-modal">
-      <div class="guide-emoji warn">⚠️</div>
+      <div class="guide-mark warn" aria-hidden="true">!</div>
       <h3 :id="lowConfidenceDialogTitleId" class="guide-title">{{ t('home.low_conf_modal.title') }}</h3>
       <p :id="lowConfidenceDialogDescriptionId" class="guide-text">
         {{ formatMessage('home.low_conf_modal.text', { confidence: Math.round((lastResult?.confidence_score ?? 0) * 100) }) }}
@@ -1103,8 +1024,6 @@ function closeLowConfidenceModal(): void {
       <span class="hero-sparkle hero-sparkle--3" aria-hidden="true">✦</span>
     </div>
     <h1 id="hero-title" class="hero-title">{{ t('home.hero.title') }}</h1>
-    <span class="hero-chip"><span class="hero-chip-dot" aria-hidden="true"></span>{{ t('home.hero.chip') }}</span>
-    <p class="hero-tagline">{{ t('home.hero.tagline') }}</p>
     <p class="hero-desc">{{ t('home.hero.subtitle') }}</p>
     <div class="hero-actions" :aria-label="t('home.hero.quick_start')">
       <a class="hero-action-primary" href="#upload-title" @click.prevent="scrollToSection('upload-title')">{{ t('home.hero.start') }} <span aria-hidden="true">→</span></a>
@@ -1113,11 +1032,6 @@ function closeLowConfidenceModal(): void {
     <div class="hero-badges hero-evidence-strip" role="list" :aria-label="t('home.hero.evidence_label')">
       <span v-for="item in evidenceItems" :key="item.value + item.label" class="hero-evidence-item" role="listitem"><strong>{{ item.value }}</strong> {{ item.label }}</span>
     </div>
-    <router-link class="hero-evidence-link" to="/about.html">{{ t('home.hero.evidence_link') }} <span aria-hidden="true">→</span></router-link>
-    <a href="#upload-title" class="hero-scroll-cue" @click.prevent="scrollToSection('upload-title')">
-      <span>{{ t('home.hero.scroll_hint') }}</span>
-      <span class="hero-scroll-cue-arrow" aria-hidden="true">⌄</span>
-    </a>
   </section>
 
   <!-- ============ 上传区 ============ -->
@@ -1157,18 +1071,18 @@ function closeLowConfidenceModal(): void {
       @drop="onDrop"
     >
       <div class="upload-icon" aria-hidden="true">
-        <div class="fish-icon"><span class="fish-eye"></span></div>
+        <span class="upload-eye"></span>
       </div>
       <p class="upload-text">{{ previewUrl ? t('home.upload.analyze') : t('home.upload.hint') }}</p>
-      <p class="upload-meta">{{ t('home.upload.formats') }} · ≤25MB · Ctrl+V {{ t('home.upload.paste') }}</p>
+      <p class="upload-meta">{{ t('home.upload.formats') }} · ≤25MB · {{ t(coarsePointer ? 'home.upload.paste_mobile' : 'home.upload.paste_desktop') }}</p>
       <p class="privacy-note">{{ t('home.upload.privacy') }}</p>
       <div class="upload-cta-group">
         <button class="upload-cta" type="button" @click.stop="onPickFile">{{ t('home.upload.choose_photo') }}</button>
-        <button class="upload-cta alt" type="button" @click.stop="openCamera">📷 {{ t('home.upload.camera') }}</button>
+        <button class="upload-cta alt" type="button" @click.stop="openCamera">{{ t('home.upload.camera') }}</button>
       </div>
     </div>
 
-    <p v-if="errorMsg && !previewUrl" class="error-msg upload-error">⚠️ {{ errorMsg }}</p>
+    <p v-if="errorMsg && !previewUrl" class="error-msg upload-error">{{ errorMsg }}</p>
 
     <!-- 示例图片 -->
     <div id="sample-card" class="samples">
@@ -1204,9 +1118,9 @@ function closeLowConfidenceModal(): void {
         </div>
       </div>
       <div v-if="fileInfo" class="preview-info" aria-live="polite">
-        <span>📷 <strong>{{ fileInfo.name }}</strong></span>
-        <span>📏 <strong>{{ fileInfo.size }}</strong></span>
-        <span>🔲 <strong>{{ fileInfo.dimensions }}</strong></span>
+        <span><strong>{{ fileInfo.name }}</strong></span>
+        <span><strong>{{ fileInfo.size }}</strong></span>
+        <span><strong>{{ fileInfo.dimensions }}</strong></span>
       </div>
       <div class="preview-actions">
         <button v-if="selectedFile && uploadFile" class="btn" type="button" :disabled="analyzing" @click="analyze">
@@ -1215,7 +1129,7 @@ function closeLowConfidenceModal(): void {
         </button>
         <button class="btn alt" type="button" @click="resetAll">{{ t('home.upload.clear') }}</button>
       </div>
-      <p v-if="errorMsg" class="error-msg">⚠️ {{ errorMsg }}</p>
+      <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
       <div v-if="showOnboardingTip" class="onboarding-tip">{{ t('home.upload.onboarding') }}</div>
     </div>
   </section>
@@ -1234,43 +1148,34 @@ function closeLowConfidenceModal(): void {
   </section>
 
   <!-- ============ 结果区 ============ -->
-  <section v-if="!lastResult && !analyzing" id="results-empty-section" class="reveal" aria-labelledby="result-empty-title">
-    <div class="section-head">
-      <h2 id="result-empty-title" class="section-title">{{ t('home.result.report_title') }}</h2>
-      <span class="section-hint">{{ resultHint }}</span>
-    </div>
-    <div class="results-empty glass-card">
-      <div class="result-icon" aria-hidden="true">◌</div>
-      <p class="result-text">{{ t('home.result.empty') }}</p>
-      <p class="result-sub">{{ t('home.result.empty_sub') }}</p>
-    </div>
-  </section>
-
   <section v-if="lastResult" id="result-section" class="reveal" :class="{ revealed: Boolean(lastResult) }">
     <div class="section-head">
       <h2 class="section-title">{{ t('home.result.report_title') }}</h2>
       <div class="result-toolbar">
         <span class="health-chip" :class="{ online: apiHealthy, offline: apiHealthy === false }">{{ healthLabel }}</span>
-        <button class="btn alt small" type="button" @click="exportPDF">📄 {{ t('home.export') }}</button>
+        <button class="btn alt small" type="button" @click="exportPDF">{{ t('home.export') }}</button>
       </div>
     </div>
 
     <!-- 置信度横幅 -->
     <div v-if="confBannerType === 'mid' && showMidWarning" class="conf-banner mid">
-      ⚠️ <span>{{ formatMessage('home.result.warning_mid', { confidence: Math.round((lastResult.confidence_score ?? 0) * 100) }) }}</span>
+      <span>{{ formatMessage('home.result.warning_mid', { confidence: Math.round((lastResult.confidence_score ?? 0) * 100) }) }}</span>
       <button class="warning-dismiss" type="button" :aria-label="t('home.result.close_warning')" @click="showMidWarning = false">✕</button>
     </div>
-    <div v-if="confBannerType === 'low' && showLowWarning" class="conf-banner low">
-      ⚠️ <span>{{ formatMessage('home.result.warning_low', { confidence: Math.round((lastResult.confidence_score ?? 0) * 100) }) }}</span>
+    <div v-if="confBannerType === 'low' && showLowWarning && !showLowConfidenceModal" class="conf-banner low">
+      <span>{{ formatMessage('home.result.warning_low', { confidence: Math.round((lastResult.confidence_score ?? 0) * 100) }) }}</span>
       <button class="warning-dismiss" type="button" :aria-label="t('home.result.close_warning')" @click="showLowWarning = false">✕</button>
     </div>
 
     <div class="result-primary-card glass-card">
+      <figure class="result-photo">
+        <img :src="lastOriginalImage || previewUrl" :alt="t('home.upload.preview_alt')" />
+      </figure>
       <div class="result-primary-copy">
         <span class="result-kicker">{{ t('home.result.result_kicker') }}</span>
         <div class="freshness-card" :class="`freshness-${freshnessMeta(lastResult.freshness_level).key}`">
           <span class="freshness-indicator" aria-hidden="true"></span>
-          <div><strong>{{ freshnessMeta(lastResult.freshness_level).label }}</strong><small>{{ t('home.result.confidence') }} {{ (lastResult.confidence_score * 100).toFixed(1) }}%</small></div>
+          <div><strong>{{ freshnessMeta(lastResult.freshness_level).label }}</strong></div>
         </div>
         <div class="result-action-block">
           <span class="result-action-label">{{ t('home.result.result_action_label') }}</span>
@@ -1296,18 +1201,8 @@ function closeLowConfidenceModal(): void {
             </text>
             <text x="60" y="75" text-anchor="middle" class="primary-gauge-cap">{{ t('home.result.confidence_model_score') }}</text>
           </svg>
-          <span class="primary-gauge-label">{{ healthLabel }}</span>
         </div>
       </div>
-    </div>
-
-    <!-- 工作流徽标 -->
-    <div class="workflow">
-      <span class="workflow-label">{{ t('home.result.workflow') }}:</span>
-      <template v-for="(s, i) in workflowSteps" :key="i">
-        <span class="workflow-step">{{ s }}</span>
-        <span v-if="i < workflowSteps.length - 1" class="workflow-sep" aria-hidden="true">→</span>
-      </template>
     </div>
 
     <!-- Tabs -->
@@ -1325,38 +1220,8 @@ function closeLowConfidenceModal(): void {
       >{{ tab }}</button>
     </div>
 
-    <!-- Tab 1: 概览 -->
+    <!-- Tab 1: 概览（等级与置信度已由首屏主卡承载，此处只保留概率分布与元信息） -->
     <div v-show="activeTab === 0" role="tabpanel" aria-labelledby="tab-0" class="tab-panel">
-      <div class="overview-grid">
-        <div class="overview-card level-card" :style="{ borderColor: freshnessMeta(lastResult.freshness_level).color }">
-          <span class="overview-label">{{ t('home.result.freshness') }}</span>
-          <span class="overview-level" :style="{ color: freshnessMeta(lastResult.freshness_level).color }">
-            {{ freshnessMeta(lastResult.freshness_level).label }}
-          </span>
-            <span class="overview-desc">{{ detailSections[0]?.desc }}</span>
-        </div>
-        <div class="overview-card gauge-card">
-          <span class="overview-label">{{ t('home.result.confidence') }}</span>
-          <svg class="gauge" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
-            <circle cx="60" cy="60" :r="gaugeRadius" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
-            <circle
-              cx="60" cy="60" :r="gaugeRadius"
-              fill="none"
-              :stroke="gaugeColor"
-              stroke-width="10"
-              stroke-linecap="round"
-              :stroke-dasharray="gaugeCircumference"
-              :stroke-dashoffset="gaugeOffset"
-              transform="rotate(-90 60 60)"
-              class="gauge-arc"
-            />
-            <text x="60" y="60" text-anchor="middle" dominant-baseline="central" class="gauge-text">
-              {{ Math.round((lastResult.confidence_score ?? 0) * 100) }}%
-            </text>
-          </svg>
-        </div>
-      </div>
-
       <div class="prob-card glass-card">
         <h3 class="block-title">{{ t('home.result.distribution') }}</h3>
         <div v-for="p in probEntries" :key="p.level" class="prob-row">
@@ -1368,23 +1233,10 @@ function closeLowConfidenceModal(): void {
         </div>
       </div>
 
-      <div class="metrics-grid">
-        <div class="metric">
-          <span class="metric-label">{{ t('home.result.freshness') }}</span>
-          <span class="metric-val" :style="{ color: freshnessMeta(lastResult.freshness_level).color }">{{ freshnessMeta(lastResult.freshness_level).label }}</span>
-        </div>
-        <div class="metric">
-          <span class="metric-label">{{ t('home.result.confidence') }}</span>
-          <span class="metric-val">{{ ((lastResult.confidence_score ?? 0) * 100).toFixed(1) }}%</span>
-        </div>
-        <div class="metric">
-          <span class="metric-label">{{ t('home.result.duration') }}</span>
-          <span class="metric-val">{{ lastDuration }}ms</span>
-        </div>
-        <div class="metric">
-          <span class="metric-label">{{ t('home.result.time') }}</span>
-          <span class="metric-val small">{{ new Date(lastTimestamp).toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US') }}</span>
-        </div>
+      <div class="result-meta">
+        <span><em>{{ t('home.result.model') }}</em>{{ modelDisplayName(lastResult.model_version) }}</span>
+        <span><em>{{ t('home.result.duration') }}</em>{{ lastDuration }}ms</span>
+        <span><em>{{ t('home.result.time') }}</em>{{ new Date(lastTimestamp).toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US') }}</span>
       </div>
     </div>
 
@@ -1512,7 +1364,7 @@ function closeLowConfidenceModal(): void {
   <section class="reveal">
     <div class="section-head">
       <h2 class="section-title">{{ t('home.history.title') }} ({{ history.length }}/50)</h2>
-      <button v-if="history.length" class="btn alt small" type="button" @click="onClearAll">🗑 {{ t('home.history.clear') }}</button>
+      <button v-if="history.length" class="btn alt small" type="button" @click="onClearAll">{{ t('home.history.clear') }}</button>
     </div>
     <div class="history-controls">
       <input
@@ -1578,7 +1430,7 @@ function closeLowConfidenceModal(): void {
 <style scoped>
 /* ============ Hero ============ */
 .hero {
-  min-height: calc(70vh);
+  min-height: calc(62vh);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1613,39 +1465,7 @@ function closeLowConfidenceModal(): void {
   transition: filter 0.6s var(--ease-decel);
   overflow: hidden;
 }
-.hero-pupil { transform-origin: 120px 120px; transform-box: fill-box; }
 @keyframes floatEye { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-.hero-chip {
-  display: inline-flex; align-items: center; gap: 8px; padding: 7px 18px;
-  border-radius: 999px; background: rgba(39, 208, 196, 0.08);
-  border: 1px solid rgba(39, 208, 196, 0.3); color: var(--aqua);
-  font-size: 13px; font-weight: 600; letter-spacing: 0.8px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 18px rgba(39, 208, 196, 0.1);
-  animation: fadeUp 0.9s ease 0.15s both;
-}
-.hero-chip-dot {
-  width: 7px; height: 7px; border-radius: 50%; background: var(--aqua);
-  box-shadow: 0 0 8px var(--aqua); animation: blink 2.2s ease-in-out infinite;
-}
-.hero-tagline {
-  position: relative; display: inline-block; font-size: clamp(18px, 2.5vw, 22px);
-  font-weight: 600; color: var(--foam); margin: 0 0 var(--space-3); letter-spacing: 2px;
-}
-.hero-tagline::after {
-  content: ""; position: absolute; left: 50%; bottom: -6px; width: 46px; height: 2px;
-  border-radius: 2px; background: linear-gradient(90deg, transparent, var(--aqua), transparent);
-  transform: translateX(-50%); opacity: 0.8;
-}
-.hero-scroll-cue {
-  margin-top: var(--space-5); display: inline-flex; flex-direction: column;
-  align-items: center; justify-content: center; min-height: 44px; padding: 10px 6px;
-  gap: 4px; color: var(--muted); font-size: 12px;
-  letter-spacing: 1.5px; text-decoration: none; transition: color var(--transition);
-  animation: fadeUp 0.9s ease 0.6s both;
-}
-.hero-scroll-cue:hover { color: var(--aqua); }
-.hero-scroll-cue:focus-visible { outline: 2px solid var(--aqua); outline-offset: 4px; border-radius: 6px; }
-.hero-scroll-cue-arrow { font-size: 16px; animation: bounce 2s ease-in-out infinite; }
 .hero-sparkle {
   position: absolute; color: #bdf6ef; line-height: 1; pointer-events: none;
   text-shadow: 0 0 8px rgba(39, 208, 196, 0.8); opacity: 0;
@@ -1661,17 +1481,13 @@ function closeLowConfidenceModal(): void {
 @keyframes pulseGlow { 0%, 100% { opacity: 0.65; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(40px, 8vw, 72px);
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -1px;
+  font-size: clamp(28px, 6.2vw, 54px);
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: 0.01em;
   margin: 0 0 var(--space-3);
-  background: linear-gradient(135deg, #ffffff 0%, var(--aqua) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: drop-shadow(0 0 26px rgba(39, 208, 196, 0.28));
+  color: #f2fafd;
+  text-wrap: balance;
 }
 .hero-desc { font-size: clamp(16px, 2.2vw, 20px); color: var(--muted); margin: 0 auto var(--space-5); max-width: 540px; }
 .hero-actions {
@@ -1699,27 +1515,6 @@ function closeLowConfidenceModal(): void {
 .hero-evidence-item:first-child { padding-left: 0; }
 .hero-evidence-item:last-child { border-right: 0; }
 .hero-evidence-item strong { color: var(--foam); font-weight: 700; font-variant-numeric: tabular-nums; }
-.hero-evidence-link {
-  display: inline-flex; align-items: center; gap: 7px; color: var(--aqua);
-  min-height: 44px; padding: 10px 0; font-size: 11px; font-weight: 700; text-decoration: none;
-  transition: color var(--transition), transform var(--transition);
-}
-.hero-evidence-link:hover { color: var(--foam); }
-.hero-evidence-link:focus-visible { outline: 2px solid var(--aqua); outline-offset: 4px; border-radius: 3px; }
-.badge .count { font-family: var(--font-display); font-weight: 800; color: var(--aqua); margin-right: 1px; }
-.scroll-hint {
-  margin-top: var(--space-5);
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--muted);
-  font-size: 12px;
-  text-decoration: none;
-  letter-spacing: 1px;
-}
-.scroll-arrow { font-size: 18px; animation: bounce 1.8s ease-in-out infinite; }
-@keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.6; } 50% { transform: translateY(6px); opacity: 1; } }
 
 /* ============ 模型切换 ============ */
 .model-switch {
@@ -1787,20 +1582,10 @@ function closeLowConfidenceModal(): void {
   background: radial-gradient(circle at 30% 30%, rgba(39, 208, 196, 0.25), rgba(17, 133, 184, 0.15));
   border: 1px solid var(--border-hover);
 }
-.fish-icon { width: 38px; height: 24px; position: relative; }
-.fish-icon::before {
-  content: ""; position: absolute; left: 0; top: 4px; width: 26px; height: 16px;
-  background: linear-gradient(135deg, var(--aqua), var(--sea));
-  border-radius: 50% 60% 60% 50% / 50% 50% 50% 50%;
-}
-.fish-icon::after {
-  content: ""; position: absolute; right: 0; top: 0; width: 0; height: 0;
-  border-left: 12px solid var(--aqua);
-  border-top: 12px solid transparent; border-bottom: 12px solid transparent;
-}
-.fish-eye {
-  position: absolute; left: 6px; top: 9px; width: 4px; height: 4px; border-radius: 50%;
-  background: var(--ink); box-shadow: 0 0 0 1px var(--foam); z-index: 2;
+.upload-eye {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: radial-gradient(circle, var(--ink) 0%, var(--ink) 34%, var(--aqua) 36%, #bdf6ef 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 14px rgba(39, 208, 196, 0.35);
 }
 .upload-text { font-size: 17px; font-weight: 600; color: var(--foam); margin: 0 0 var(--space-2); }
 .upload-meta { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.7; }
@@ -1827,16 +1612,20 @@ function closeLowConfidenceModal(): void {
 }
 .samples-label { font-size: 13px; color: var(--muted); }
 .sample-thumb {
-  position: relative; width: 72px; height: 72px; border-radius: var(--radius-md);
+  position: relative; width: 88px; height: 88px; border-radius: var(--radius-md);
   overflow: hidden; border: 1px solid var(--border); padding: 0;
   transition: transform var(--transition), border-color var(--transition);
 }
 .sample-thumb:hover { border-color: var(--border-hover); }
 .sample-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sample-tag {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  font-size: 10px; color: #fff; text-align: center;
-  padding: 2px 4px; background: rgba(0,0,0,0.55);
+  position: absolute; left: 6px; right: 6px; bottom: 6px;
+  font-size: 10.5px; color: var(--foam); text-align: center;
+  padding: 3px 6px; border-radius: 999px;
+  background: rgba(4, 22, 43, 0.72);
+  border: 1px solid rgba(39, 208, 196, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 /* ============ 预览卡片 ============ */
@@ -1940,18 +1729,6 @@ function closeLowConfidenceModal(): void {
 }
 
 /* ============ 结果首屏层级 ============ */
-.results-empty {
-  padding: clamp(32px, 5vw, 48px) var(--space-5); border: 2px dashed var(--border);
-  border-radius: var(--radius-xl); text-align: center;
-}
-.results-empty:hover { border-color: var(--border-hover); }
-.results-empty .result-icon {
-  width: 60px; height: 60px; margin: 0 auto var(--space-4); border-radius: 50%;
-  display: grid; place-items: center; background: rgba(39, 208, 196, 0.08);
-  border: 1px solid var(--border); color: var(--aqua); font-size: 30px;
-}
-.result-text { margin: 0 0 var(--space-2); color: var(--foam); font-size: 15px; font-weight: 500; }
-.result-sub { margin: 0; color: var(--muted); font-size: 12.5px; }
 .result-toolbar {
   display: inline-flex;
   align-items: center;
@@ -1971,18 +1748,25 @@ function closeLowConfidenceModal(): void {
 .health-chip.online { color: var(--fresh-high); border-color: rgba(16, 185, 129, 0.28); }
 .health-chip.offline { color: var(--fresh-low); border-color: rgba(239, 68, 68, 0.3); }
 .result-primary-card {
-  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr); gap: var(--space-4);
-  align-items: stretch; margin-bottom: var(--space-4); padding: clamp(20px, 4vw, 32px);
+  display: grid;
+  grid-template-columns: minmax(0, 210px) minmax(0, 1.35fr) minmax(168px, 0.65fr);
+  gap: var(--space-4);
+  align-items: center; margin-bottom: var(--space-4); padding: clamp(20px, 4vw, 28px);
   border: 1px solid rgba(39, 208, 196, 0.28); border-left: 3px solid var(--aqua);
   border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, rgba(15, 86, 102, 0.32), rgba(4, 22, 43, 0.72));
+  background: linear-gradient(135deg, rgba(13, 62, 78, 0.62), rgba(6, 24, 44, 0.9));
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(189, 246, 239, 0.08);
 }
+.result-photo {
+  margin: 0; aspect-ratio: 1; overflow: hidden;
+  border-radius: var(--radius-lg); background: var(--ink);
+  border: 1px solid var(--border);
+}
+.result-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .result-primary-copy { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .result-kicker, .result-action-label { display: block; color: var(--aqua); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .freshness-card { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: rgba(0, 8, 20, 0.2); }
-.freshness-card strong { display: block; font-family: var(--font-display); font-size: clamp(26px, 5vw, 42px); line-height: 1.15; }
-.freshness-card small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; }
+.freshness-card strong { display: block; font-family: var(--font-display); font-size: clamp(24px, 4.4vw, 38px); line-height: 1.15; }
 .freshness-indicator { width: 11px; height: 48px; flex: 0 0 11px; border-radius: 999px; background: var(--muted); box-shadow: 0 0 18px currentColor; }
 .freshness-high { color: var(--fresh-high); }
 .freshness-mid { color: var(--fresh-mid); }
@@ -2002,26 +1786,12 @@ function closeLowConfidenceModal(): void {
 }
 .result-link:hover { color: var(--foam); }
 .result-link-muted { color: var(--muted); }
-.result-primary-confidence { display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 16px; border: 1px solid rgba(189, 246, 239, 0.1); border-radius: var(--radius-lg); background: rgba(0, 8, 20, 0.22); }
+.result-primary-confidence { display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: 16px; border: 1px solid rgba(189, 246, 239, 0.1); border-radius: var(--radius-lg); background: rgba(0, 8, 20, 0.34); }
 .result-primary-confidence .panel-title { margin-bottom: 8px; color: var(--foam); font-size: 14px; font-weight: 700; }
 .primary-gauge-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .primary-gauge { display: block; max-width: 100%; }
 .primary-gauge-num { fill: var(--foam); font-family: var(--font-display); font-size: 21px; font-weight: 800; }
 .primary-gauge-cap { fill: var(--muted); font-size: 8px; }
-.primary-gauge-label { color: var(--muted); font-size: 12px; text-align: center; }
-
-/* ============ 工作流徽标 ============ */
-.workflow {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
-  margin-bottom: var(--space-4); font-size: 12.5px;
-}
-.workflow-label { color: var(--muted); margin-right: 4px; }
-.workflow-step {
-  padding: 4px 10px; border-radius: 999px;
-  background: rgba(39, 208, 196, 0.1); border: 1px solid rgba(39, 208, 196, 0.28);
-  color: var(--aqua); font-weight: 600;
-}
-.workflow-sep { color: var(--muted); }
 
 /* ============ Tabs ============ */
 .tabs {
@@ -2033,35 +1803,20 @@ function closeLowConfidenceModal(): void {
 .tab {
   flex: 1; min-width: 80px; min-height: 44px; padding: 10px 14px; border-radius: var(--radius-sm);
   font-size: 13.5px; font-weight: 600; color: var(--muted);
-  transition: color var(--transition), background var(--transition);
+  border: 1px solid transparent;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
   white-space: nowrap;
 }
 .tab:hover { color: var(--foam); background: var(--card-hover); }
 .tab.active {
-  color: var(--ink);
-  background: linear-gradient(135deg, var(--aqua), var(--sea));
-  box-shadow: 0 4px 12px rgba(39, 208, 196, 0.3);
+  color: var(--foam);
+  background: rgba(39, 208, 196, 0.16);
+  border-color: rgba(39, 208, 196, 0.42);
 }
 .tab-panel { animation: fadeUp 0.4s var(--ease-decel) both; }
 
 /* ============ 概览 ============ */
-.overview-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);
-  margin-bottom: var(--space-4);
-}
-.overview-card {
-  padding: var(--space-5); border-radius: var(--radius-lg);
-  background: var(--card); border: 1px solid var(--border);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px; text-align: center; backdrop-filter: blur(10px);
-}
-.level-card { border-width: 2px; }
-.overview-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
-.overview-level { font-family: var(--font-display); font-size: 28px; font-weight: 800; }
-.overview-desc { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
-.gauge { display: block; }
 .gauge-arc { transition: stroke-dashoffset 1s var(--ease-decel); }
-.gauge-text { fill: var(--foam); font-size: 22px; font-weight: 800; font-family: var(--font-display); }
 
 .prob-card { margin-bottom: var(--space-4); }
 .block-title { font-size: 15px; font-weight: 700; color: var(--foam); margin: 0 0 var(--space-3); }
@@ -2070,21 +1825,16 @@ function closeLowConfidenceModal(): void {
   gap: var(--space-3); margin-bottom: var(--space-2);
 }
 .prob-label { font-size: 13px; font-weight: 600; }
-.prob-bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.prob-bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,0.12); overflow: hidden; }
 .prob-fill { height: 100%; border-radius: 999px; transition: width 0.8s var(--ease-decel); }
 .prob-val { font-size: 12.5px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
 
-.metrics-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3);
+.result-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 20px;
+  color: var(--muted); font-size: 12.5px;
 }
-.metric {
-  padding: var(--space-3); border-radius: var(--radius-md);
-  background: var(--card); border: 1px solid var(--border);
-  display: flex; flex-direction: column; gap: 4px; text-align: center;
-}
-.metric-label { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
-.metric-val { font-size: 16px; font-weight: 700; color: var(--foam); font-family: var(--font-display); }
-.metric-val.small { font-size: 13px; font-family: var(--font-stack); }
+.result-meta span { display: inline-flex; align-items: baseline; gap: 6px; }
+.result-meta em { font-style: normal; opacity: .75; }
 
 /* ============ 对比滑块 ============ */
 .compare-wrap { padding: var(--space-4); }
@@ -2195,13 +1945,19 @@ function closeLowConfidenceModal(): void {
   box-shadow: 0 24px 60px rgba(1, 8, 18, 0.6);
   animation: fadeUp 0.4s var(--ease-bounce) both;
 }
-.guide-emoji {
-  font-size: 48px; margin-bottom: var(--space-3);
+.guide-mark {
+  margin-bottom: var(--space-3);
   width: 80px; height: 80px; margin-inline: auto;
   display: grid; place-items: center; border-radius: 50%;
   background: rgba(39, 208, 196, 0.14); border: 1px solid rgba(39, 208, 196, 0.35);
+  font-size: 34px; font-weight: 700; color: var(--fresh-low);
 }
-.guide-emoji.warn { background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.4); }
+.guide-eye {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: radial-gradient(circle, var(--ink) 0%, var(--ink) 34%, var(--aqua) 36%, #bdf6ef 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 16px rgba(39, 208, 196, 0.4);
+}
+.guide-mark.warn { background: rgba(239, 68, 68, 0.14); border-color: rgba(239, 68, 68, 0.4); }
 .guide-title {
   font-family: var(--font-display); font-size: 20px; font-weight: 800;
   color: var(--white); margin: 0 0 var(--space-2);
@@ -2215,7 +1971,6 @@ function closeLowConfidenceModal(): void {
 
 @media (hover: hover) and (pointer: fine) {
   .hero-action-primary:hover, .hero-action-secondary:hover { transform: translateY(-2px); }
-  .hero-evidence-link:hover { transform: translateX(2px); }
   .upload-zone:hover { transform: translateY(-2px); }
   .upload-cta:hover { transform: translateY(-2px); }
   .sample-thumb:hover { transform: translateY(-3px) scale(1.04); }
@@ -2224,6 +1979,10 @@ function closeLowConfidenceModal(): void {
 }
 
 /* ============ 响应式 ============ */
+@media (max-width: 900px) {
+  .result-primary-card { grid-template-columns: minmax(0, 180px) minmax(0, 1fr); }
+  .result-primary-confidence { grid-column: 1 / -1; }
+}
 @media (max-width: 768px) {
   .hero { min-height: auto; padding-top: var(--space-7); }
   .hero-actions { width: 100%; }
@@ -2231,9 +1990,6 @@ function closeLowConfidenceModal(): void {
   .hero-evidence-strip { width: 100%; flex-wrap: wrap; }
   .hero-evidence-item { min-width: 0; padding-inline: 9px; }
   .hero-evidence-item:first-child { padding-left: 0; }
-  .hero-evidence-link { align-self: center; }
-  .overview-grid { grid-template-columns: 1fr; }
-  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
   .skeleton-grid { grid-template-columns: 1fr; }
   .skeleton.tall { grid-row: auto; height: 160px; }
   .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -2248,8 +2004,9 @@ function closeLowConfidenceModal(): void {
   .preview-info span { min-width: 0; max-width: 100%; }
   .preview-info strong { max-width: 12em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .result-toolbar { width: 100%; justify-content: space-between; }
-  .result-primary-card { grid-template-columns: 1fr; padding: 18px 16px; gap: 18px; }
-  .result-primary-confidence { order: -1; padding: 14px 10px; }
+  .result-primary-card { grid-template-columns: 1fr; padding: 18px 16px; gap: 16px; }
+  .result-photo { width: 100%; max-width: 220px; margin-inline: auto; }
+  .result-primary-confidence { grid-column: auto; padding: 14px 10px; }
   .tabs { gap: 2px; padding: 3px; }
   .tab { min-width: 64px; padding: 9px 8px; font-size: 12.5px; }
   .history-thumb { width: 40px; height: 40px; }
@@ -2258,16 +2015,13 @@ function closeLowConfidenceModal(): void {
   .preview-actions .btn { width: 100%; }
   .compare-handle { width: 30px; height: 30px; font-size: 14px; }
   .guide-modal { padding: var(--space-5); }
-  .hero-chip { font-size: 12px; padding: 6px 14px; }
-  .hero-scroll-cue { margin-top: var(--space-4); }
 }
 
 /* ============ 减少动画偏好 ============ */
 @media (prefers-reduced-motion: reduce) {
-  .hero-eye, .scroll-arrow, .scan-line, .preview-img-wrap.scanning::after,
+  .hero-eye, .scan-line, .preview-img-wrap.scanning::after,
   .skeleton, .spinner, .tab-panel { animation: none !important; }
-  .hero-chip, .hero-scroll-cue, .hero-sparkle { animation: none !important; opacity: 1 !important; }
-  .hero-chip-dot { animation: none !important; }
+  .hero-sparkle { animation: none !important; opacity: 1 !important; }
   .hero-eye-wrap::before { animation: none !important; opacity: 0.6 !important; }
   .gauge-arc, .prob-fill, .hero-action-primary, .hero-action-secondary { transition: none !important; }
 }
