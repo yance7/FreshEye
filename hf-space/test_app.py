@@ -58,11 +58,15 @@ def test_root(c):
     assert data["service"] == "FreshEye"
 
 
-def test_cors_allows_live_frontend(c):
-    """默认 CORS 白名单应允许 GitHub Pages 自定义域名。"""
-    resp = c.get("/health", headers={"Origin": "https://fresheye.yance777.com"})
-    assert resp.status_code == 200
-    assert resp.headers.get("access-control-allow-origin") == "https://fresheye.yance777.com"
+def test_cors_allows_live_frontend():
+    """默认 CORS 白名单应允许 FreshEye 当前自定义域名。"""
+    client = TestClient(app)
+    try:
+        resp = client.get("/health", headers={"Origin": "https://fresheye.yance.me"})
+        assert resp.status_code == 200
+        assert resp.headers.get("access-control-allow-origin") == "https://fresheye.yance.me"
+    finally:
+        client.close()
 
 
 def test_invalid_model_version(c):

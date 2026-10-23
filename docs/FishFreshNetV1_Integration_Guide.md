@@ -87,7 +87,7 @@ docker build -t fresheye-api .
 docker run -p 7860:7860 fresheye-api
 ```
 
-生产环境（Hugging Face Spaces）需配置 `V1_MODEL_PATH`、`V2_MODEL_PATH`、`PORT`、`CORS_ORIGINS` 等环境变量。前端 `frontend-vue/src/config/index.ts` 中的 `API_BASE_URL` 指向后端地址，`CORS_ORIGINS` 需包含 `https://fresheye.yance777.com` 等前端页面来源。
+生产环境（Hugging Face Spaces）需配置 `V1_MODEL_PATH`、`V2_MODEL_PATH`、`PORT`、`CORS_ORIGINS` 等环境变量。前端 `frontend-vue/src/config/index.ts` 中的 `API_BASE_URL` 指向后端地址，`CORS_ORIGINS` 需包含 `https://fresheye.yance.me` 等前端页面来源。
 
 ## 说明与限制
 
