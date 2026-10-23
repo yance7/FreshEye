@@ -405,7 +405,7 @@ elif _cors_env:
     _cors_origins = [o.strip() for o in _cors_env.split(",") if o.strip()]
 else:
     _cors_origins = [
-        "https://fresheye.yance777.com",
+        "https://fresheye.yance.me",
         "https://yance777.github.io",
         "https://yance77777.github.io",
         "http://localhost:8080",

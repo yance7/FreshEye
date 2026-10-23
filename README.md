@@ -15,9 +15,9 @@
 [![Frontend](https://img.shields.io/badge/Frontend-Vue%203%20%2B%20TypeScript-1b3a52?style=flat-square)](#architecture)
 [![PWA](https://img.shields.io/badge/PWA-supported-8b5cf6?style=flat-square)](#key-features)
 
-**在线体验**：前端 [GitHub Pages](https://fresheye.yance777.com/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
+**在线体验**：前端 [GitHub Pages](https://fresheye.yance.me/) · 后端 [Hugging Face Spaces](https://huggingface.co/spaces/andreas777/fresheye)
 
-**快速入口**：[开始体验](https://fresheye.yance777.com/) · [产品与模型说明](https://fresheye.yance777.com/about.html) · [使用指南](https://fresheye.yance777.com/guide.html) · [开放数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)
+**快速入口**：[开始体验](https://fresheye.yance.me/) · [产品与模型说明](https://fresheye.yance.me/about.html) · [使用指南](https://fresheye.yance.me/guide.html) · [开放数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)
 
 > **能力边界**：报告描述的是鱼眼图像中的视觉新鲜度特征，不替代法定食品检验、质量合格证明或食用安全判断；如有异味、组织异常或储存条件不明，请结合其他感官指标与专业意见判断。
 
@@ -31,7 +31,7 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 
 **核心链路**：上传 → AI 分析 → Grad-CAM → 结果与建议。报告仅描述视觉特征，不替代法定食品检测、质量合格证明或食用安全判断。
 
-**[在线体验](https://fresheye.yance777.com/)** · **[技术细节](https://fresheye.yance777.com/about.html)** · **[公开数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)**
+**[在线体验](https://fresheye.yance.me/)** · **[技术细节](https://fresheye.yance.me/about.html)** · **[公开数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)**
 
 ---
 
@@ -78,7 +78,7 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 
 ### Quick Start
 
-1. Open the [live demo](https://fresheye.yance777.com/) and upload, drag, paste, or capture a fish-eye image.
+1. Open the [live demo](https://fresheye.yance.me/) and upload, drag, paste, or capture a fish-eye image.
 2. Choose FishFreshNetV1 or V2, then review the freshness class, confidence, probability distribution, and Grad-CAM evidence.
 3. Export the result as a single-page A4 report or revisit it from local history.
 

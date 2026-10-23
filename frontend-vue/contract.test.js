@@ -365,3 +365,12 @@ test('gitignore excludes generated and local cache payloads', () => {
     assert.match(ignore, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });
+
+test('public sharing metadata uses the current FreshEye domain', () => {
+  const html = file('index.html');
+  assert.match(html, /<link rel="canonical" href="https:\/\/fresheye\.yance\.me\/"\s*\/>/);
+  assert.match(html, /<meta property="og:url" content="https:\/\/fresheye\.yance\.me\/"\s*\/>/);
+  assert.match(html, /<meta property="og:image" content="https:\/\/fresheye\.yance\.me\/assets\/og-cover\.png"\s*\/>/);
+  assert.match(html, /<meta name="twitter:image" content="https:\/\/fresheye\.yance\.me\/assets\/og-cover\.png"\s*\/>/);
+  assert.doesNotMatch(html, /yance777\.com/);
+});
