@@ -110,6 +110,12 @@ const filteredHistory = computed(() => {
 // ============ 对比滑块 ============
 const comparePos = ref(50)
 const compareWrap = ref<HTMLElement | null>(null)
+const compareAspect = ref(1)
+
+function setCompareAspect(event: Event): void {
+  const image = event.currentTarget as HTMLImageElement
+  compareAspect.value = image.naturalHeight ? image.naturalWidth / image.naturalHeight : 1
+}
 let draggingSlider = false
 
 // ============ 手风琴 ============
@@ -1247,6 +1253,7 @@ function closeLowConfidenceModal(): void {
         <div
           ref="compareWrap"
           class="compare-slider"
+          :style="{ '--compare-aspect': compareAspect }"
           role="slider"
           tabindex="0"
           :aria-label="t('home.result.compare_aria')"
@@ -1266,6 +1273,7 @@ function closeLowConfidenceModal(): void {
             class="compare-img top"
             :alt="t('home.result.original')"
             :style="{ clipPath: `inset(0 ${100 - comparePos}% 0 0)` }"
+            @load="setCompareAspect"
           />
           <div class="compare-divider" :style="{ left: comparePos + '%' }">
             <div class="compare-handle" aria-hidden="true">⟷</div>
@@ -1841,10 +1849,11 @@ function closeLowConfidenceModal(): void {
 .block-title { margin-bottom: var(--space-3); }
 .compare-slider {
   position: relative;
-  width: min(100%, calc(100svh - 240px));
+  --compare-max-height: min(640px, max(120px, calc(100svh - 240px)));
+  width: min(100%, calc(var(--compare-max-height) * var(--compare-aspect)));
   max-width: min(100%, 640px);
-  max-height: min(640px, calc(100svh - 240px));
-  aspect-ratio: 1;
+  max-height: min(640px, var(--compare-max-height));
+  aspect-ratio: var(--compare-aspect);
   margin-inline: auto;
   overflow: hidden;
   contain: layout paint;
@@ -1855,10 +1864,14 @@ function closeLowConfidenceModal(): void {
   background: var(--ink);
 }
 .compare-slider:focus-visible { outline: 2px solid var(--aqua); outline-offset: 4px; }
-.compare-img { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; -webkit-user-drag: none; }
-
-.compare-img.top {
-  position: absolute; top: 0; left: 0; height: 100%; object-fit: cover;
+.compare-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
 .compare-divider {
   position: absolute; top: 0; bottom: 0; width: 2px;

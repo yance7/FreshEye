@@ -617,7 +617,6 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
     if not _inference_lock.acquire(timeout=30):
         raise HTTPException(status_code=503, detail="模型推理队列繁忙，请稍后重试")
     try:
-        original = np.array(image.resize((224, 224)))
         input_tensor = preprocess(image).unsqueeze(0).to(current_device)
         model.eval()
 
@@ -637,31 +636,22 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
                     probs = F.softmax(outputs, dim=1)
                     confidence, predicted = torch.max(probs, 1)
                 prediction = _build_prediction_result(probs, predicted, confidence, model_version_str)
-                heatmap = np.zeros((224, 224), dtype=np.float32)
-                overlay = overlay_heatmap(original, heatmap)
-                heatmap_b64 = _encode_heatmap(overlay)
-                return prediction, heatmap_b64
+                return prediction, ""
 
         prediction = _build_prediction_result(probs, predicted, confidence, model_version_str)
 
+        if not gradients_list or not feature_maps_list:
+            return prediction, ""
         try:
-            if gradients_list and feature_maps_list:
-                gradients = gradients_list[0]
-                feature_maps = feature_maps_list[0].detach()
-                heatmap = _compute_cam_vectorized(gradients, feature_maps)
-                # 显式释放张量引用：仅 del 局部别名无法释放内存，
-                # 需同时清空 hook 收集列表，避免引用滞留至函数返回
-                gradients_list.clear()
-                feature_maps_list.clear()
-            else:
-                heatmap = np.zeros((224, 224), dtype=np.float32)
+            heatmap = _compute_cam_vectorized(gradients_list[0], feature_maps_list[0].detach())
+            if not np.isfinite(heatmap).all() or not np.any(heatmap > 0):
+                return prediction, ""
+            original = np.array(image.resize((224, 224)))
+            overlay = overlay_heatmap(original, heatmap)
+            return prediction, _encode_heatmap(overlay)
         except Exception as exc:
-            logger.warning(f"Grad-CAM 生成失败，降级为空热力图: {exc}")
-            heatmap = np.zeros((224, 224), dtype=np.float32)
-
-        overlay = overlay_heatmap(original, heatmap)
-        heatmap_b64 = _encode_heatmap(overlay)
-        return prediction, heatmap_b64
+            logger.warning(f"Grad-CAM 生成失败，返回纯预测: {exc}")
+            return prediction, ""
     finally:
         _inference_lock.release()
 

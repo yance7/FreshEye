@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: {
     environment: 'jsdom',
+    setupFiles: ['./tests/unit/setup.ts'],
     clearMocks: true,
     restoreMocks: true,
     exclude: [...configDefaults.exclude, 'contract.test.js', 'tests/e2e/**']

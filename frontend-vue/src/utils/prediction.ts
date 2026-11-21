@@ -1,32 +1,47 @@
 import type { FreshnessLabel, PredictionResult, ProbabilityMap } from '@/types'
 
-export function clampProbability(value: unknown): number {
-  const numeric = typeof value === 'number'
+function readNumber(value: unknown): number {
+  return typeof value === 'number'
     ? value
     : typeof value === 'string' && value.trim() !== ''
       ? Number(value)
       : Number.NaN
+}
+
+export function clampProbability(value: unknown): number {
+  const numeric = readNumber(value)
   if (!Number.isFinite(numeric)) return 0
   return Math.max(0, Math.min(1, numeric > 1 ? numeric / 100 : numeric))
 }
 
-export function normalizeProbabilities(raw: unknown): ProbabilityMap {
-  const source = Array.isArray(raw)
-    ? { 0: raw[0], 1: raw[1], 2: raw[2] } as Record<string, unknown>
-    : (raw && typeof raw === 'object' ? raw as Record<string, unknown> : {})
-  const aliases: Record<FreshnessLabel, string[]> = {
-    0: ['0', '高度新鲜', 'Highly Fresh', 'highly_fresh', 'highlyFresh'],
-    1: ['1', '新鲜', 'Fresh', 'fresh'],
-    2: ['2', '不新鲜', 'Not Fresh', 'not_fresh', 'notFresh']
-  }
-  const valueAt = (index: FreshnessLabel): unknown =>
-    aliases[index].map((key) => source[key]).find((value) => value !== undefined) ?? 0
+const probabilityKeys: Record<FreshnessLabel, string[]> = {
+  0: ['0', '高度新鲜', 'Highly Fresh', 'highly_fresh', 'highlyFresh'],
+  1: ['1', '新鲜', 'Fresh', 'fresh'],
+  2: ['2', '不新鲜', 'Not Fresh', 'not_fresh', 'notFresh']
+}
 
+function readProbabilities(raw: unknown): ProbabilityMap {
+  const source = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {}
+  const valueAt = (index: FreshnessLabel): number =>
+    readNumber(probabilityKeys[index].map((key) => source[key]).find((value) => value !== undefined))
+
+  return { 0: valueAt(0), 1: valueAt(1), 2: valueAt(2) }
+}
+
+export function normalizeProbabilities(raw: unknown): ProbabilityMap {
+  const values = readProbabilities(raw)
   return {
-    0: clampProbability(valueAt(0)),
-    1: clampProbability(valueAt(1)),
-    2: clampProbability(valueAt(2))
+    0: clampProbability(values[0]),
+    1: clampProbability(values[1]),
+    2: clampProbability(values[2])
   }
+}
+
+export function hasPredictionScores(source: Record<string, unknown>): boolean {
+  const confidence = readNumber(source.confidence_score ?? source.confidenceScore)
+  const probabilities = Object.values(readProbabilities(source.all_probabilities ?? source.probabilityValues))
+  const isScore = (value: number) => Number.isFinite(value) && value >= 0 && value <= 100
+  return isScore(confidence) && probabilities.every(isScore) && probabilities.some((value) => value > 0)
 }
 
 export function normalizeFreshnessLabel(

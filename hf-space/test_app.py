@@ -108,7 +108,7 @@ def test_predict_v1(c):
 
 
 def test_predict_with_gradcam(c):
-    """Grad-CAM 端点应返回预测结果 + 热力图 base64"""
+    """Grad-CAM 端点应返回预测结果，存在有效热力图时返回 base64。"""
     buf = _make_test_image()
     resp = c.post(
         "/predict_with_gradcam?model_version=v2",
@@ -118,7 +118,37 @@ def test_predict_with_gradcam(c):
     data = resp.json()
     assert "heatmap_image" in data
     assert "prediction" in data
-    assert len(data["heatmap_image"]) > 100  # base64 字符串非空
+    assert isinstance(data["heatmap_image"], str)
+    assert data["prediction"]["freshness_label"] in [0, 1, 2]
+
+
+@pytest.mark.parametrize("cam_state", ["active", "flat", "failed"])
+def test_gradcam_only_displays_available_evidence(c, monkeypatch, cam_state):
+    import app as service
+    import numpy as np
+
+    def compute_cam(*_):
+        if cam_state == "failed":
+            raise RuntimeError("Grad-CAM unavailable")
+        cam = np.zeros((224, 224), dtype=np.float32)
+        if cam_state == "active":
+            cam[:112, :] = 1
+        return cam
+
+    monkeypatch.setattr(service, "_compute_cam_vectorized", compute_cam)
+    color = {"active": (75, 80, 20), "flat": (75, 80, 60), "failed": (75, 80, 100)}
+    buf = _make_test_image(size=(160, 90), color=color[cam_state])
+    resp = c.post(
+        "/predict_with_gradcam?model_version=v2",
+        files={"file": ("cam.jpg", buf, "image/jpeg")},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["prediction"]["freshness_label"] in [0, 1, 2]
+    if cam_state == "active":
+        assert len(data["heatmap_image"]) > 100
+    else:
+        assert data["heatmap_image"] == ""
 
 
 def test_gradcam_does_not_accumulate_parameter_gradients(c):

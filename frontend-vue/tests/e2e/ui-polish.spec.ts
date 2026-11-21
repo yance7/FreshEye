@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test'
 
 const heatmap = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAJUlEQVR4nGMUWbCAgYFBTu4NAwMDEwMSYPywypyBgeHNdH50GQC+SgXm21VQBAAAAABJRU5ErkJggg=='
 
-async function prepareAnalysis(page: Page): Promise<void> {
+async function prepareAnalysis(page: Page, options: { rectangular?: boolean; withoutHeatmap?: boolean } = {}): Promise<void> {
   await page.addInitScript(() => {
     localStorage.clear()
     localStorage.setItem('fresheye-onboarded', '1')
@@ -25,11 +25,26 @@ async function prepareAnalysis(page: Page): Promise<void> {
         model_version: 'v2',
         timestamp: '2026-10-12T12:00:00.000Z'
       },
-      heatmap_image: heatmap
+      heatmap_image: options.withoutHeatmap ? '' : heatmap
     })
   }))
   await page.goto('/')
-  await page.locator('.sample-thumb').nth(1).click()
+  if (options.rectangular) {
+    const image = await page.evaluate(() => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 600
+      canvas.height = 300
+      canvas.getContext('2d')?.fillRect(0, 0, 300, 300)
+      return canvas.toDataURL('image/png').split(',')[1]
+    })
+    await page.locator('input[type="file"]').first().setInputFiles({
+      name: 'rectangular.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from(image, 'base64')
+    })
+  } else {
+    await page.locator('.sample-thumb').nth(1).click()
+  }
   await expect(page.locator('#preview-card')).toBeVisible()
   await page.locator('.preview-actions .btn').first().click()
   await expect(page.locator('#result-section')).toBeVisible()
@@ -59,6 +74,29 @@ test('accordion panels hide collapsed content and keep one report item open', as
   await secondToggle.click()
   await expect(secondToggle).toHaveAttribute('aria-expanded', 'false')
   await expect.poll(() => closedPanel.evaluate((element) => element.getBoundingClientRect().height)).toBeLessThan(2)
+})
+
+test('Grad-CAM comparison uses the original image ratio for both layers', async ({ page }) => {
+  await prepareAnalysis(page, { rectangular: true })
+  await page.getByRole('tab', { name: 'AI视觉分析' }).click()
+
+  const slider = page.getByRole('slider')
+  await expect(slider).toHaveCSS('aspect-ratio', '2 / 1')
+  const [overlay, original] = await slider.locator('img').all()
+  await expect(overlay).toHaveCSS('object-fit', 'fill')
+  await expect(original).toHaveCSS('object-fit', 'fill')
+  const [overlayBounds, originalBounds] = await slider.locator('img').evaluateAll(
+    (images) => images.map((image) => image.getBoundingClientRect().toJSON())
+  )
+  expect(overlayBounds).toEqual(originalBounds)
+})
+
+test('an unavailable heatmap keeps the prediction and shows the empty state', async ({ page }) => {
+  await prepareAnalysis(page, { withoutHeatmap: true })
+  await page.getByRole('tab', { name: 'AI视觉分析' }).click()
+
+  await expect(page.getByText('暂无热力图数据')).toBeVisible()
+  await expect(page.getByRole('slider')).toHaveCount(0)
 })
 
 test('desktop footer uses a compact two-level layout', async ({ page }) => {
