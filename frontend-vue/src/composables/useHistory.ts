@@ -9,18 +9,20 @@ import { normalizePrediction } from '@/utils/prediction'
 const history = ref<HistoryRecord[]>([])
 
 /** 从 localStorage 读取历史记录 */
-function loadHistory(): HistoryRecord[] {
+function loadHistory(): { records: unknown[]; legacy: boolean } {
   for (const key of [HISTORY_KEY, ...LEGACY_HISTORY_KEYS]) {
     try {
       const raw = localStorage.getItem(key)
       if (!raw) continue
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      if (Array.isArray(parsed) && (key === HISTORY_KEY || parsed.length > 0)) {
+        return { records: parsed, legacy: key !== HISTORY_KEY }
+      }
     } catch {
       // 当前键损坏时继续读取兼容键，避免旧记录被遮蔽。
     }
   }
-  return []
+  return { records: [], legacy: false }
 }
 
 function loadFavoriteIds(): Set<string> {
@@ -48,7 +50,7 @@ function saveHistory(list: HistoryRecord[]): void {
 }
 
 /** 兼容旧版 HTML 前端写入的历史记录字段，避免迁移后历史记录“消失”。 */
-function normalizeRecord(raw: unknown): HistoryRecord | null {
+function normalizeRecord(raw: unknown, favoriteIds: Set<string>, legacy: boolean): HistoryRecord | null {
   if (!raw || typeof raw !== 'object') return null
   const source = raw as Record<string, unknown>
   const nestedPrediction = source.prediction && typeof source.prediction === 'object'
@@ -68,12 +70,13 @@ function normalizeRecord(raw: unknown): HistoryRecord | null {
     : undefined
   const data = source.data ?? source.thumbnail
   if (typeof data !== 'string' || !data) return null
+  const id = String(source.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
   return {
-    id: String(source.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+    id,
     data,
     duration: Number(source.duration ?? source.processingTime ?? 0) || 0,
     timestamp: String(source.timestamp ?? prediction?.timestamp ?? new Date().toISOString()),
-    favorite: Boolean(source.favorite),
+    favorite: Boolean(source.favorite) || ((legacy || source.favorite == null) && favoriteIds.has(id)),
     prediction,
     heatmap: String(source.heatmap ?? source.heatmapThumbnail ?? '')
   }
@@ -110,12 +113,13 @@ function compressThumbnail(dataUrl: string, maxSize = 160): Promise<string> {
 
 /** 初始化：从 localStorage 载入到响应式列表 */
 function initHistory(): void {
+  const { records, legacy } = loadHistory()
   const favoriteIds = loadFavoriteIds()
-  history.value = loadHistory()
-    .map(normalizeRecord)
+  history.value = records
+    .map((record) => normalizeRecord(record, favoriteIds, legacy))
     .filter((record): record is HistoryRecord => record !== null)
-    .map((record) => ({ ...record, favorite: record.favorite || favoriteIds.has(record.id) }))
     .slice(0, MAX_HISTORY)
+  if (legacy) saveHistory(history.value)
 }
 
 /**
@@ -177,7 +181,6 @@ export function useHistory() {
   return {
     history,
     initHistory,
-    loadHistory,
     saveHistory,
     addHistoryRecord,
     deleteHistory,

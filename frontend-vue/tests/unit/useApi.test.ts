@@ -4,6 +4,19 @@ import { useApi } from '@/composables/useApi'
 afterEach(() => vi.unstubAllGlobals())
 
 describe('prediction API adapter', () => {
+  it.each([
+    {},
+    { prediction: { freshness_label: 0, confidence_score: 0.8 } },
+    { prediction: { confidence_score: 'invalid', all_probabilities: [0.8, 0.1, 0.1] } },
+    { prediction: { confidence_score: 0.8, all_probabilities: [0.8, null, 0.2] } },
+    { prediction: { confidence_score: 0, all_probabilities: [0, 0, 0] } }
+  ])('rejects incomplete or invalid prediction scores: %j', async (payload) => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(payload))))
+
+    await expect(useApi().callPredictApi(new File(['fish eye'], 'fish-eye.jpg')))
+      .rejects.toMatchObject({ name: 'ApiError', code: 'server' })
+  })
+
   it('preserves top-level prediction fields when a nested prediction omits them', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       status: 200,

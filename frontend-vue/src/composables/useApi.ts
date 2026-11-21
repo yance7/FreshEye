@@ -2,7 +2,7 @@
 // 封装健康检查与 /predict_with_gradcam 推理请求，含 AbortController 超时控制。
 import { API_BASE_URL, API_TIMEOUT } from '@/config'
 import type { GradCAMResult } from '@/types'
-import { normalizePrediction } from '@/utils/prediction'
+import { hasPredictionScores, normalizePrediction } from '@/utils/prediction'
 
 /** 自定义 API 错误，附带可读的错误码便于上层 i18n 提示 */
 export class ApiError extends Error {
@@ -25,7 +25,7 @@ function createTimeoutController(timeout = API_TIMEOUT): {
 }
 
 /** 判断响应是否正常，否则抛出对应 ApiError */
-async function handleResponse(res: Response): Promise<any> {
+async function handleResponse(res: Response): Promise<unknown> {
   if (res.status === 413) throw new ApiError('size', '图片过大')
   if (res.status === 429) throw new ApiError('rate_limit', '请求过于频繁')
   if (res.status === 503) throw new ApiError('unavailable', '模型服务暂时不可用')
@@ -33,8 +33,18 @@ async function handleResponse(res: Response): Promise<any> {
     throw new ApiError('format', '图片格式或识别模式不支持')
   }
   if (!res.ok) throw new ApiError('server', `AI服务暂时不可用 (${res.status})`)
-  const data = await res.json()
-  return data
+  try {
+    return await res.json()
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') throw err
+    throw new ApiError('server', '无法读取识别结果')
+  }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
 }
 
 /** 健康检查：探测 AI 服务是否在线 */
@@ -82,12 +92,15 @@ export function useApi() {
         signal: controller.signal
       })
 
-      const raw = await handleResponse(res)
+      const raw = asRecord(await handleResponse(res))
 
       // 适配后端返回结构：prediction 字段 + heatmap_image 字段
-      const prediction = normalizePrediction({ ...raw, ...(raw.prediction ?? {}) }, modelVersion)
+      const scores = { ...raw, ...asRecord(raw.prediction) }
+      if (!hasPredictionScores(scores)) throw new ApiError('server', '识别结果缺少有效的置信度或分类概率')
+      const prediction = normalizePrediction(scores, modelVersion)
 
-      let heatmap = raw.heatmap_image ?? raw.heatmap ?? ''
+      const candidate = raw.heatmap_image ?? raw.heatmap
+      let heatmap = typeof candidate === 'string' ? candidate.trim() : ''
       // 补全 data URI 前缀
       if (heatmap && !heatmap.startsWith('data:')) {
         heatmap = `data:image/jpeg;base64,${heatmap}`
