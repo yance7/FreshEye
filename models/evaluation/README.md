@@ -8,6 +8,7 @@ This directory provides an auditable split and a common V1/V2 evaluation runner.
 - `fishfreshnet_v2/data.py` creates seeded 70/20/10 **image-level stratified** splits. `train.py` selects a checkpoint using its configured validation metric and saves per-run results. Neither split guarantees fish or batch independence.
 - The repository V1 weight and Space V1 file have the same SHA-256: `4d3692bd9088dc6415fa8f637d97282b831bda711fc15a010f4ffbd976620edb`. The corresponding V2 files match at `5f84b069e06afc5c35f940b9432cd267745d08a6ca6cb039a73557d00682437e`. This establishes local file equality, not which run, split, data release or metrics produced the weights, nor what is deployed in a remote Space.
 - Existing published MFED and FFE figures remain historical claims under their original protocols. Their connection to these exact weight hashes and their per-fish independence remain unverified; do not relabel them as results of this protocol.
+- The [FishFreshNetV2 research repository](https://github.com/yance7/FishFreshNetV2) describes its 81.18% FFE result as a separate **in-dataset** protocol, not an MFED-trained cross-dataset test. The [FishFreshNetV1 research repository](https://github.com/yance7/FishFreshNetV1) currently reports 99.23% MFED and 81.78% FFE; the 99.23% differs from FreshEye's 98.88% V1 figure. The relationship between these experiments and FreshEye's published weights remains unverified.
 
 ## Manifest and splitting
 
