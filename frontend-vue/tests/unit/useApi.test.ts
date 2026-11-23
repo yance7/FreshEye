@@ -4,6 +4,18 @@ import { useApi } from '@/composables/useApi'
 afterEach(() => vi.unstubAllGlobals())
 
 describe('prediction API adapter', () => {
+  it('captures request time and response provenance without inventing old-service metadata', async () => {
+    const payload = { prediction: { freshness_label: 0, confidence_score: 0.8, all_probabilities: [0.8, 0.1, 0.1], timestamp: '2026-01-01T00:00:00' } }
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload), { headers: { 'X-FreshEye-Cache': 'hit', 'X-FreshEye-Revision': 'abc123', 'X-FreshEye-Weights-SHA256': 'a'.repeat(64) } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload))))
+    const api = useApi()
+    const current = await api.callPredictApi(new File(['image'], 'image.jpg'))
+    expect(current.provenance).toMatchObject({ cacheStatus: 'hit', serviceRevision: 'abc123', weightsSha256: 'a'.repeat(64), resultCreatedAt: '2026-01-01T00:00:00' })
+    expect(current.provenance?.requestedAt).toMatch(/Z$/)
+    const old = await api.callPredictApi(new File(['image'], 'image.jpg'))
+    expect(old.provenance).toMatchObject({ cacheStatus: 'unknown', serviceRevision: '', weightsSha256: '' })
+  })
   it('reports model readiness and tolerates old health payloads', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'ok', models: { v1: { status: 'ready' }, v2: { status: 'unavailable' } } })))

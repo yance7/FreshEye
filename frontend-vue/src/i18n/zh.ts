@@ -29,7 +29,9 @@ const zh = {
       camera: '拍照',
       samples: '示例图片',
       choose_photo: '选择照片',
-      privacy: '照片仅发送至 FreshEye AI 服务用于即时分析；历史记录只保存在当前设备。',
+      privacy: '照片会发送至 Hugging Face 上的 FreshEye 推理服务；历史记录保存在此设备。',
+      privacy_details_title: '图片、缓存与设备历史如何处理',
+      privacy_details: '本页面使用浏览器 Canvas 将照片编码为 JPEG（最长边不超过 1280 像素、质量 0.9），再发送给 FreshEye Space 分析。此仓库的服务代码不会把上传原图写入应用文件；日志记录模型版本、分类、置信度、耗时和缓存状态，不记录图像字节。预测和 Grad-CAM 结果会在进程内缓存（每类最多 128 条，标称 30 分钟，惰性过期）。当前托管版本是否与此仓库一致、平台侧日志或留存规则均未核实。浏览器最多保存 50 条历史；原图缩略图最长边为 160 像素，热力图通常压缩至最长边 320 像素，压缩失败时可能保留传入图像数据。历史会保留到清空记录或清除站点数据。',
       onboarding: '点击或拖拽鱼眼照片到此处',
       preview_alt: '鱼眼照片预览',
       analyze: '开始分析',
@@ -78,6 +80,7 @@ const zh = {
       vision_explain: 'Grad-CAM 展示模型对本次预测的关注区域，不能证明关注区域的实际特征。',
       compare_aria: '拖动对比原图与热力图',
       no_heatmap: '暂无热力图数据',
+      no_original: '历史记录没有可用原图，无法对比热力图。',
       result_kicker: '视觉新鲜度', result_action_label: '现在可以做什么',
       result_action: '请结合鱼鳃、气味与肉质确认，不要仅凭本结果判断食用安全。',
       show_details: '查看 AI 判断依据', show_advice: '处理建议', confidence_model_score: '模型分数',
@@ -120,7 +123,22 @@ const zh = {
       filter_low: '不新鲜',
       filter_fav: '收藏',
       clear: '清空全部',
-      empty: '暂无历史记录'
+      empty: '暂无历史记录',
+      storage_failed: '无法将历史更改保存到浏览器存储；重载后未保存的更改可能丢失或旧记录重新出现。请检查可用空间后重试。'
+    },
+    provenance: {
+      details_title: '来源与模型版本信息',
+      unknown: '未知',
+      current_image: '本次输入图',
+      history_image: '历史缩略图',
+      request_time: '请求时间（UTC）',
+      result_time: '结果创建时间',
+      timezone_unknown: '时区未知',
+      cache: '缓存状态',
+      cache_hit: '命中',
+      cache_miss: '未命中',
+      service_revision: '声明的服务修订',
+      weights_revision: '权重 SHA-256'
     },
     confidence_warn: {
       high: '模型分数较高，结果仅供参考',
@@ -177,7 +195,7 @@ const zh = {
     pdf: {
       title: '鲜眸检测报告',
       h1: '鲜眸 · 鱼眼新鲜度检测报告',
-      time: '分析时间',
+      time: '请求时间（UTC）',
       duration: '耗时',
       model: '模型',
       evidence: 'AI 依据',

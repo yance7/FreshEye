@@ -1,4 +1,4 @@
-import type { FreshnessLabel, PredictionResult } from '@/types'
+import type { FreshnessLabel, PredictionResult, RequestProvenance } from '@/types'
 import { confidenceLevel } from '@/utils/prediction'
 
 export interface ReportSection {
@@ -32,6 +32,17 @@ export interface ReportLabels {
   noImage: string
   probabilityNote?: string
   lowConfidence: string
+  unknown: string
+  currentImage: string
+  historyImage: string
+  requestTime: string
+  resultTime: string
+  timezoneUnknown: string
+  cache: string
+  cacheHit: string
+  cacheMiss: string
+  serviceRevision: string
+  weightsRevision: string
   probabilityLabels: [string, string, string]
 }
 
@@ -43,6 +54,8 @@ export interface PdfReportInput {
   modelVersion: string
   modelDisplayName: string
   originalImage?: string
+  imageOrigin?: 'current' | 'history'
+  provenance?: RequestProvenance
   heatmapImage?: string
   localizedDescription?: string
   detailSections: ReportSection[]
@@ -132,9 +145,20 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
   const confidencePercent = (confidence * 100).toFixed(1)
   const durationMs = Math.round(clampFinite(input.durationMs, 0, 999999))
   const time = new Date(input.timestamp)
-  const formattedTime = Number.isNaN(time.getTime())
-    ? escapeHtml(input.timestamp)
-    : escapeHtml(time.toLocaleString(input.locale === 'zh' ? 'zh-CN' : 'en-US'))
+  const formattedTime = Number.isNaN(time.getTime()) || !/(?:Z|[+-]\d{2}:\d{2})$/i.test(input.timestamp)
+    ? escapeHtml(labels.unknown)
+    : escapeHtml(time.toISOString())
+  const resultCreatedAt = input.provenance?.resultCreatedAt || ''
+  const resultTime = resultCreatedAt
+    ? resultCreatedAt + (/(?:Z|[+-]\d{2}:\d{2})$/i.test(resultCreatedAt) ? '' : ` (${labels.timezoneUnknown})`)
+    : labels.unknown
+  const provenanceText = [
+    `${escapeHtml(labels.requestTime)}: ${formattedTime}`,
+    `${escapeHtml(labels.resultTime)}: ${escapeHtml(resultTime)}`,
+    `${escapeHtml(labels.cache)}: ${escapeHtml(input.provenance?.cacheStatus === 'hit' ? labels.cacheHit : input.provenance?.cacheStatus === 'miss' ? labels.cacheMiss : labels.unknown)}`,
+    `${escapeHtml(labels.serviceRevision)}: ${escapeHtml(input.provenance?.serviceRevision || labels.unknown)}`,
+    `${escapeHtml(labels.weightsRevision)}: ${escapeHtml(input.provenance?.weightsSha256 || labels.unknown)}`
+  ].join(' · ')
   const stackedProbabilities = ([0, 1, 2] as FreshnessLabel[]).map((probabilityLevel, index) => {
     const value = clampFinite(prediction.all_probabilities[probabilityLevel], 0, 1)
     const percent = (value * 100).toFixed(1)
@@ -202,6 +226,7 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
     '.pdf-detail{margin-bottom:4px;padding:6px 11px;border:1px solid #e7eff3;border-left:3px solid var(--primary);border-radius:0 8px 8px 0;background:#f8fafc;color:#475569;font-size:9.5px;line-height:1.55;break-inside:avoid;}.pdf-detail strong{color:#1e293b;font-weight:650;}.pdf-detail p{display:inline;margin-left:4px;}.pdf-detail-list{display:flex;flex-wrap:wrap;gap:1px 16px;margin:3px 0 0 15px;padding:0;color:#64748b;font-size:8.8px;}.pdf-detail-list li{margin:0;max-width:46%;}',
     '.pdf-advice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;align-items:stretch;break-inside:avoid;}.pdf-advice-card{position:relative;display:flex;flex-direction:column;overflow:hidden;padding:12px 12px 10px;border:1px solid #e3edf1;border-radius:10px;background:linear-gradient(145deg,#fbfdfe,#f5f9fb);box-shadow:0 4px 12px rgba(15,23,42,.05);break-inside:avoid;}.pdf-advice-card:before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--primary),rgba(15,159,131,.08));}.pdf-advice-card h3{display:flex;align-items:center;gap:4px;margin-bottom:4px;color:#334155;font-size:10.5px;font-weight:650;}.pdf-advice-list{margin:0;padding:0;list-style:none;}.pdf-advice-list li{position:relative;margin-bottom:1px;padding-left:9px;color:#64748b;font-size:9px;line-height:1.55;}.pdf-advice-list li:before{content:"•";position:absolute;left:1px;color:var(--primary);font-size:10px;font-weight:700;}.pdf-safety-banner{grid-column:1/-1;padding:9px 13px;border:1px solid rgba(0,0,0,.04);border-left:4px solid var(--primary);border-radius:10px;background:var(--tone-bg);break-inside:avoid;}.pdf-safety-banner.is-danger{border-left-color:#d54343;background:#fff0f0;}.pdf-safety-banner.is-warn{border-left-color:#c27a13;background:#fff8e8;}.pdf-safety-banner h3{margin-bottom:3px;color:#334155;font-size:10.5px;font-weight:650;}.pdf-safety-list{display:flex;flex-wrap:wrap;gap:2px 16px;margin:0;padding:0;list-style:none;}.pdf-safety-list li{position:relative;padding-left:10px;color:#475569;font-size:9px;line-height:1.55;}.pdf-safety-list li:before{content:"•";position:absolute;left:1px;color:var(--primary);font-weight:700;}',
     '.pdf-scope-note{margin-top:9px;padding:8px 13px;border:1px solid #cbdde3;border-left:4px solid #0f766e;border-radius:9px;background:linear-gradient(135deg,#f7fbfc,#f1f7f8);color:#475569;font-size:8.8px;line-height:1.55;break-inside:avoid;}.pdf-scope-note strong{display:block;margin-bottom:3px;color:#0f172a;font-size:10px;}.pdf-footer{margin-top:auto;padding-top:7px;border-top:1px solid #dfe9ed;text-align:center;}.pdf-footer-main{color:#94a3b8;font-size:8.5px;letter-spacing:.3px;}.pdf-footer-sub{margin-top:1px;color:#cbd5e1;font-size:7.5px;}',
+    '.pdf-provenance{margin:0 0 6px;color:#475569;font-size:8px;line-height:1.4;overflow-wrap:anywhere;}',
     '@media (max-width:640px){.report{width:calc(100vw - 20px);margin:10px auto;}.report-toolbar{align-items:stretch;flex-direction:column;gap:8px;padding:10px 12px;}.report-toolbar strong{text-align:center;}.report-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.report-actions button{min-height:44px;padding-inline:8px;}.pdf-page{width:100%;height:auto;min-height:auto;overflow:visible;padding:20px 16px 16px;box-shadow:0 5px 18px rgba(15,23,42,.12);}.pdf-header{display:grid;grid-template-columns:1fr;gap:6px;}.pdf-header-title{order:-1;text-align:left;}.pdf-header-meta{justify-content:flex-start;text-align:left;}.pdf-overview{flex-direction:column;}.pdf-images{flex:initial;}.pdf-advice-grid{grid-template-columns:1fr;}.pdf-safety-banner{grid-column:auto;}.pdf-detail-list li{max-width:none;}}',
     '@media print{html,body{width:210mm!important;min-width:210mm!important;max-width:210mm!important;background:#fff;}body{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.report-toolbar{display:none!important;}.report{width:210mm!important;margin:0;}.pdf-page{width:210mm!important;min-width:210mm!important;max-width:210mm!important;height:297mm!important;min-height:297mm!important;margin:0;padding:15mm 12mm 10mm;border:0;box-shadow:none;overflow:hidden;page-break-inside:avoid;break-inside:avoid;}}',
     '</style>',
@@ -217,8 +242,9 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
     '<div class="pdf-header-title"><span class="pdf-title-kicker">FRESHEYE REPORT</span><span class="pdf-title-main">' + escapeHtml(title) + '</span></div>',
     '<div class="pdf-header-meta"><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.model) + '</strong> ' + escapeHtml(displayModel) + '</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.duration) + '</strong> ' + durationMs + ' ms</span><span class="pdf-meta-tag"><strong>' + escapeHtml(labels.time) + '</strong> ' + formattedTime + '</span></div></header>',
     '<hr class="pdf-header-divider" />',
+    '<p class="pdf-provenance">' + provenanceText + '</p>',
     '<section class="pdf-section"><h2 class="pdf-section-title"><span class="pdf-section-mark">01</span>' + escapeHtml(labels.heading) + '</h2><div class="pdf-overview"><div class="pdf-images">',
-    imageBlock(labels.original, input.originalImage, labels.noImage),
+    imageBlock(input.imageOrigin === 'history' ? labels.historyImage : labels.currentImage, input.originalImage, labels.noImage),
     imageBlock(labels.heatmap, input.heatmapImage, labels.noImage),
     '</div><div class="pdf-conclusion"><div class="pdf-conclusion-kicker">' + escapeHtml(labels.freshness) + '</div><div class="pdf-level-badge"><span class="pdf-badge-icon">' + tone.icon + '</span>' + escapeHtml(levelLabel) + '</div><div class="pdf-conf-label">' + escapeHtml(labels.confidence) + '</div><div class="pdf-conf-num">' + confidencePercent + '%</div><div class="pdf-conf-bar"><div class="pdf-conf-bar-fill" style="width:' + confidencePercent + '%"></div></div><div class="pdf-conf-meta">' + escapeHtml(labels.model) + ' · ' + escapeHtml(displayModel) + ' · AI</div><div class="pdf-conclusion-foot">' + escapeHtml(labels.trend) + ': ' + escapeHtml(detailTrend) + '</div></div></div></section>',
     '<section class="pdf-section"><h2 class="pdf-section-title"><span class="pdf-section-mark">02</span>' + escapeHtml(labels.distribution) + '</h2><div class="pdf-stacked-bar">' + stackedProbabilities + '</div><div class="pdf-bar-legend">' + probabilityLegend + '</div><p class="pdf-section-note">' + escapeHtml(labels.probabilityNote || labels.limitationText) + '</p></section>',
