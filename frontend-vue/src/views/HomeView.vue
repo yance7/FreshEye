@@ -6,7 +6,7 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick } 
 import { useI18n } from '@/i18n'
 import { useToast } from '@/composables/useToast'
 import { useHistory } from '@/composables/useHistory'
-import { useApi, ApiError } from '@/composables/useApi'
+import { useApi, ApiError, type ServiceReadiness } from '@/composables/useApi'
 import { GUIDE_KEY, LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY, MODEL_KEY } from '@/config'
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 import { buildReportHtml } from '@/utils/pdfReport'
@@ -17,9 +17,10 @@ import { useMotionPreference } from '@/composables/useMotionPreference'
 import AccessibleDialog from '@/components/AccessibleDialog.vue'
 
 const { t, tm, locale } = useI18n()
+const baseUrl = import.meta.env.BASE_URL
 const { toast } = useToast()
 const { history, initHistory, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
-const { checkApiHealth, callPredictApi } = useApi()
+const { checkModelReadiness, callPredictApi } = useApi()
 const { canHover, coarsePointer, allowDecorativeMotion } = useMotionPreference()
 const shouldTrackMouse = computed(() => canHover.value && !coarsePointer.value && allowDecorativeMotion.value)
 
@@ -31,7 +32,14 @@ try {
 } catch { /* ignore */ }
 watch(modelVersion, (v, previous) => {
   try { localStorage.setItem(MODEL_KEY, v) } catch { /* ignore */ }
-  if (previous && v !== previous && analyzing.value) cancelAnalysis()
+  if (previous && v !== previous) {
+    cancelAnalysis()
+    lastResult.value = null
+    lastHeatmap.value = ''
+    lastOriginalImage.value = ''
+    lastOriginalBlob.value = null
+    errorMsg.value = ''
+  }
 })
 
 // ============ 文件 / 预览 ============
@@ -46,6 +54,7 @@ const thumbnailDataUrl = ref<string>('')
 const imageDimensions = ref<{ width: number; height: number } | null>(null)
 const dragging = ref(false)
 const sampleLoading = ref(false)
+const preparingFile = ref(false)
 
 const MAX_SIZE = 25 * 1024 * 1024 // 25MB
 const ACCEPT_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -60,12 +69,11 @@ const lastOriginalBlob = ref<Blob | null>(null)
 const lastDuration = ref<number>(0)
 const lastTimestamp = ref<string>('')
 const apiHealthy = ref<boolean | null>(null)
+const serviceReadiness = ref<ServiceReadiness | null>(null)
 const showLowConfidenceModal = ref(false)
 const showMidWarning = ref(true)
 const showLowWarning = ref(true)
 const showOnboardingTip = ref(false)
-const scanStage = ref(0)
-let scanTimer: number | null = null
 let fileGeneration = 0
 let analysisGeneration = 0
 let analysisAbortController: AbortController | null = null
@@ -188,7 +196,6 @@ function cancelAnalysis(): void {
   analysisAbortController?.abort()
   analysisAbortController = null
   analyzing.value = false
-  stopScanning()
 }
 
 function resetPreparedFile(message = ''): void {
@@ -230,6 +237,7 @@ function validateFile(file: File): boolean {
 async function handleFile(file: File): Promise<boolean> {
   if (!validateFile(file)) return false
   const generation = ++fileGeneration
+  preparingFile.value = true
   cancelAnalysis()
   errorMsg.value = ''
   showLowConfidenceModal.value = false
@@ -261,6 +269,8 @@ async function handleFile(file: File): Promise<boolean> {
       toast.error(t('home.errors.preprocess'))
     }
     return false
+  } finally {
+    if (generation === fileGeneration) preparingFile.value = false
   }
   toast.info(t('home.upload.analyze'))
   showOnboardingTip.value = false
@@ -358,29 +368,10 @@ async function loadSample(src: string): Promise<void> {
 }
 
 // ============ 分析 ============
-const scanStages = computed(() => [
-  t('home.scan.connecting'),
-  t('home.scan.starting'),
-  t('home.scan.analyzing'),
-  t('home.scan.heatmap')
-])
-const scanLabel = computed(() => scanStages.value[Math.min(scanStage.value, scanStages.value.length - 1)])
-
-function startScanning(): void {
-  scanStage.value = 0
-  if (scanTimer) window.clearInterval(scanTimer)
-  scanTimer = window.setInterval(() => {
-    if (scanStage.value < scanStages.value.length - 1) scanStage.value += 1
-  }, 900)
-}
-
-function stopScanning(): void {
-  if (scanTimer) window.clearInterval(scanTimer)
-  scanTimer = null
-  scanStage.value = 0
-}
+const scanLabel = computed(() => t('home.scan.waiting'))
 
 async function analyze(): Promise<void> {
+  if (preparingFile.value) return
   if (!selectedFile.value || !uploadFile.value) {
     toast.error(t('home.upload.hint'))
     return
@@ -401,7 +392,6 @@ async function analyze(): Promise<void> {
   showLowConfidenceModal.value = false
   showMidWarning.value = true
   showLowWarning.value = true
-  startScanning()
   const start = performance.now()
   try {
     const { prediction, heatmap_image } = await callPredictApi(sourceUploadFile, sourceModel, controller.signal)
@@ -416,7 +406,8 @@ async function analyze(): Promise<void> {
     activeTab.value = 0
     const lvl = confidenceLevel(prediction.confidence_score)
     if (lvl === 'low') showLowConfidenceModal.value = true
-    await addHistoryRecord(sourceThumbnailDataUrl, duration, prediction, heatmap_image)
+    await addHistoryRecord(sourceThumbnailDataUrl, duration, prediction, heatmap_image,
+      () => request === analysisGeneration && !controller.signal.aborted && sourceFile === selectedFile.value)
     if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value) return
     toast.success(lvl === 'low'
       ? t('home.confidence_warn.low')
@@ -432,7 +423,6 @@ async function analyze(): Promise<void> {
   } finally {
     if (request === analysisGeneration) {
       analyzing.value = false
-      stopScanning()
       if (analysisAbortController === controller) analysisAbortController = null
     }
   }
@@ -440,6 +430,7 @@ async function analyze(): Promise<void> {
 
 function resetAll(): void {
   fileGeneration += 1
+  preparingFile.value = false
   cancelAnalysis()
   showLowConfidenceModal.value = false
   resetPreparedFile()
@@ -461,6 +452,7 @@ function retryLowConfidence(): void {
 function loadHistoryRecord(rec: HistoryRecord): void {
   if (rec.prediction) {
     fileGeneration += 1
+    preparingFile.value = false
     cancelAnalysis()
     showLowConfidenceModal.value = false
     if (previewUrl.value && previewUrl.value.startsWith('blob:')) URL.revokeObjectURL(previewUrl.value)
@@ -624,6 +616,17 @@ const fileInfo = computed(() => {
 const healthLabel = computed(() => apiHealthy.value === null
   ? t('home.status.checking')
   : apiHealthy.value ? t('home.status.online') : t('home.status.offline'))
+const modelReadinessLabel = computed(() => {
+  if (!serviceReadiness.value) return t('home.status.checking')
+  if (!serviceReadiness.value.online) return t('home.status.waking')
+  return t(`home.status.model_${serviceReadiness.value[modelVersion.value]}`)
+})
+
+async function refreshReadiness(): Promise<void> {
+  const status = await checkModelReadiness()
+  serviceReadiness.value = status
+  apiHealthy.value = status.online
+}
 
 // ============ 相对时间 ============
 function relativeTime(iso: string): string {
@@ -828,7 +831,7 @@ watch(allowDecorativeMotion, (allowed) => {
 onMounted(() => {
   initHistory()
   // 静默 API 健康检查（预热 HF Spaces）
-  checkApiHealth().then((ok) => { apiHealthy.value = ok }).catch(() => { apiHealthy.value = false })
+  void refreshReadiness()
   // 鼠标追踪
   mouseMoveHandler = onMouseMove
   syncMouseTracking(shouldTrackMouse.value)
@@ -853,7 +856,6 @@ onBeforeUnmount(() => {
   stopIdleDrift()
   window.removeEventListener('paste', onPaste)
   if (historyTimer) window.clearInterval(historyTimer)
-  stopScanning()
   draggingSlider = false
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
 })
@@ -998,6 +1000,7 @@ function closeLowConfidenceModal(): void {
     <div class="hero-actions" :aria-label="t('home.hero.quick_start')">
       <a class="hero-action-primary" href="#upload-title" @click.prevent="scrollToSection('upload-title')">{{ t('home.hero.start') }} <span aria-hidden="true">→</span></a>
       <a class="hero-action-secondary" href="#sample-card" @click.prevent="scrollToSection('sample-card')">{{ t('home.hero.view_sample') }}</a>
+      <a class="hero-action-secondary" :href="`${baseUrl}sample-report.html`" target="_blank" rel="noopener">{{ t('home.hero.sample_report') }}</a>
     </div>
     <div class="hero-badges hero-evidence-strip" role="list" :aria-label="t('home.hero.evidence_label')">
       <span v-for="item in evidenceItems" :key="item.value + item.label" class="hero-evidence-item" role="listitem"><strong>{{ item.value }}</strong> {{ item.label }}</span>
@@ -1010,8 +1013,8 @@ function closeLowConfidenceModal(): void {
       <h2 id="upload-title" class="section-title">{{ t('home.upload.title') }}</h2>
       <span class="section-hint">{{ t('home.upload.section_hint') }}</span>
     </div>
+    <p data-testid="model-readiness" role="status">{{ modelReadinessLabel }} <button type="button" @click="refreshReadiness">{{ t('home.status.refresh') }}</button></p>
 
-    <template v-if="!previewUrl">
     <details class="advanced-settings">
       <summary><span>{{ t('home.model.advanced') }}</span> <span class="advanced-settings-hint">{{ t('home.model.advanced_hint') }}</span></summary>
       <div class="model-selector">
@@ -1027,6 +1030,7 @@ function closeLowConfidenceModal(): void {
       </div>
     </details>
 
+    <template v-if="!previewUrl">
     <div
       class="upload-zone"
       :class="{ 'is-drag': dragging }"
@@ -1093,10 +1097,11 @@ function closeLowConfidenceModal(): void {
         <span><strong>{{ fileInfo.dimensions }}</strong></span>
       </div>
       <div class="preview-actions">
-        <button v-if="selectedFile && uploadFile" class="btn" type="button" :disabled="analyzing" @click="analyze">
+        <button v-if="selectedFile && uploadFile" class="btn" type="button" :disabled="analyzing || preparingFile" @click="analyze">
           <span v-if="analyzing" class="spinner small"></span>
           {{ analyzing ? t('home.upload.analyzing') : (errorMsg ? t('home.upload.retry') : t('home.upload.analyze')) }}
         </button>
+        <button v-if="analyzing" data-testid="cancel-analysis" class="btn alt" type="button" @click="cancelAnalysis">{{ t('home.upload.cancel') }}</button>
         <button class="btn alt" type="button" @click="resetAll">{{ t('home.upload.clear') }}</button>
       </div>
       <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>

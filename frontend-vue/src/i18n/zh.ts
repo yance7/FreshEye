@@ -17,7 +17,7 @@ const zh = {
     hero: {
       title: '看一眼鱼眼，判断新鲜度',
       subtitle: '从鱼眼清澈度、瞳孔轮廓与光泽等视觉特征出发，给出新鲜度等级、置信度和可解释热力图。结果仅供参考，不能替代法定食品检验。',
-      start: '开始检测', view_sample: '看一个示例', quick_start: '快速开始',
+      start: '开始检测', view_sample: '使用示例图片分析', sample_report: '查看示例报告', quick_start: '快速开始',
       evidence_label: '项目验证与能力摘要', evidence_mfed: 'V2 · MFED 图像切分测试', evidence_classes: '级视觉分类', evidence_explainable: '模型关注',
       evidence_mfed_value: '99.29%', evidence_classes_value: '3', evidence_explainable_value: 'Grad-CAM'
     },
@@ -35,6 +35,7 @@ const zh = {
       analyze: '开始分析',
       analyzing: '分析中...',
       retry: '重试',
+      cancel: '取消分析',
       paste_desktop: 'Ctrl+V 粘贴',
       paste_mobile: '可粘贴',
       clear: '清除'
@@ -151,8 +152,8 @@ const zh = {
       retry: '重新拍摄', view_anyway: '仍要查看结果',
       button: '我知道了', close: '关闭提示'
     },
-    scan: { connecting: '正在连接 AI 服务', starting: '服务已连接，准备分析', analyzing: '正在分析鱼眼特征', heatmap: '正在生成热力图', done: '分析完成' },
-    status: { checking: '正在检查 AI 服务', online: 'AI 服务在线', offline: 'AI 服务暂时离线' },
+    scan: { connecting: '正在连接 AI 服务', starting: '服务已连接，准备分析', analyzing: '正在分析鱼眼特征', heatmap: '正在生成热力图', done: '分析完成', waiting: '正在等待服务返回分析结果，首次唤醒可能较慢' },
+    status: { checking: '正在检查模型状态', online: 'AI 服务在线', offline: 'AI 服务暂时离线', waking: '服务暂不可达，可能正在唤醒；仍可尝试分析。', model_ready: '所选模型已就绪。', model_unavailable: '所选模型当前不可用，可切换模型或稍后重试。', model_unknown: '所选模型状态未知，仍可尝试分析。', refresh: '刷新状态' },
     rel_time: { now: '刚刚', min_ago: '分钟前', hr_ago: '小时前', day_ago: '天前' },
     detail: {
       appearance_items: {

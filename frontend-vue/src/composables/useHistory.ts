@@ -133,12 +133,14 @@ async function addHistoryRecord(
   data: string,
   duration: number,
   prediction?: PredictionResult,
-  heatmap?: string
-): Promise<HistoryRecord> {
+  heatmap?: string,
+  shouldSave: () => boolean = () => true
+): Promise<HistoryRecord | null> {
   const [thumb, heatThumb] = await Promise.all([
     compressThumbnail(data),
     heatmap ? compressThumbnail(heatmap, 320) : Promise.resolve('')
   ])
+  if (!shouldSave()) return null
   const record: HistoryRecord = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     data: thumb,

@@ -4,6 +4,15 @@ import { useApi } from '@/composables/useApi'
 afterEach(() => vi.unstubAllGlobals())
 
 describe('prediction API adapter', () => {
+  it('reports model readiness and tolerates old health payloads', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'ok', models: { v1: { status: 'ready' }, v2: { status: 'unavailable' } } })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'ok' })))
+    vi.stubGlobal('fetch', fetchMock)
+    const api = useApi()
+    await expect(api.checkModelReadiness()).resolves.toEqual({ online: true, v1: 'ready', v2: 'unavailable' })
+    await expect(api.checkModelReadiness()).resolves.toEqual({ online: true, v1: 'unknown', v2: 'unknown' })
+  })
   it.each([
     {},
     { prediction: { freshness_label: 0, confidence_score: 0.8 } },

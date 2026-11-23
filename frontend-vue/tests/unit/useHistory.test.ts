@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useHistory } from '@/composables/useHistory'
 import { HISTORY_KEY, LEGACY_FAVORITES_KEYS, LEGACY_HISTORY_KEYS } from '@/config'
 
@@ -12,6 +12,15 @@ beforeEach(() => {
 })
 
 describe('legacy history migration', () => {
+  it('does not save an analysis cancelled while thumbnails are being prepared', async () => {
+    initHistory()
+    vi.stubGlobal('Image', class { onerror: (() => void) | null = null; set src(_: string) { queueMicrotask(() => this.onerror?.()) } })
+    try {
+      const result = await useHistory().addHistoryRecord('data:image/jpeg;base64,AA==', 10, undefined, '', () => false)
+      expect(result).toBeNull()
+      expect(history.value).toHaveLength(1)
+    } finally { vi.unstubAllGlobals() }
+  })
   it('keeps a cleared history empty across reloads', () => {
     initHistory()
     expect(history.value).toHaveLength(1)
