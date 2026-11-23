@@ -9,7 +9,7 @@
     "test:contract": "node contract.test.js",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "npm run build:only && playwright test",
     "verify": "npm test && npm run typecheck && npm run build && npm run test:e2e",
     "typecheck": "vue-tsc --noEmit",
     "build": "vue-tsc --noEmit && vite build",
