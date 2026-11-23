@@ -73,3 +73,15 @@ test('language toggle updates document metadata and persists after reload', asyn
   expect(await page.evaluate(() => localStorage.getItem('fresheye-language'))).toBe('en')
   expect(errors).toEqual([])
 })
+
+test('public evidence identifies dataset scope and links primary sources', async ({ page }) => {
+  await page.goto('/about.html')
+  await expect(page.locator('#evidence-card')).toContainText('4°C')
+  await expect(page.locator('#evidence-card')).toContainText('数据集内')
+  await expect(page.locator('#references a[href="https://data.mendeley.com/datasets/67nmx3mhwh/2"]')).toBeVisible()
+  await page.locator('button.lang-switch:visible').first().click()
+  await expect(page.locator('#evidence-card')).toContainText('in-dataset')
+  await page.goto('/fish.html')
+  await expect(page.locator('main')).toContainText('for education only')
+  await expect(page.locator('main a[href="https://data.mendeley.com/datasets/67nmx3mhwh/2"]')).toBeVisible()
+})

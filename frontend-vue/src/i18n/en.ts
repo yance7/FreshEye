@@ -202,6 +202,7 @@ const en = {
     subtitle: 'From photo to result — master fish-eye freshness detection in a minute.',
     steps_title: '3-Step Workflow',
     photo_title: 'Photo Tutorial',
+    photo_source: 'Example image: FreshEye repository; original acquisition source unverified',
     faq_title: 'FAQ',
     tips_title: 'Best Practices',
     kicker_pass: 'Correct',
@@ -249,17 +250,17 @@ const en = {
   fish: {
     eyebrow: 'Species Encyclopedia',
     title: 'Common Seafood Eye Atlas',
-    subtitle: 'Different species have distinct eye features. Knowing them helps judge freshness.',
+    subtitle: 'Explore the scope of the study data and visual references.',
     levels_title: 'Three-Level Freshness Classification',
-    levels_intro: 'Based on the sensory requirements for aquatic products in GB 2733-2015 and the project’s visual features and experiments. This page explains visual cues only; it does not replace complete food-safety inspection.',
+    levels_intro: 'These are visual class reference templates from the MFED study, not individual observations from a photo or a standards-compliance or food-safety decision.',
     species_title: 'Common Species Atlas',
-    species_intro: 'Quick reference for eye features, shooting angles, and cooking tips of common freshwater and seawater fish.',
+    species_intro: 'These common names are for education only; not every species has been evaluated. MFED contains rice flower fish and crucian carp; consult FFE for its species.',
     best_angle: 'Best Angle',
     recommended_cook: 'Cooking',
-    timeline_title: 'Freshness Change Timeline',
-    timeline_intro: 'Typical visual changes under room-temperature storage (for reference only; GB 2733-2015 remains the standard for freshness judgment).',
+    timeline_title: 'MFED sample label conditions',
+    timeline_intro: 'These are MFED study labels for two freshwater fish stored at 4°C, not a time prediction or safety decision for other fish.',
     standard_title: 'GB 2733-2015 Standard',
-    standard_intro: 'The national standard referenced by FreshEye’s three-level classification.',
+    standard_intro: 'The related national standard has a broader scope; a single photo cannot prove compliance.',
     buying_title: 'Buying Tips',
     buying_intro: 'Alongside a FreshEye scan, combine these sensory checks when choosing fish.',
     levels: [
@@ -268,22 +269,19 @@ const en = {
       { icon: '◌', title: 'Not Fresh', text: 'The cornea is heavily cloudy, the pupil is distorted or absent, and the lens is opaque. The visual features suggest low freshness; do not decide to eat from this result alone.', color: 'low' }
     ],
     species: [
-      { name: 'Crucian Carp', tag: 'Freshwater', tag_en: 'freshwater', desc: 'Large protruding eyes, high cornea transparency, freshness changes are obvious.', angle: 'Side', cook: 'Steam, Soup' },
-      { name: 'Rice Flower Fish', tag: 'Freshwater', tag_en: 'freshwater', desc: 'Medium eyes, deep black pupil, clouding changes slowly.', angle: 'Side', cook: 'Braised, Deep-fry' },
-      { name: 'Grass Carp', tag: 'Freshwater', tag_en: 'freshwater', desc: 'Large eyes, thick cornea, plump and protruding when fresh.', angle: '45° Side', cook: 'Boiled, Spicy' },
-      { name: 'Common Carp', tag: 'Freshwater', tag_en: 'freshwater', desc: 'Round protruding eyes, clear pupil, color lightens when cloudy.', angle: 'Side', cook: 'Braised, Sweet & Sour' },
-      { name: 'Sea Bass', tag: 'Seawater', tag_en: 'seawater', desc: 'Bright alert eyes, clear cornea, freshness holds well.', angle: 'Front-side', cook: 'Steam' },
-      { name: 'Hairtail', tag: 'Seawater', tag_en: 'seawater', desc: 'Small but prominent eyes; the cornea is transparent with a silvery sheen when fresh.', angle: 'Front', cook: 'Fry, Braise' },
-      { name: 'Yellow Croaker', tag: 'Seawater', tag_en: 'seawater', desc: 'Large round eyes; the cornea is golden and bright when fresh.', angle: 'Front-side', cook: 'Steam, Braise' },
-      { name: 'Cod', tag: 'Seawater', tag_en: 'seawater', desc: 'Medium-to-large eyes; the lens is transparent and spherical when fresh.', angle: 'Front-side', cook: 'Pan-sear, Bake' }
+      { name: 'Crucian Carp' },
+      { name: 'Rice Flower Fish' },
+      { name: 'Grass Carp' },
+      { name: 'Common Carp' },
+      { name: 'Sea Bass' },
+      { name: 'Hairtail' },
+      { name: 'Yellow Croaker' },
+      { name: 'Cod' },
     ],
     timeline: [
-      { icon: '0', color: 'green', title: 'Initial · Just caught/dead', text: 'The cornea is fully transparent, the pupil deep black, and the lens clear. The eye is plump and protruding.' },
-      { icon: '1', color: 'green', title: 'Early stage', text: 'The cornea begins to change slightly while the pupil and lens remain clear; it still meets the fresh standard.' },
-      { icon: '2', color: 'green', title: 'Highly fresh stage', text: 'The cornea is slightly cloudy, the pupil lighter, and the lens begins to change. The visual cues remain close to a highly fresh class; combine them with gills, smell, texture, and storage conditions.' },
-      { icon: '3', color: 'gold', title: 'Fresh stage', text: 'The cornea is visibly cloudy, the pupil lighter, and the lens whitening. This enters the Fresh class; handle promptly.' },
-      { icon: '4', color: 'gold', title: 'Freshness threshold', text: 'Clouding increases, the pupil blurs, and the lens deepens in white. The visual features are closer to a low-freshness sample; use other sensory cues.' },
-      { icon: '!', color: 'red', title: 'Not fresh · Clearly abnormal visual cues', text: 'The cornea is severely cloudy, the pupil is deformed or absent, and the lens is opaque. Combine odor, tissue condition, and source information; avoid eating when appropriate.' }
+      { icon: '1', color: 'green', title: 'Highly fresh reference', text: 'MFED label condition: stored at 4°C for at most two days.' },
+      { icon: '2', color: 'gold', title: 'Fresh reference', text: 'MFED label condition: stored at 4°C for over two and at most four days.' },
+      { icon: '3', color: 'red', title: 'Not fresh reference', text: 'MFED label condition: stored at 4°C for over four days. The labels also use observed visual indicators.' }
     ],
     standards: [
       { icon: '▦', title: 'Standard name', text: 'GB 2733-2015, the Food Safety National Standard for Fresh and Frozen Animal Aquatic Products. It covers sensory, physicochemical, and contaminant requirements; FreshEye references only visual sensory dimensions.' },
@@ -291,14 +289,7 @@ const en = {
       { icon: '◉', title: 'Sensory signs', text: 'The standard covers condition, color, tissue, and odor. FreshEye focuses on fish-eye visual cues and cannot detect pathogens, histamine, toxins, contaminants, or residues.' },
       { icon: '⌁', title: 'Training data', text: 'MFED contains about 4,800 photos across two freshwater fish and four controlled environments; the three labels combine storage time, visual cues, and project experiments.' }
     ],
-    buying_tips: [
-      { icon: '◉', title: 'Check the eyes', items: ['Prefer plump protruding eyes with clear corneas', 'Avoid flat sunken eyes and cloudy corneas'] },
-      { icon: '◈', title: 'Check the gills', items: ['Bright red is preferred', 'Dark red or gray-white usually indicates poor quality; avoid buying'] },
-      { icon: '⌁', title: 'Press the flesh', items: ['Fresh flesh springs back quickly', 'Lasting dents or softness indicate low freshness'] },
-      { icon: '◌', title: 'Smell it', items: ['Fresh fish have a natural seawater or freshwater smell', 'Sour, rotten, or strong off odors indicate spoilage'] },
-      { icon: '✦', title: 'Check the surface', items: ['Intact shiny scales and clear slime suggest freshness', 'Loose scales or dull, dry skin suggest low freshness'] },
-      { icon: '◎', title: 'Use FreshEye', items: ['Shoot the eye front-side and avoid glare', 'Combine the AI result with sensory judgment'] }
-    ]
+
   },
   about: {
     eyebrow: 'About FreshEye',
@@ -328,14 +319,14 @@ const en = {
     capability_items: ['✓ Real CNN inference', '✓ Grad-CAM', '✓ Mobile camera', '✓ PWA', '✓ Public dataset'],
     evidence_stats: [
       { value: '≈4,800', label: 'MFED samples' },
-      { value: '2', label: 'validated freshwater fish' },
+      { value: '2', label: 'MFED freshwater species' },
       { value: '4', label: 'controlled environments' },
       { value: '4.095M', label: 'V2 parameters' },
       { value: '0.414G', label: 'V2 FLOPs' },
       { value: '99.29%', label: 'MFED test set', accent: true },
       { value: '81.18%', label: 'FFE public set', accent: true }
     ],
-    evidence_note: '99.29% and 81.18% are validation results on their respective datasets, not real-world food-safety accuracy. Other species, blurry or reflective images, and non-visual safety risks require additional judgment.',
+    evidence_note: 'MFED contains rice flower fish and crucian carp collected at 4°C under four lighting/background conditions. The training code splits images, so one fish may cross sets. The V2 research repository describes 81.18% on FFE as a separate in-dataset evaluation, not cross-dataset generalization. FreshEye lists 98.88% for V1 on MFED while the V1 research repository currently reports 99.23%; the relationship to released weights is unverified. Results do not determine food safety, especially for other species, blur, glare or non-visual risks.',
     why_eye_title: 'Why use the fish eye as the entry point?',
     why_eye_intro: 'The fish eye is the project’s visual entry point, not a complete food-safety assessment.',
     why_eye: [
@@ -352,7 +343,7 @@ const en = {
       { icon: '⌖', title: 'Food-safety boundary', text: 'This is an AI-assisted assessment, not a statutory food-inspection report, quality certificate, or guarantee of safe consumption.' },
       { icon: '▦', title: 'Confusion matrix', text: 'The repository publishes aggregate accuracy but not per-sample predictions, so no confusion matrix is inferred from summary metrics.' }
     ],
-    model_card_disclaimer: 'The three-class visual freshness scheme references the sensory requirements for aquatic products in GB 2733-2015 and project experiments; it is not a replacement for the complete national food-safety standard.',
+    model_card_disclaimer: 'The three-class visual output is not a GB 2733-2015 compliance decision and cannot replace complete food-safety inspection.',
     v1Intro: 'FishFreshNetV1 is a lightweight, explainable deep-learning framework designed for fish-eye freshness classification. It uses only 4.22M parameters and 0.41G FLOPs, reaching 98.88% on the MFED test set.',
     v1_feature_scaling_title: 'Compound scaling',
     v1FeatureScaling: 'EfficientNet uses one compound coefficient φ to scale network depth, width, and input resolution together. The coordinated scaling strategy improves accuracy while keeping the parameter budget compact.',
@@ -381,7 +372,7 @@ const en = {
     v2_eca_interaction_title: 'Local cross-channel interaction',
     v2EcaFeature2: 'Unlike CBAM’s shared MLP, ECA uses one-dimensional convolution for local neighborhood interaction between channels, capturing dependencies with less overhead.',
     v2CraTitle: 'Light CRA circular-region attention',
-    v2CraIntro: 'Light CRA is a fish-eye-specific regional attention module introduced in this project. Using the approximately circular geometry as a prior, it divides the feature map into N=3 concentric rings—pupil, cornea, and orbit—and applies regional attention. Shared depthwise kernels and masked partitions keep the module around 0.083M parameters; MFED accuracy rises from 98.88% to 99.29%.',
+    v2CraIntro: 'Light CRA uses a concentric image-space prior and shared convolution. These rings partition image positions and do not guarantee correspondence to specific eye anatomy.',
     v2_cra_semantics_title: 'Three-ring semantics',
     v2CraFeature1: 'N=3 represents three semantic zones of the fish eye: the inner ring is the pupil, the middle ring the cornea, and the outer ring the orbit. Each ring learns freshness cues at a different radius.',
     v2_cra_lightweight_title: 'Lightweight design',
@@ -389,13 +380,13 @@ const en = {
     v2_cra_ablation_title: 'Ring-count ablation',
     v2CraFeature3: 'The current project uses N=3 as its regional partition. N=1 removes the regional prior, while too many rings may fragment the semantics; future releases should validate this choice with a controlled ablation study.',
     v2CompareTitle: 'V1 vs V2 performance',
-    v2CompareText: 'On the MFED test set, V2 improves accuracy by 0.41 percentage points over V1 (98.88% → 99.29%). Parameters fall from 4.216M to 4.095M and model size from 16.08MB to 15.62MB. The FFE result is shown in the validation-scope section above.',
+    v2CompareText: 'The site historically lists MFED V1/V2 accuracy as 98.88%/99.29%. Splits and checkpoint lineage have not been matched, so these figures cannot establish a controlled improvement.',
     v2_table_model: 'Model',
     v2_table_accuracy: 'Accuracy (%)',
     v2_table_params: 'Params (M)',
     v2_table_size: 'Model size (MB)',
     v2_compare_rows: [
-      { model: 'FishFreshNetV1 (Baseline)', accuracy: '98.88', f1: '98.88', params: '4.216', flops: '0.414', size: '16.08', highlight: false },
+      { model: 'FishFreshNetV1 (Baseline)', accuracy: '98.88', f1: '—', params: '4.216', flops: '0.414', size: '16.08', highlight: false },
       { model: 'FishFreshNetV2 (This project)', accuracy: '99.29', f1: '99.29', params: '4.095', flops: '0.414', size: '15.62', highlight: true }
     ],
     v1_detail_title: 'FishFreshNetV1 in detail',
@@ -408,7 +399,7 @@ const en = {
     v2_details: [
       { icon: '⌁', title: 'ECA channel attention', text: 'A lightweight one-dimensional convolution replaces the shared MLP, reducing overhead while preserving local channel interaction.' },
       { icon: '◉', title: 'Light CRA', text: 'A circular fish-eye prior divides pupil, cornea, and orbital rings to strengthen regional feature representation.' },
-      { icon: '✦', title: 'Validation result', text: 'MFED accuracy improves from 98.88% in V1 to 99.29% while maintaining a lightweight deployment profile.' }
+      { icon: '✦', title: 'Historical figures', text: 'The site lists MFED V1/V2 as 98.88%/99.29%; comparable splits and checkpoint lineage remain unverified.' }
     ],
     workflow_table_title: 'Workflow node notes',
     workflow_table_node: 'Node', workflow_table_type: 'Layer', workflow_table_duty: 'Responsibility',
@@ -467,12 +458,12 @@ const en = {
     solutions: [
       'One-click photo upload — zero-cost, non-destructive detection',
       'FishFreshNetV1 (EfficientNet-B0 + CBAM) achieves 99%+ accuracy',
-      'FishFreshNetV2 (ECA + Light CRA) improves to 99.29%',
-      'Grad-CAM heatmap explains "why"; structured report tells "what to do"',
+      'The historical site lists 99.29% MFED for FishFreshNetV2',
+      'Grad-CAM shows model attention for the current prediction; the report provides visual reference',
       'Confidence-driven adaptive branching — low confidence prompts retake'
     ],
-    compare_intro: 'Comprehensive performance comparison on MFED (custom dataset) and FFE (public dataset)',
-    compare_footer: 'V2 improves 0.41 percentage points over V1 (98.88% → 99.29%), achieving higher accuracy with ~3% of VGG16 parameters.',
+    compare_intro: 'Historical project figures; the V2 FFE result comes from a separate in-dataset experiment. V1 experimental and released-weight provenance remains unverified.',
+    compare_footer: 'These are historical summary figures, not a controlled comparison on the same fish-disjoint test set; the relationship to released weights remains unverified.',
     table_headers: { model: 'Model', params: 'Params/M', flops: 'FLOPs/G', mfed: 'MFED Acc.', ffe: 'FFE Acc.' },
     compare_rows: [
       { model: 'VGG16', params: '134.27', flops: '15.47', mfed: '98.08%', ffe: '77.40%', highlight: false },
@@ -507,7 +498,7 @@ const en = {
     v2_cards: [
       { icon: '⌁', title: 'ECA channel attention', text: 'A lightweight 1D convolution replaces the shared MLP to reduce overhead while preserving local channel interaction.' },
       { icon: '◉', title: 'Light CRA', text: 'A circular prior divides pupil, cornea, and orbit into three rings to strengthen regional features.' },
-      { icon: '✦', title: 'Accuracy gain', text: 'MFED accuracy rises from 98.88% in V1 to 99.29% while keeping the model lightweight.' }
+      { icon: '✦', title: 'Historical figures', text: 'The site lists MFED V1/V2 as 98.88%/99.29%; experimental comparability remains unverified.' }
     ],
     workflow_title: 'Detection Workflow',
     workflow_intro: 'Frontend validation and compression → FastAPI/PyTorch inference → Grad-CAM visualization → confidence-aware guidance.',
@@ -545,6 +536,9 @@ const en = {
     refGb: 'National Health and Family Planning Commission (2015). GB 2733-2015, Food Safety National Standard for Fresh and Frozen Animal Aquatic Products.',
     references_title: 'References',
     references: [
+      { citation: 'Yan, C. (2026). Multistage Fish Eyes Dataset (MFED), Version 2. Mendeley Data. DOI: 10.17632/67nmx3mhwh.2.', url: 'https://data.mendeley.com/datasets/67nmx3mhwh/2' },
+      { citation: 'FishFreshNetV1 research repository: reported metrics and protocol.', url: 'https://github.com/yance7/FishFreshNetV1' },
+      { citation: 'FishFreshNetV2 research repository: separate FFE in-dataset protocol.', url: 'https://github.com/yance7/FishFreshNetV2' },
       { citation: 'Prasetyo, E., Purbaningtyas, R., Adityo, R. D., Suciati, N., & Fatichah, C. (2022). Combining MobileNetV1 and Depthwise Separable Convolution Bottleneck with Expansion for Classifying the Freshness of Fish Eyes. Information Processing in Agriculture, 9(4), 485–496.', url: 'https://doi.org/10.1016/j.inpa.2022.01.002', note: 'Paper associated with the public FFE dataset; the dataset record is linked separately.' },
       { citation: 'Prasetyo, E., Adityo, R. D., Suciati, N., & Fatichah, C. (2022). The Freshness of the Fish Eyes Dataset (FFE), Version 1.', url: 'https://data.mendeley.com/datasets/xzyx7pbr3w/1', note: 'Mendeley Data record, DOI: 10.17632/xzyx7pbr3w.1.' },
       { citation: 'Yildiz, M. B., Yasin, E. T., & Koklu, M. (2024). Fisheye freshness detection using common deep learning algorithms and machine learning methods with a developed mobile application. European Food Research and Technology, 250(7), 1919–1932.', url: 'https://doi.org/10.1007/s00217-024-04493-0' },
@@ -556,7 +550,7 @@ const en = {
       { citation: 'Selvaraju, R. R., et al. (2017). Grad-CAM: Visual Explanations from Deep Networks via Gradient-Based Localization. ICCV, 618–626.', url: 'https://openaccess.thecvf.com/content_iccv_2017/html/Selvaraju_Grad-CAM_Visual_Explanations_ICCV_2017_paper.html' },
       { citation: 'Wang, Q., et al. (2020). ECA-Net: Efficient Channel Attention for Deep Convolutional Neural Networks. CVPR, 11534–11542.', url: 'https://openaccess.thecvf.com/content_CVPR_2020/html/Wang_ECA-Net_Efficient_Channel_Attention_for_Deep_Convolutional_Neural_Networks_CVPR_2020_paper.html' },
       { citation: 'Lalabadi, H. M., Sadeghi, M., & Mireei, S. A. (2020). Fish freshness categorization from eyes and gills color features using multi-class artificial neural network and support vector machines. Aquacultural Engineering, 90, 102076.', url: 'https://doi.org/10.1016/j.aquaeng.2020.102076' },
-      { citation: 'National Health and Family Planning Commission (2015). GB 2733-2015, Food Safety National Standard for Fresh and Frozen Animal Aquatic Products.', url: 'https://openstd.samr.gov.cn/' },
+      { citation: 'National Health and Family Planning Commission (2015). GB 2733-2015, Food Safety National Standard for Fresh and Frozen Animal Aquatic Products.', url: 'https://www.nhc.gov.cn/sps/c100087/201812/f2e3729a15464641a78a29fbbb7206d9.shtml' },
       { citation: 'Madhubhashini, M. N., Liyanage, C. P., Alahakoon, A. U., et al. (2024). Current applications and future trends of artificial senses in fish freshness determination: A review. Journal of Food Science, 89(1), 33–50.', url: 'https://doi.org/10.1111/1750-3841.16865' }
     ]
   },

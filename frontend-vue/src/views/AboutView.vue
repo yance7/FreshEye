@@ -96,6 +96,51 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
     </div>
   </section>
 
+  <!-- 先展示历史指标与模型适用边界。 -->
+  <section id="comparison" class="reveal">
+    <div class="section-head">
+      <h2 class="section-title">{{ t('about.compare_title') }}</h2>
+    </div>
+    <p class="intro-sub">{{ t('about.compare_intro') }}</p>
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>{{ t('about.table_headers.model') }}</th>
+            <th>{{ t('about.table_headers.params') }}</th>
+            <th>{{ t('about.table_headers.flops') }}</th>
+            <th>{{ t('about.table_headers.mfed') }}</th>
+            <th>{{ t('about.table_headers.ffe') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="r in compareRows" :key="r.model" :class="{ 'compare-table-highlight': r.highlight }">
+            <td :class="{ highlight: r.highlight }">{{ r.model }}</td>
+            <td :class="{ highlight: r.highlight }">{{ r.params }}</td>
+            <td :class="{ highlight: r.highlight }">{{ r.flops }}</td>
+            <td :class="{ highlight: r.highlight }">{{ r.mfed }}</td>
+            <td :class="{ highlight: r.highlight }">{{ r.ffe }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="intro-sub" style="margin-top: 16px;">
+      {{ t('about.compare_footer') }}
+    </p>
+  </section>
+
+  <!-- Model Card：把验证范围与能力边界放在模型表现之后 -->
+  <section id="model-card" class="reveal">
+    <div class="section-head"><h2 class="section-title">{{ t('about.model_card_title') }}</h2></div>
+    <div class="model-card-public glass-card">
+      <div class="model-card-grid">
+        <div v-for="card in modelCard" :key="card.title" class="model-card-item">
+          <strong>{{ card.title }}</strong><span>{{ card.text }}</span>
+        </div>
+      </div>
+      <p class="model-card-disclaimer">{{ t('about.model_card_disclaimer') }}</p>
+    </div>
+  </section>
   <!-- 技术架构 -->
   <section id="project-architecture" class="reveal">
     <div class="section-head">
@@ -178,52 +223,6 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
           <li v-for="(s, i) in solutions" :key="i">{{ s }}</li>
         </ul>
       </div>
-    </div>
-  </section>
-
-  <!-- 方案对比表 -->
-  <section id="comparison" class="reveal">
-    <div class="section-head">
-      <h2 class="section-title">{{ t('about.compare_title') }}</h2>
-    </div>
-    <p class="intro-sub">{{ t('about.compare_intro') }}</p>
-    <div class="table-wrap">
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th>{{ t('about.table_headers.model') }}</th>
-            <th>{{ t('about.table_headers.params') }}</th>
-            <th>{{ t('about.table_headers.flops') }}</th>
-            <th>{{ t('about.table_headers.mfed') }}</th>
-            <th>{{ t('about.table_headers.ffe') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="r in compareRows" :key="r.model" :class="{ 'compare-table-highlight': r.highlight }">
-            <td :class="{ highlight: r.highlight }">{{ r.model }}</td>
-            <td :class="{ highlight: r.highlight }">{{ r.params }}</td>
-            <td :class="{ highlight: r.highlight }">{{ r.flops }}</td>
-            <td :class="{ highlight: r.highlight }">{{ r.mfed }}</td>
-            <td :class="{ highlight: r.highlight }">{{ r.ffe }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="intro-sub" style="margin-top: 16px;">
-      {{ t('about.compare_footer') }}
-    </p>
-  </section>
-
-  <!-- Model Card：把验证范围与能力边界放在模型表现之后 -->
-  <section id="model-card" class="reveal">
-    <div class="section-head"><h2 class="section-title">{{ t('about.model_card_title') }}</h2></div>
-    <div class="model-card-public glass-card">
-      <div class="model-card-grid">
-        <div v-for="card in modelCard" :key="card.title" class="model-card-item">
-          <strong>{{ card.title }}</strong><span>{{ card.text }}</span>
-        </div>
-      </div>
-      <p class="model-card-disclaimer">{{ t('about.model_card_disclaimer') }}</p>
     </div>
   </section>
 
@@ -366,7 +365,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
     <div class="section-head"><h2 class="section-title">{{ t('about.references_title') }}</h2></div>
     <ol class="reference-list">
       <li v-for="reference in references" :key="reference.citation">
-        <span class="reference-citation">{{ reference.citation }}</span>
+        <a class="reference-citation" :href="reference.url" target="_blank" rel="noopener noreferrer">{{ reference.citation }}</a>
         <span v-if="reference.note" class="reference-note">{{ reference.note }}</span>
       </li>
     </ol>

@@ -30,7 +30,7 @@ test('Vue source exposes the application and view contract', () => {
   assert.match(camera, /getUserMedia/);
   assert.match(home, /buildReportHtml/);
   assert.match(home, /low_conf_modal/);
-  assert.match(fish, /buyingTips/);
+  assert.match(fish, /fish\.species_intro/);
   assert.match(about, /evidence-card/);
   assert.match(about, /workflowRows/);
 });
@@ -193,11 +193,11 @@ test('visual system and Grad-CAM comparison have bounded responsive geometry', (
   assert.match(home, /max-height:\s*min\(/);
 });
 
-test('About restores legacy technical content and keeps real references as plain citations', () => {
+test('About retains technical content and linked references', () => {
   const about = file('src/views/AboutView.vue');
   const zh = file('src/i18n/zh.ts');
   const en = file('src/i18n/en.ts');
-  assert.doesNotMatch(about, /reference\.url/);
+  assert.match(about, /reference\.url/);
   assert.match(about, /reference-citation/);
   for (const marker of ['v1FeatureScaling', 'v1CbamIntro', 'v1GradcamResult', 'v2EcaIntro', 'v2CraIntro', 'workflowDuty13', 'journeyResearchText', 'socialResearchText', 'refFfeNote', 'refGb']) {
     assert.match(`${zh}\n${en}`, new RegExp(marker), `missing restored About content marker: ${marker}`);
@@ -321,11 +321,11 @@ test('bilingual packs and reports have deterministic safety contracts', () => {
   assert.doesNotMatch(report, /https?:\/\/[^"']+\.(?:woff2?|ttf)/i);
 });
 
-test('references render as plain citations and reports localize the model name', () => {
+test('references link to sources and reports localize the model name', () => {
   const about = file('src/views/AboutView.vue');
   const home = file('src/views/HomeView.vue');
   const report = file('src/utils/pdfReport.ts');
-  assert.doesNotMatch(about, /<a[^>]+reference\.url/);
+  assert.match(about, /<a[^>]+reference\.url/);
   assert.match(about, /reference-citation/);
   assert.match(home, /modelDisplayName/);
   assert.match(report, /modelDisplayName/);
