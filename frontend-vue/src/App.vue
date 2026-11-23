@@ -34,6 +34,38 @@ function syncDocumentMetadata(): void {
   document.documentElement.lang = locale.value === 'zh' ? 'zh-CN' : 'en'
   const descriptionMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
   if (descriptionMeta) descriptionMeta.content = description
+  const canonicalPath = route.meta.canonicalPath
+  const canonicalUrl = canonicalPath && route.meta.noindex !== true
+    ? new URL(String(canonicalPath), 'https://fresheye.yance.me').href
+    : null
+  let canonicalLink = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+  let ogUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]')
+  let robotsMeta = document.querySelector<HTMLMetaElement>('meta[name="robots"]')
+
+  if (canonicalUrl) {
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link')
+      canonicalLink.rel = 'canonical'
+      document.head.append(canonicalLink)
+    }
+    canonicalLink.href = canonicalUrl
+    if (!ogUrl) {
+      ogUrl = document.createElement('meta')
+      ogUrl.setAttribute('property', 'og:url')
+      document.head.append(ogUrl)
+    }
+    ogUrl.content = canonicalUrl
+    robotsMeta?.remove()
+  } else {
+    canonicalLink?.remove()
+    ogUrl?.remove()
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta')
+      robotsMeta.name = 'robots'
+      document.head.append(robotsMeta)
+    }
+    robotsMeta.content = 'noindex, nofollow'
+  }
   for (const selector of ['meta[property="og:title"]', 'meta[name="twitter:title"]']) {
     const meta = document.querySelector<HTMLMetaElement>(selector)
     if (meta) meta.content = title

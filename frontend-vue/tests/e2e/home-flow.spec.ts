@@ -179,6 +179,25 @@ test('completes the mocked analysis workflow and protects interaction state', as
   expect(errors).toEqual([])
 })
 
+test('announces the real analysis waiting state without inventing percentage progress', async ({ page }) => {
+  await page.route('**/health*', (route) => route.fulfill({ status: 200, json: { status: 'ok' } }))
+  await page.route('**/predict_with_gradcam**', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    await route.fulfill({ status: 200, json: responseFor({ freshness_level: 1, confidence_score: 0.9 }) })
+  })
+  await page.goto('/')
+  await dismissGuide(page)
+  await prepareSample(page)
+  await page.locator('.preview-actions .btn').first().click()
+
+  const waiting = page.getByTestId('analysis-status')
+  await expect(waiting).toHaveRole('status')
+  await expect(waiting).toHaveAttribute('aria-live', 'polite')
+  await expect(waiting).toContainText('正在等待服务返回分析结果')
+  await expect(page.getByRole('progressbar')).toHaveCount(0)
+  await expect(page.locator('#result-section')).toBeVisible()
+})
+
 test('ignores a stale response after a replacement file starts a newer analysis', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))

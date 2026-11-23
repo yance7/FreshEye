@@ -2,19 +2,19 @@
 // 鲜眸 FreshEye · 首页检测视图
 // Hero（动态鱼眼 + countUp）+ 上传区（拖拽/粘贴/拍照/示例）+ 4-Tab 分析报告
 // + 历史记录（搜索/过滤/收藏）+ PDF 导出 + 骨架屏 + 新手引导
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick, defineAsyncComponent } from 'vue'
 import { useI18n } from '@/i18n'
 import { useToast } from '@/composables/useToast'
 import { useHistory } from '@/composables/useHistory'
 import { useApi, ApiError, type ServiceReadiness } from '@/composables/useApi'
 import { GUIDE_KEY, LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY, MODEL_KEY } from '@/config'
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
-import { buildReportHtml } from '@/utils/pdfReport'
 import { blobToDataUrl, prepareImageAssets, type ImageQualityWarning } from '@/utils/imageAssets'
 import { confidenceLevel } from '@/utils/prediction'
-import CameraCaptureDialog from '@/components/CameraCaptureDialog.vue'
 import { useMotionPreference } from '@/composables/useMotionPreference'
 import AccessibleDialog from '@/components/AccessibleDialog.vue'
+
+const CameraCaptureDialog = defineAsyncComponent(() => import('@/components/CameraCaptureDialog.vue'))
 
 const { t, tm, locale } = useI18n()
 const baseUrl = import.meta.env.BASE_URL
@@ -750,6 +750,7 @@ async function exportPDF(): Promise<void> {
     return
   }
   const current = lastResult.value
+  const { buildReportHtml } = await import('@/utils/pdfReport')
   const originalImage = lastOriginalBlob.value
     ? await blobToDataUrl(lastOriginalBlob.value)
     : lastOriginalImage.value
@@ -876,6 +877,7 @@ function closeLowConfidenceModal(): void {
 
 <template>
   <CameraCaptureDialog
+    v-if="cameraModal"
     :open="cameraModal"
     @close="cameraModal = false"
     @fallback="cameraInput?.click()"
@@ -1092,7 +1094,7 @@ function closeLowConfidenceModal(): void {
         <div v-if="analyzing" class="scan-line"></div>
         <div v-if="analyzing" class="scan-overlay">
           <span class="spinner"></span>
-          <span class="scan-text">{{ scanLabel }}</span>
+          <span data-testid="analysis-status" class="scan-text" role="status" aria-live="polite" aria-atomic="true">{{ scanLabel }}</span>
         </div>
       </div>
       <div v-if="fileInfo" class="preview-info" aria-live="polite">

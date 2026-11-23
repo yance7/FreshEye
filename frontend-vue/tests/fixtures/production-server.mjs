@@ -2,7 +2,7 @@ import { createReadStream, promises as fs } from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, resolve, sep } from 'node:path'
 
-const root = resolve(process.cwd(), '../frontend-dist')
+const root = resolve(process.env.FRONTEND_DIST_DIR || resolve(process.cwd(), '../frontend-dist'))
 const port = Number(process.env.PORT || 4175)
 const mimeTypes = new Map([
   ['.css', 'text/css; charset=utf-8'],
@@ -14,7 +14,9 @@ const mimeTypes = new Map([
   ['.json', 'application/json; charset=utf-8'],
   ['.png', 'image/png'],
   ['.svg', 'image/svg+xml'],
-  ['.webp', 'image/webp']
+  ['.txt', 'text/plain; charset=utf-8'],
+  ['.webp', 'image/webp'],
+  ['.xml', 'application/xml; charset=utf-8']
 ])
 
 const server = createServer(async (request, response) => {

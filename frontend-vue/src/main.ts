@@ -2,14 +2,14 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import { provideI18n } from './i18n'
+import { prepareLocale, provideI18n } from './i18n'
 import './styles/global.css'
 
 const app = createApp(App)
 app.use(router)
 provideI18n(app)
 
-router.isReady().then(() => app.mount('#app'))
+Promise.all([prepareLocale(), router.isReady()]).then(() => app.mount('#app'))
 
 // 生产构建保留原版 PWA 能力；开发环境不注册，避免干扰 Vite HMR。
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
