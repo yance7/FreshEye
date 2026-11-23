@@ -73,6 +73,18 @@ V2_MODEL_PATH = _resolve_model_path("V2_MODEL_PATH", _v2_model_path_candidates)
 _weight_revisions: Dict[str, Optional[str]] = {"v1": None, "v2": None}
 
 
+def _deployment_revision() -> str:
+    value = os.getenv("FRESHEYE_REVISION", "").strip()
+    return value if 0 < len(value) <= 80 and value.isascii() and all(c.isalnum() or c in "-_." for c in value) else "unknown"
+
+
+def _set_prediction_revision(response: Response, version: str) -> None:
+    response.headers["X-FreshEye-Revision"] = _deployment_revision()
+    fingerprint = _weight_revisions.get(version)
+    if fingerprint:
+        response.headers["X-FreshEye-Weights-SHA256"] = fingerprint
+
+
 def _weight_sha256(path: str) -> str:
     digest = hashlib.sha256()
     with open(path, "rb") as source:
@@ -272,6 +284,10 @@ class _TTLCache:
         with _cache_lock:
             return len(self._cache)
 
+    def clear(self) -> None:
+        with _cache_lock:
+            self._cache.clear()
+
 
 _prediction_cache = _TTLCache()
 _gradcam_cache = _TTLCache()
@@ -368,6 +384,8 @@ async def lifespan(app: FastAPI):
     global v1_model, v2_model, device
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    _prediction_cache.clear()
+    _gradcam_cache.clear()
     _weight_revisions.update(v1=None, v2=None)
     logger.info(f"设备: {device}")
 
@@ -432,7 +450,7 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
-    expose_headers=["X-FreshEye-Cache", "X-FreshEye-Error"],
+    expose_headers=["X-FreshEye-Cache", "X-FreshEye-Error", "X-FreshEye-Revision", "X-FreshEye-Weights-SHA256"],
     max_age=CORS_MAX_AGE,
 )
 
@@ -742,7 +760,7 @@ async def health():
         "models": {name: {"status": "ready" if loaded else "unavailable",
                           "weights_sha256": _weight_revisions[name] if loaded else None}
                    for name, loaded in ready.items()},
-        "revision": os.getenv("FRESHEYE_REVISION", "unknown").strip() or "unknown",
+        "revision": _deployment_revision(),
         "v1_loaded": v1_model is not None,
         "v2_loaded": v2_model is not None,
         "device": device,
@@ -781,6 +799,7 @@ async def predict_freshness(
     _check_rate_limit(request)
     try:
         model, version_str = get_model(model_version)
+        _set_prediction_revision(response, version_str)
         data = await read_limited_upload(file)
         key = _cache_key(data, version_str)
         cached = _prediction_cache.get(key)
@@ -816,6 +835,7 @@ async def predict_with_gradcam(
     _check_rate_limit(request)
     try:
         model, version_str = get_model(model_version)
+        _set_prediction_revision(response, version_str)
         data = await read_limited_upload(file)
         key = _cache_key(data, version_str)
         cached = _gradcam_cache.get(key)

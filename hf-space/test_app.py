@@ -88,6 +88,32 @@ def test_cache_hit_is_visible_without_changing_prediction_contract(c):
     assert first.json() == second.json()
 
 
+def test_prediction_reports_running_revision_and_weight_fingerprint(c, monkeypatch):
+    import app as service
+    monkeypatch.setenv('FRESHEYE_REVISION', 'test-revision')
+    result = c.post('/predict_with_gradcam?model_version=v2', files={'file': ('revision.png', _make_test_image(format='PNG', color=(41, 53, 67)), 'image/png')})
+    assert result.status_code == 200
+    assert result.headers['x-fresheye-revision'] == 'test-revision'
+    assert result.headers['x-fresheye-weights-sha256'] == service._weight_revisions['v2']
+    assert 'X-FreshEye-Weights-SHA256' in c.get('/health', headers={'Origin': 'https://fresheye.yance.me'}).headers['access-control-expose-headers']
+
+
+def test_model_reload_does_not_reuse_previous_cache(c, monkeypatch):
+    import app as service
+    monkeypatch.setattr(service, 'v1_model', service.v1_model)
+    monkeypatch.setattr(service, 'v2_model', service.v2_model)
+    monkeypatch.setattr(service, '_weight_revisions', service._weight_revisions.copy())
+    monkeypatch.setattr(service, 'load_v1_model', lambda _: object())
+    monkeypatch.setattr(service, 'load_v2_model', lambda _: object())
+    monkeypatch.setattr(service, '_warmup_model', lambda *_: None)
+    monkeypatch.setattr(service, '_weight_sha256', lambda _: 'a' * 64)
+    service._prediction_cache.set('old', 'old-result')
+    service._gradcam_cache.set('old', 'old-result')
+    with TestClient(app):
+        assert service._prediction_cache.get('old') is None
+        assert service._gradcam_cache.get('old') is None
+
+
 def test_prediction_request_log_records_failure_without_image_data(c, caplog):
     with caplog.at_level(logging.INFO, logger='app'):
         response = c.post('/predict?model_version=v3', files={'file': ('private.jpg', _make_test_image(), 'image/jpeg')})
