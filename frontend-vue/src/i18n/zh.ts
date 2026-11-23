@@ -25,7 +25,7 @@ const zh = {
       title: '上传鱼眼照片',
       section_hint: '支持点击 · 拖拽 · 粘贴',
       hint: '点击、拖拽或粘贴图片',
-      formats: '支持 JPG / PNG / WebP',
+      formats: '支持 JPG / PNG / WebP；HEIC 请先转换为 JPEG 或使用相机拍摄',
       camera: '拍照',
       samples: '示例图片',
       choose_photo: '选择照片',
@@ -43,7 +43,7 @@ const zh = {
     camera: {
       title: '相机取景器', starting: '正在打开相机…', error: '无法访问相机，请检查浏览器权限。',
       fallback_help: '也可以使用设备文件选择器上传照片。', fallback: '选择图片',
-      flip: '切换镜头', capture: '拍摄', close: '关闭取景器', not_ready: '相机尚未准备好', capture_failed: '拍摄失败，请重试', guide: '请将鱼眼置于圆形取景框内，保持正面、清晰、光线充足。'
+      flip: '切换镜头', capture: '拍摄', close: '关闭取景器', not_ready: '相机尚未准备好', capture_failed: '拍摄失败，请重试', guide: '镜头正对鱼眼，保持清晰、光线充足。圆圈仅作参考，保存的是完整画面。'
     },
     model: { v2: 'FishFreshNetV2', v1: 'FishFreshNetV1', label: '模型版本', advanced: '高级设置', advanced_hint: '默认使用 V2', note: '原评测：V1/V2 在 MFED 为 98.88%/99.29%，在 FFE 为 81.78%/81.18%；MFED 使用图像级切分，个体独立性尚待核验。' },
     result: {
@@ -85,6 +85,7 @@ const zh = {
       warning_low: 'AI 对这张图片的判断不够确定。请确认鱼眼清晰、正面且光线充足；低置信度不等于图片不是鱼眼。',
       close_warning: '关闭警告'
     },
+    quality: { intro: '拍摄提示（仅供参考，不会阻止分析）：', low_resolution: '图片分辨率较低，建议靠近鱼眼重新拍摄。', dark: '整张图片可能过暗，建议增加均匀照明。', bright: '整张图片可能过亮，建议调整光线并避免反光。' },
     prediction: {
       high: {
         appearance: '参考模板：角膜清澈，瞳孔清晰，表面有光泽。',
@@ -135,7 +136,8 @@ const zh = {
       rate_limit: '请求过于频繁，请稍后再试',
       format: '图片格式不支持',
       size: '图片过大',
-      preprocess: '图像读取或处理失败，请重试'
+      preprocess: '图像读取或处理失败，请重试',
+      heic: '暂不支持 HEIC/HEIF 文件；请转换为 JPEG，或使用应用内相机重新拍摄。'
     },
     export: '导出 PDF 报告',
     lang_switch: 'EN',
@@ -204,9 +206,9 @@ const zh = {
     tips_title: '最佳实践 Tips',
     kicker_pass: '正确',
     kicker_check: '需注意',
-    photo_intro: '好的照片是准确检测的前提。请参考以下正确与错误示例对比，拍摄时遵循正确示例的要求。',
+    photo_intro: '请参考示例图和以下文字清单，拍摄时让镜头正对鱼眼。',
     photo_hint: '把鱼眼对准圆圈中心',
-    photo_text: '请正面拍摄鱼眼，保持光线充足、距离适中（10–30cm）、对焦清晰，拍照前擦干鱼眼表面水分避免反光。避免侧面角度、昏暗环境、距离过远/过近、模糊失焦与反光遮挡。',
+    photo_text: '镜头正对鱼眼，保持眼部清晰完整、光线均匀；调整光源或角度以减少反光。支持 JPG、PNG、WebP；HEIC/HEIF 请先转为 JPEG，或使用应用内相机拍摄。',
     correct_title: '正确示例',
     correct_intro: '鱼眼位于画面中央，轮廓清晰、光线均匀，适合提取角膜与瞳孔等视觉特征。',
     incorrect_title: '错误示例',
@@ -216,7 +218,7 @@ const zh = {
       { title: '光线充足', text: '自然光或白色光源，均匀照亮鱼眼' },
       { title: '距离适中', text: '10–30cm，鱼眼占图片面积 30% 以上' },
       { title: '对焦清晰', text: '点击屏幕对焦鱼眼，确保瞳孔与角膜细节可见' },
-      { title: '擦干水分', text: '拍照前擦干鱼眼表面，避免反光' }
+      { title: '减少反光', text: '调整光源或拍摄位置，避免反光遮挡鱼眼' }
     ],
     incorrect_checks: [
       { title: '侧面角度', text: '鱼眼变形，关键特征缺失' },
@@ -226,7 +228,7 @@ const zh = {
       { title: '反光遮挡', text: '强光直射或水珠反光遮盖角膜' }
     ],
     tips: [
-      { icon: '◌', title: '擦干水分', text: '拍照前轻轻擦干鱼眼表面，避免水珠反光遮挡角膜特征。' },
+      { icon: '◌', title: '减少反光', text: '调整光源或拍摄位置，避免反光遮挡鱼眼。' },
       { icon: '◉', title: '优选光源', text: '选择自然光或白色光源，避免黄色灯光影响颜色判断。' },
       { icon: '⌁', title: '构图占比', text: '确保鱼眼占图片面积 30% 以上，便于提取细节特征。' },
       { icon: '◎', title: '避免反光', text: '避开直射强光和阴影遮挡，调整角度消除镜面反光。' },

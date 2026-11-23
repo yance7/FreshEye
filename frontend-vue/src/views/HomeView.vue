@@ -10,7 +10,7 @@ import { useApi, ApiError, type ServiceReadiness } from '@/composables/useApi'
 import { GUIDE_KEY, LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY, MODEL_KEY } from '@/config'
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 import { buildReportHtml } from '@/utils/pdfReport'
-import { blobToDataUrl, prepareImageAssets } from '@/utils/imageAssets'
+import { blobToDataUrl, prepareImageAssets, type ImageQualityWarning } from '@/utils/imageAssets'
 import { confidenceLevel } from '@/utils/prediction'
 import CameraCaptureDialog from '@/components/CameraCaptureDialog.vue'
 import { useMotionPreference } from '@/composables/useMotionPreference'
@@ -52,6 +52,7 @@ const previewBlob = ref<Blob | null>(null)
 const uploadFile = ref<File | null>(null)
 const thumbnailDataUrl = ref<string>('')
 const imageDimensions = ref<{ width: number; height: number } | null>(null)
+const qualityWarnings = ref<ImageQualityWarning[]>([])
 const dragging = ref(false)
 const sampleLoading = ref(false)
 const preparingFile = ref(false)
@@ -206,6 +207,7 @@ function resetPreparedFile(message = ''): void {
   uploadFile.value = null
   thumbnailDataUrl.value = ''
   imageDimensions.value = null
+  qualityWarnings.value = []
   lastResult.value = null
   lastHeatmap.value = ''
   lastOriginalImage.value = ''
@@ -224,7 +226,7 @@ function validateFile(file: File): boolean {
     return false
   }
   if (!ACCEPT_TYPES.includes(type)) {
-    toast.error(t('home.errors.format'))
+    toast.error(t(/\.hei[cf]$/i.test(file.name) || type.includes('hei') ? 'home.errors.heic' : 'home.errors.format'))
     return false
   }
   if (file.size > MAX_SIZE) {
@@ -256,6 +258,7 @@ async function handleFile(file: File): Promise<boolean> {
     uploadFile.value = new File([assets.upload], file.name || 'upload.jpg', { type: 'image/jpeg' })
     thumbnailDataUrl.value = thumbnail
     imageDimensions.value = { width: assets.width, height: assets.height }
+    qualityWarnings.value = assets.qualityWarnings
     lastResult.value = null
     lastHeatmap.value = ''
     lastOriginalImage.value = ''
@@ -461,6 +464,7 @@ function loadHistoryRecord(rec: HistoryRecord): void {
     previewBlob.value = null
     thumbnailDataUrl.value = ''
     imageDimensions.value = null
+    qualityWarnings.value = []
     lastResult.value = rec.prediction
     lastHeatmap.value = rec.heatmap || ''
     lastOriginalImage.value = rec.data
@@ -1095,6 +1099,10 @@ function closeLowConfidenceModal(): void {
         <span><strong>{{ fileInfo.name }}</strong></span>
         <span><strong>{{ fileInfo.size }}</strong></span>
         <span><strong>{{ fileInfo.dimensions }}</strong></span>
+      </div>
+      <div v-if="qualityWarnings.length" data-testid="image-quality" class="error-msg" role="status">
+        <p>{{ t('home.quality.intro') }}</p>
+        <p v-for="warning in qualityWarnings" :key="warning">{{ t(`home.quality.${warning}`) }}</p>
       </div>
       <div class="preview-actions">
         <button v-if="selectedFile && uploadFile" class="btn" type="button" :disabled="analyzing || preparingFile" @click="analyze">

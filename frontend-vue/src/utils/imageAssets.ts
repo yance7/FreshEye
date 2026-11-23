@@ -4,6 +4,42 @@ export interface PreparedImageAssets {
   thumbnail: Blob
   width: number
   height: number
+  qualityWarnings: ImageQualityWarning[]
+}
+
+export type ImageQualityWarning = 'low_resolution' | 'dark' | 'bright'
+
+/** Coarse, uncalibrated capture hints; never an input validity or safety decision. */
+export function assessImageQuality(width: number, height: number, rgba?: Uint8ClampedArray): ImageQualityWarning[] {
+  const warnings: ImageQualityWarning[] = []
+  if (Math.min(width, height) < 224) warnings.push('low_resolution')
+  if (rgba && rgba.length >= 4) {
+    let total = 0
+    let count = 0
+    for (let i = 0; i + 3 < rgba.length; i += 4) {
+      total += 0.2126 * rgba[i] + 0.7152 * rgba[i + 1] + 0.0722 * rgba[i + 2]
+      count++
+    }
+    const mean = total / count
+    if (mean < 20) warnings.push('dark')
+    else if (mean > 245) warnings.push('bright')
+  }
+  return warnings
+}
+
+function sampleQuality(bitmap: ImageBitmap): ImageQualityWarning[] {
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 32
+    const context = canvas.getContext('2d', { willReadFrequently: true })
+    if (!context) return assessImageQuality(bitmap.width, bitmap.height)
+    context.fillStyle = '#fff'
+    context.fillRect(0, 0, 32, 32)
+    context.drawImage(bitmap, 0, 0, 32, 32)
+    return assessImageQuality(bitmap.width, bitmap.height, context.getImageData(0, 0, 32, 32).data)
+  } catch {
+    return assessImageQuality(bitmap.width, bitmap.height)
+  }
 }
 
 function renderBlob(source: ImageBitmap, maxSize: number, quality: number): Promise<Blob> {
@@ -33,6 +69,7 @@ function renderBlob(source: ImageBitmap, maxSize: number, quality: number): Prom
 export async function prepareImageAssets(file: File): Promise<PreparedImageAssets> {
   const bitmap = await createImageBitmap(file)
   try {
+    const qualityWarnings = sampleQuality(bitmap)
     const [preview, upload, thumbnail] = await Promise.all([
       renderBlob(bitmap, 1600, 0.88),
       renderBlob(bitmap, 1280, 0.9),
@@ -43,7 +80,8 @@ export async function prepareImageAssets(file: File): Promise<PreparedImageAsset
       upload,
       thumbnail,
       width: bitmap.width,
-      height: bitmap.height
+      height: bitmap.height,
+      qualityWarnings
     }
   } finally {
     bitmap.close()

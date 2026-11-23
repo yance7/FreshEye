@@ -147,6 +147,12 @@ afterEach(() => {
 })
 
 describe('HomeView interaction lifecycle', () => {
+  it('shows an advisory for a low-resolution preview but permits analysis', async () => {
+    const wrapper = mountHome()
+    await chooseFile(wrapper, testFile('small.jpg'))
+    expect(wrapper.find('[data-testid="image-quality"]').text()).toContain('分辨率')
+    expect(wrapper.find('.preview-actions .btn:not(.alt)').attributes('disabled')).toBeUndefined()
+  })
   it('prevents starting analysis of the old image while a replacement is processing', async () => {
     const wrapper = mountHome()
     await chooseFile(wrapper, testFile('first.jpg'))
