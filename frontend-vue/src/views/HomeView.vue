@@ -11,6 +11,7 @@ import { GUIDE_KEY, LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY, MODEL_KEY } from '@/conf
 import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
 import { buildReportHtml } from '@/utils/pdfReport'
 import { blobToDataUrl, prepareImageAssets } from '@/utils/imageAssets'
+import { confidenceLevel } from '@/utils/prediction'
 import CameraCaptureDialog from '@/components/CameraCaptureDialog.vue'
 import { useMotionPreference } from '@/composables/useMotionPreference'
 import AccessibleDialog from '@/components/AccessibleDialog.vue'
@@ -160,18 +161,6 @@ function formatMessage(key: string, values: Record<string, string | number>): st
   return Object.entries(values).reduce((message, [name, value]) => {
     return message.replace(new RegExp(`\\{\\{${name}\\}\\}`, 'g'), String(value))
   }, t(key))
-}
-
-function confidenceLevel(score: number): 'high' | 'mid' | 'low' {
-  if (score >= 0.8) return 'high'
-  if (score >= 0.6) return 'mid'
-  return 'low'
-}
-
-function warningLevel(score: number): 'high' | 'mid' | 'low' {
-  if (score >= 0.75) return 'high'
-  if (score >= 0.6) return 'mid'
-  return 'low'
 }
 
 function freshnessMeta(level: FreshnessLabel | undefined): { color: string; label: string; key: string } {
@@ -425,7 +414,7 @@ async function analyze(): Promise<void> {
     lastDuration.value = duration
     lastTimestamp.value = prediction.timestamp
     activeTab.value = 0
-    const lvl = warningLevel(prediction.confidence_score)
+    const lvl = confidenceLevel(prediction.confidence_score)
     if (lvl === 'low') showLowConfidenceModal.value = true
     await addHistoryRecord(sourceThumbnailDataUrl, duration, prediction, heatmap_image)
     if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value) return
@@ -680,7 +669,7 @@ const detailSections = computed(() => {
   const lvl = lastResult.value?.freshness_level
   const conf = lastResult.value?.confidence_score ?? 0
   const meta = freshnessMeta(lvl)
-  const predictionKey = lvl === 0 ? 'high' : lvl === 1 ? 'mid' : lvl === 2 ? 'low' : 'unknown'
+  const predictionKey = confidenceLevel(conf) === 'low' ? 'unknown' : lvl === 0 ? 'high' : lvl === 1 ? 'mid' : lvl === 2 ? 'low' : 'unknown'
   const appearanceText = t(`home.prediction.${predictionKey}.appearance`)
   const trendText = t(`home.prediction.${predictionKey}.trend`)
   const standardText = t(`home.prediction.${predictionKey}.knowledge`)
@@ -700,7 +689,7 @@ const detailSections = computed(() => {
       key: 'trend',
       title: t('home.result.trend'),
       items: [
-        `${t('home.detail.trend_current')}: ${meta.label}`,
+        `${t('home.detail.trend_current')}: ${confidenceLevel(conf) === 'low' ? t('home.result.unreliable') : meta.label}`,
         `${t('home.detail.trend_confidence')}: ${(conf * 100).toFixed(1)}%`,
         t('home.detail.trend_note')
       ],
@@ -722,39 +711,13 @@ const detailSections = computed(() => {
 
 // ============ 处理建议 ============
 const adviceSections = computed(() => {
-  const lvl = lastResult.value?.freshness_level
-  const group = lvl === 1 ? 'mid' : lvl === 2 ? 'low' : 'base'
-  const item = (category: string): string[] => tm<string[]>(`home.recommendation.${group}.${category}`)
+  if (!lastResult.value || confidenceLevel(lastResult.value.confidence_score) === 'low') return []
   return [
-    {
-      key: 'storage',
-      title: t('home.result.storage'),
-      desc: '',
-      items: item('storage')
-    },
-    {
-      key: 'consumption',
-      title: t('home.result.consumption'),
-      desc: '',
-      items: item('consumption')
-    },
-    {
-      key: 'processing',
-      title: t('home.result.processing'),
-      desc: '',
-      items: item('handling')
-    },
     {
       key: 'safety',
       title: t('home.result.safety'),
       desc: '',
-      items: item('safety')
-    },
-    {
-      key: 'best',
-      title: t('home.result.best'),
-      desc: '',
-      items: item('best')
+      items: [t('home.result.generic_safety')]
     }
   ]
 })
@@ -762,12 +725,12 @@ const adviceSections = computed(() => {
 // ============ 置信度横幅 ============
 const confBannerType = computed<'high' | 'mid' | 'low' | null>(() => {
   if (!lastResult.value) return null
-  return warningLevel(lastResult.value.confidence_score)
+  return confidenceLevel(lastResult.value.confidence_score)
 })
 
 const resultActionText = computed(() => {
   const level = lastResult.value?.freshness_level
-  const predictionKey = (lastResult.value?.confidence_score ?? 0) < 0.6
+  const predictionKey = confidenceLevel(lastResult.value?.confidence_score ?? 0) === 'low'
     ? 'unknown'
     : level === 0 ? 'high' : level === 1 ? 'mid' : level === 2 ? 'low' : 'unknown'
   return t(`home.prediction.${predictionKey}.action`)
@@ -816,7 +779,8 @@ async function exportPDF(): Promise<void> {
       download: t('home.pdf.download'),
       close: t('home.pdf.close'),
       noImage: t('home.pdf.no_image'),
-      probabilityNote: t('home.pdf.probability_note'),
+      probabilityNote: `${t('home.pdf.probability_note')} ${t('home.result.score_rule')}`,
+      lowConfidence: t('home.result.unreliable'),
       probabilityLabels: [t('home.result.high'), t('home.result.mid'), t('home.result.low')]
     }
   })
@@ -1179,9 +1143,9 @@ function closeLowConfidenceModal(): void {
       </figure>
       <div class="result-primary-copy">
         <span class="result-kicker">{{ t('home.result.result_kicker') }}</span>
-        <div class="freshness-card" :class="`freshness-${freshnessMeta(lastResult.freshness_level).key}`">
+        <div class="freshness-card" :class="`freshness-${confidenceLevel(lastResult.confidence_score) === 'low' ? 'all' : freshnessMeta(lastResult.freshness_level).key}`">
           <span class="freshness-indicator" aria-hidden="true"></span>
-          <div><strong>{{ freshnessMeta(lastResult.freshness_level).label }}</strong></div>
+          <div><strong>{{ confidenceLevel(lastResult.confidence_score) === 'low' ? t('home.result.unreliable') : freshnessMeta(lastResult.freshness_level).label }}</strong></div>
         </div>
         <div class="result-action-block">
           <span class="result-action-label">{{ t('home.result.result_action_label') }}</span>
@@ -1208,6 +1172,7 @@ function closeLowConfidenceModal(): void {
             <text x="60" y="75" text-anchor="middle" class="primary-gauge-cap">{{ t('home.result.confidence_model_score') }}</text>
           </svg>
         </div>
+        <small>{{ t('home.result.score_rule') }}</small>
       </div>
     </div>
 
@@ -1407,8 +1372,8 @@ function closeLowConfidenceModal(): void {
       >
         <img :src="rec.data" class="history-thumb" alt="" loading="lazy" />
         <div class="history-info">
-          <span class="history-level" :style="{ color: freshnessMeta(rec.prediction?.freshness_level).color }">
-            {{ freshnessMeta(rec.prediction?.freshness_level).label }}
+          <span class="history-level" :style="{ color: rec.prediction && confidenceLevel(rec.prediction.confidence_score) === 'low' ? 'var(--muted)' : freshnessMeta(rec.prediction?.freshness_level).color }">
+            {{ rec.prediction && confidenceLevel(rec.prediction.confidence_score) === 'low' ? t('home.result.unreliable') : freshnessMeta(rec.prediction?.freshness_level).label }}
           </span>
           <span class="history-conf">
             {{ rec.prediction ? ((rec.prediction.confidence_score ?? 0) * 100).toFixed(0) + '%' : '-' }}

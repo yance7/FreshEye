@@ -24,6 +24,7 @@ const labels: ReportLabels = {
   close: 'Close',
   noImage: 'No image',
   probabilityNote: 'Probabilities are visual model estimates.',
+  lowConfidence: 'This image cannot be reliably graded.',
   probabilityLabels: ['Highly Fresh', 'Fresh', 'Not Fresh']
 }
 
@@ -58,6 +59,22 @@ function reportInput(locale: 'zh' | 'en', level: FreshnessLabel): PdfReportInput
 }
 
 describe('deterministic PDF report builder', () => {
+  it('retains a low-score warning and suppresses grade-specific content in exports', () => {
+    for (const locale of ['zh', 'en'] as const) {
+      for (const level of [0, 1, 2] as const) {
+        const input = reportInput(locale, level)
+        input.prediction.confidence_score = 0.45
+        input.heatmapImage = undefined
+        input.detailSections = [{ key: 'appearance', title: 'Grade-specific template', desc: 'specific appearance' }]
+        input.adviceSections = [{ key: 'storage', title: 'Grade advice', desc: '', items: ['specific advice'] }]
+        const html = buildReportHtml(input).html
+        expect(html).toContain('This image cannot be reliably graded.')
+        expect(html).toContain('No image')
+        expect(html).not.toContain('specific appearance')
+        expect(html).not.toContain('specific advice')
+      }
+    }
+  })
   it('renders one safe A4 page for every locale and freshness level', () => {
     for (const locale of ['zh', 'en'] as const) {
       for (const level of [0, 1, 2] as const) {

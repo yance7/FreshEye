@@ -1,4 +1,5 @@
 import type { FreshnessLabel, PredictionResult } from '@/types'
+import { confidenceLevel } from '@/utils/prediction'
 
 export interface ReportSection {
   key: string
@@ -30,6 +31,7 @@ export interface ReportLabels {
   close: string
   noImage: string
   probabilityNote?: string
+  lowConfidence: string
   probabilityLabels: [string, string, string]
 }
 
@@ -121,8 +123,11 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
     { primary: '#c27a13', deep: '#8b4e08', background: '#fff8e8', badge: '#ffedbf', icon: '!' },
     { primary: '#d54343', deep: '#9e2727', background: '#fff0f0', badge: '#ffd9d9', icon: '⚠' }
   ]
-  const tone = palette[level] ?? palette[1]
-  const levelLabel = labels.probabilityLabels[level] ?? labels.noImage
+  const uncertain = confidenceLevel(prediction.confidence_score) === 'low'
+  const tone = uncertain
+    ? { primary: '#64748b', deep: '#334155', background: '#f1f5f9', badge: '#e2e8f0', icon: '!' }
+    : (palette[level] ?? palette[1])
+  const levelLabel = uncertain ? labels.lowConfidence : (labels.probabilityLabels[level] ?? labels.noImage)
   const confidence = clampFinite(prediction.confidence_score, 0, 1)
   const confidencePercent = (confidence * 100).toFixed(1)
   const durationMs = Math.round(clampFinite(input.durationMs, 0, 999999))
@@ -141,22 +146,22 @@ export function buildReportHtml(input: PdfReportInput): PdfReportResult {
     return '<span class="pdf-legend-item"><i style="background:' + palette[index].primary + '"></i>' +
       escapeHtml(labels.probabilityLabels[index]) + ' ' + (value * 100).toFixed(1) + '%</span>'
   }).join('')
-  const details = input.detailSections.map(detailBlock).join('')
-  const adviceCards = input.adviceSections
+  const details = uncertain ? '' : input.detailSections.map(detailBlock).join('')
+  const adviceCards = (uncertain ? [] : input.adviceSections)
     .filter((section) => section.key !== 'safety')
     .map((section) => '<article class="pdf-advice-card">' +
       '<h3>' + escapeHtml((section.icon ? section.icon + ' ' : '') + section.title) + '</h3>' +
       listHtml(section.items, 'pdf-advice-list') +
       '</article>')
     .join('')
-  const safetySection = input.adviceSections.find((section) => section.key === 'safety')
+  const safetySection = uncertain ? undefined : input.adviceSections.find((section) => section.key === 'safety')
   const safety = safetySection
     ? '<div class="pdf-safety-banner ' + (level === 2 ? 'is-danger' : level === 1 ? 'is-warn' : 'is-safe') + '">' +
       '<h3>' + escapeHtml((safetySection.icon ? safetySection.icon + ' ' : '') + safetySection.title) + '</h3>' +
       listHtml(safetySection.items, 'pdf-safety-list') +
       '</div>'
     : ''
-  const detailTrend = input.detailSections.find((section) => section.key === 'trend')?.desc || input.localizedDescription || ''
+  const detailTrend = uncertain ? labels.lowConfidence : input.detailSections.find((section) => section.key === 'trend')?.desc || input.localizedDescription || ''
   const pageMarker = input.locale === 'en' ? 'Page 1 / 1' : '第 1 页 / 共 1 页'
   const footerText = labels.footer + ' · ' + pageMarker
   const title = labels.title
