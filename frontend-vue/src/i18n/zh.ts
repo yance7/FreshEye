@@ -75,9 +75,8 @@ const zh = {
       analyzing: '分析中',
       report_title: '分析报告',
       compare_title: '原图 vs Grad-CAM 热力图',
-      compare_hint: '拖动滑块对比原图与热力图。热力图显示模型对本次预测的关注区域。',
-      compare_desc: '高亮区域表示模型对本次预测的关注，并非食品安全证据。',
-      vision_explain: 'Grad-CAM 展示模型对本次预测的关注区域，不能证明关注区域的实际特征。',
+      compare_hint: '拖动滑块对比原图与热力图。',
+      compare_desc: '高亮区域显示模型在本次分类中关注的位置。',
       compare_aria: '拖动对比原图与热力图',
       no_heatmap: '暂无热力图数据',
       no_original: '历史记录没有可用原图，无法对比热力图。',
@@ -85,7 +84,7 @@ const zh = {
       result_action: '请结合鱼鳃、气味与肉质确认，不要仅凭本结果判断食用安全。',
       show_details: '查看 AI 判断依据', show_advice: '处理建议', confidence_model_score: '模型分数',
       warning_mid: 'AI 判断把握一般，建议在光线充足处重新拍摄，或结合鱼鳃、气味与肉质综合判断。',
-      warning_low: 'AI 对这张图片的判断不够确定。请确认鱼眼清晰、正面且光线充足；低置信度不等于图片不是鱼眼。',
+      warning_low: '本次分级把握较低。请正对鱼眼，在均匀光线下重拍。',
       close_warning: '关闭警告'
     },
     quality: { intro: '拍摄提示（仅供参考，不会阻止分析）：', low_resolution: '图片分辨率较低，建议靠近鱼眼重新拍摄。', dark: '整张图片可能过暗，建议增加均匀照明。', bright: '整张图片可能过亮，建议调整光线并避免反光。' },
@@ -94,19 +93,19 @@ const zh = {
         appearance: '参考模板：角膜清澈，瞳孔清晰，表面有光泽。',
         action: '模型输出仅为视觉参考，不能判断食用安全。',
         trend: '模型分类与高度新鲜参考样本对照；不预测变化或保存时间。',
-        knowledge: '上述外观是等级参考模板，并非对本图各部位的逐项检测。'
+        knowledge: '该等级的典型鱼眼外观。'
       },
       mid: {
         appearance: '参考模板：角膜略浑浊，瞳孔仍可辨认，光泽减弱。',
         action: '模型输出仅为视觉参考，不能判断食用安全。',
         trend: '模型分类与新鲜参考样本对照；不预测变化或保存时间。',
-        knowledge: '上述外观是等级参考模板，并非对本图各部位的逐项检测。'
+        knowledge: '该等级的典型鱼眼外观。'
       },
       low: {
         appearance: '参考模板：角膜浑浊，瞳孔模糊，光泽减弱。',
         action: '模型输出仅为视觉参考，不能判断食用安全。',
         trend: '模型分类与不新鲜参考样本对照；不预测变化或保存时间。',
-        knowledge: '上述外观是等级参考模板，并非对本图各部位的逐项检测。'
+        knowledge: '该等级的典型鱼眼外观。'
       },
       unknown: {
         appearance: '本次无可靠的等级参考模板。',
@@ -167,8 +166,8 @@ const zh = {
     },
     low_conf_modal: {
       title: 'AI 对这张图片的判断不够确定',
-      text: '当前模型分数为 {{confidence}}%。低分可能来自模糊、反光、边界样本、未覆盖鱼种或模型判断困难，并不等于图片不是鱼眼。',
-      advice: '建议重新拍摄清晰的鱼眼特写；若仍然偏低，请结合鱼鳃、气味与肉质判断。',
+      text: '当前模型分数为 {{confidence}}%，本次分级把握较低。',
+      advice: '请正对鱼眼，在均匀光线下重拍。',
       retry: '重新拍摄', view_anyway: '仍要查看结果',
       button: '我知道了', close: '关闭提示'
     },
@@ -187,7 +186,7 @@ const zh = {
       appearance_low: '角膜严重浑浊发白，瞳孔模糊不可辨，组织松软塌陷，可能出现血丝。',
       trend_current: '当前等级',
       trend_confidence: '置信度',
-      trend_note: '实际可保存时间取决于储存条件；本结果不作为保质期或食品安全证明。',
+      trend_note: '对照研究中的视觉等级参考样本。',
       standard_high: '高度新鲜：清澈明亮',
       standard_mid: '新鲜：轻微浑浊',
       standard_low: '不新鲜：浑浊发白',
@@ -205,7 +204,7 @@ const zh = {
       advice: '处理建议',
       probability_note: '概率表示模型对这张图像的相对判断，不等同于食品安全概率。',
       limitation: '能力边界',
-      limitation_text: '本报告仅提供基于鱼眼图像的视觉新鲜度参考，不替代法定食品检验、质量合格证明、保质期预测或食用安全判断。',
+      limitation_text: '本报告提供基于鱼眼照片的视觉新鲜度参考，不能判断食用安全。',
       footer: '本报告由 AI 模型生成，仅供参考',
       print: '打印 / 存为 PDF',
       download: '下载报告 HTML',

@@ -75,9 +75,8 @@ const en = {
       analyzing: 'Analyzing',
       report_title: 'Analysis Report',
       compare_title: 'Original vs Grad-CAM Heatmap',
-      compare_hint: 'Drag to compare. The heatmap shows model attention for this prediction.',
-      compare_desc: 'Highlighted regions show model attention for this prediction, not evidence of food safety.',
-      vision_explain: 'Grad-CAM shows regions the model attends to for this prediction; it does not establish their actual features.',
+      compare_hint: 'Drag to compare the original image and heatmap.',
+      compare_desc: 'Highlighted regions show where the model focused for this classification.',
       compare_aria: 'Drag to compare the original image and heatmap',
       no_heatmap: 'No heatmap available',
       no_original: 'This history record has no image available for heatmap comparison.',
@@ -85,7 +84,7 @@ const en = {
       result_action: 'Combine this visual reference with the fish gills, odor, and flesh. Do not use it alone to decide food safety.',
       show_details: 'View visual evidence', show_advice: 'View actions', confidence_model_score: 'Model score',
       warning_mid: 'Model confidence is moderate. Retake the photo in good light and consider the gills, odor, and flesh too.',
-      warning_low: 'The model is uncertain about this image. Make sure the eye is clear, frontal, and well lit; low confidence does not mean it is not a fish eye.',
+      warning_low: 'Confidence in this grade is low. Retake the photo facing the fish eye in even light.',
       close_warning: 'Dismiss warning'
     },
     quality: { intro: 'Capture hints (advisory only; analysis remains available):', low_resolution: 'The image resolution is low; move closer and retake it.', dark: 'The overall image may be too dark; add even lighting.', bright: 'The overall image may be too bright; adjust lighting and avoid glare.' },
@@ -94,19 +93,19 @@ const en = {
         appearance: 'Reference template: clear cornea, distinct pupil and glossy surface.',
         action: 'The model output is a visual reference and cannot determine food safety.',
         trend: 'The model class is compared with highly fresh reference samples; it does not predict change or storage time.',
-        knowledge: 'The appearance is a class reference template, not an examination of each part of this image.'
+        knowledge: 'Typical appearance for this visual grade.'
       },
       mid: {
         appearance: 'Reference template: slightly cloudy cornea, recognizable pupil and reduced gloss.',
         action: 'The model output is a visual reference and cannot determine food safety.',
         trend: 'The model class is compared with fresh reference samples; it does not predict change or storage time.',
-        knowledge: 'The appearance is a class reference template, not an examination of each part of this image.'
+        knowledge: 'Typical appearance for this visual grade.'
       },
       low: {
         appearance: 'Reference template: cloudy cornea, blurred pupil and reduced gloss.',
         action: 'The model output is a visual reference and cannot determine food safety.',
         trend: 'The model class is compared with not-fresh reference samples; it does not predict change or storage time.',
-        knowledge: 'The appearance is a class reference template, not an examination of each part of this image.'
+        knowledge: 'Typical appearance for this visual grade.'
       },
       unknown: {
         appearance: 'No reliable class reference template is available.',
@@ -167,8 +166,8 @@ const en = {
     },
     low_conf_modal: {
       title: 'The model is uncertain about this image',
-      text: 'The current model score is {{confidence}}%. Low scores can result from blur, glare, boundary samples, uncovered species, or difficult cases; they do not mean the image is not a fish eye.',
-      advice: 'Retake a clear close-up of the fish eye. If the score remains low, combine it with gills, smell, and texture.',
+      text: 'The model score is {{confidence}}%; confidence in this grade is low.',
+      advice: 'Retake the photo facing the fish eye in even light.',
       retry: 'Retake photo', view_anyway: 'View result anyway',
       button: 'OK', close: 'Close confidence notice'
     },
@@ -187,7 +186,7 @@ const en = {
       appearance_low: 'Cornea severely cloudy/white, pupil blurred, tissue soft and sunken, possible blood streaks.',
       trend_current: 'Current',
       trend_confidence: 'Confidence',
-      trend_note: 'Actual storage time depends on storage conditions; this result is not a shelf-life or food-safety certificate.',
+      trend_note: 'Compare this result with the study’s visual reference grades.',
       standard_high: 'High: Clear & bright',
       standard_mid: 'Fresh: Slightly cloudy',
       standard_low: 'Not fresh: Cloudy & white',
@@ -205,7 +204,7 @@ const en = {
       advice: 'Recommended Actions',
       probability_note: 'Probabilities show the model’s relative judgment for this image; they are not food-safety probabilities.',
       limitation: 'Scope & Limitations',
-      limitation_text: 'This report provides a visual freshness reference based on a fish-eye image. It does not replace statutory food inspection, quality certificates, shelf-life prediction, or a food-safety decision.',
+      limitation_text: 'This report provides a visual freshness reference from a fish-eye photo; it cannot determine food safety.',
       footer: 'AI-generated, for reference only',
       print: 'Print / Save as PDF',
       download: 'Download HTML',
