@@ -30,7 +30,8 @@ function onScroll(): void {
 /** 打开/关闭移动端菜单 */
 async function toggleMenu(open: boolean, restoreFocus = true): Promise<void> {
   if (open) {
-    lastFocused.value = document.activeElement as HTMLElement | null
+    // WebKit does not always focus a clicked button; the menu was opened by this control.
+    lastFocused.value = toggleBtn.value ?? (document.activeElement as HTMLElement | null)
     previousBodyOverflow = document.body.style.overflow
   }
   menuOpen.value = open
