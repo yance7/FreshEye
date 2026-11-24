@@ -25,3 +25,26 @@ test('mobile hero keeps its primary action in view and long file names readable'
   await expect(filename).toHaveCSS('white-space', 'normal')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
 })
+
+test('hero actions remain readable and usable in both languages across mobile widths', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.route('**/health*', route => route.fulfill({ status: 200, json: { status: 'ok' } }))
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto('/')
+    const dismiss = page.getByTestId('guide-dismiss')
+    if (await dismiss.isVisible()) await dismiss.click()
+    for (const language of ['zh-CN', 'en']) {
+      await expect(page.locator('html')).toHaveAttribute('lang', language)
+      for (const action of await page.locator('.hero-actions a').all()) {
+        const bounds = await action.boundingBox()
+        expect(bounds!.width).toBeGreaterThanOrEqual(44)
+        expect(bounds!.height).toBeGreaterThanOrEqual(44)
+        expect(await action.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+      if (language === 'zh-CN') await page.locator('.navbar .lang-switch').click()
+    }
+    await page.locator('.navbar .lang-switch').click()
+  }
+})
