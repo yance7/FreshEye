@@ -62,7 +62,13 @@ test('exports a self-contained Chinese and English single-page report', async ({
   await dismissGuide(page)
   await analyze(page)
 
+  const reportChunks = () => page.evaluate(() => performance.getEntriesByType('resource')
+    .map((entry) => new URL(entry.name).pathname)
+    .filter((path) => path.endsWith('.js')))
+  expect((await reportChunks()).some((path) => /\/pdfReport-[^/]+\.js$/.test(path))).toBe(false)
+
   const zhPopup = await exportReport(page)
+  await expect.poll(async () => (await reportChunks()).some((path) => /\/pdfReport-[^/]+\.js$/.test(path))).toBe(true)
   const zhRemoteRequests: string[] = []
   zhPopup.on('request', (request) => { if (/^https?:/i.test(request.url())) zhRemoteRequests.push(request.url()) })
   await expect(zhPopup.locator('.pdf-page')).toHaveCount(1)

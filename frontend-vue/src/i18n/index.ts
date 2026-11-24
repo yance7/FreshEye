@@ -2,7 +2,6 @@
 // 通过模块级响应式单例 + provide/inject 提供 t() 翻译函数，语言持久化到 localStorage。
 import { ref, computed, type Ref, inject, type App } from 'vue'
 import zh from './zh'
-import en from './en'
 import { LEGACY_LOCALE_KEYS, LOCALE_KEY } from '@/config'
 import type { Locale } from '@/types'
 
@@ -14,10 +13,23 @@ type TranslationShape<T> = T extends string
       ? { [K in keyof T]: TranslationShape<T[K]> }
       : T
 
-/** 全部语言包映射 */
-const messages: Record<Locale, TranslationShape<typeof zh>> = {
-  zh,
-  en
+type MessagePack = TranslationShape<typeof zh>
+
+let englishMessages: MessagePack | null = null
+let englishPromise: Promise<MessagePack> | null = null
+
+/** English is loaded only when the saved or requested locale needs it. */
+function loadEnglishMessages(): Promise<MessagePack> {
+  if (englishMessages) return Promise.resolve(englishMessages)
+  if (!englishPromise) {
+    englishPromise = import('./en')
+      .then(({ default: pack }) => {
+        englishMessages = pack
+        return pack
+      })
+      .finally(() => { englishPromise = null })
+  }
+  return englishPromise
 }
 
 /** 读取本地存储的初始语言，默认 zh */
@@ -35,28 +47,60 @@ function readStoredLocale(): Locale {
 
 /** 全局共享的当前语言（模块级单例，所有组件共享同一份状态） */
 const locale: Ref<Locale> = ref(readStoredLocale())
+let requestedLocale: Locale = locale.value
+let localeRequestId = 0
 
 /** 当前语言对应的语言包 */
-const messagePack = computed(() => messages[locale.value])
+const messagePack = computed(() => locale.value === 'zh' ? zh : englishMessages ?? zh)
 
-/** 设置当前语言并持久化 */
-function setLocale(lang: Locale): void {
-  locale.value = lang
+function syncDocumentLocale(lang: Locale): void {
+  if (typeof document === 'undefined') return
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en'
+  document.documentElement.dir = 'ltr'
+}
+
+function persistLocale(lang: Locale): void {
   try {
     localStorage.setItem(LOCALE_KEY, lang)
   } catch {
     /* 忽略写入失败 */
   }
-  // 同步 <html lang> 属性
-  if (typeof document !== 'undefined') {
-    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en'
-    document.documentElement.dir = 'ltr'
+  syncDocumentLocale(lang)
+}
+
+/** 在首次挂载前加载本地保存的语言，避免英文偏好短暂显示中文或缺失键名。 */
+export async function prepareLocale(): Promise<void> {
+  if (locale.value === 'en') {
+    try {
+      await loadEnglishMessages()
+    } catch {
+      locale.value = 'zh'
+      requestedLocale = 'zh'
+    }
   }
+  persistLocale(locale.value)
+}
+
+/** 设置当前语言并持久化；语言包加载失败时保留当前可用语言。 */
+async function setLocale(lang: Locale): Promise<void> {
+  requestedLocale = lang
+  const requestId = ++localeRequestId
+  if (lang === 'en') {
+    try {
+      await loadEnglishMessages()
+    } catch {
+      if (requestId === localeRequestId) requestedLocale = locale.value
+      return
+    }
+  }
+  if (requestId !== localeRequestId) return
+  locale.value = lang
+  persistLocale(lang)
 }
 
 /** 切换中英文 */
-function toggleLocale(): void {
-  setLocale(locale.value === 'zh' ? 'en' : 'zh')
+function toggleLocale(): Promise<void> {
+  return setLocale(requestedLocale === 'zh' ? 'en' : 'zh')
 }
 
 /**
@@ -98,8 +142,8 @@ export interface I18nContext {
   locale: Ref<Locale>
   t: (key: string) => string
   tm: <T = unknown>(key: string) => T
-  setLocale: (lang: Locale) => void
-  toggleLocale: () => void
+  setLocale: (lang: Locale) => Promise<void>
+  toggleLocale: () => Promise<void>
 }
 
 export const I18N_KEY = Symbol('fresheye-i18n')

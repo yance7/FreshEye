@@ -8,31 +8,31 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'home',
     component: HomeView,
-    meta: { titleKey: 'home', metaKey: 'home' }
+    meta: { titleKey: 'home', metaKey: 'home', canonicalPath: '/' }
   },
   {
     path: '/guide.html',
     name: 'guide',
     component: () => import('@/views/GuideView.vue'),
-    meta: { titleKey: 'guide', metaKey: 'guide' }
+    meta: { titleKey: 'guide', metaKey: 'guide', canonicalPath: '/guide.html' }
   },
   {
     path: '/fish.html',
     name: 'fish',
     component: () => import('@/views/FishView.vue'),
-    meta: { titleKey: 'fish', metaKey: 'fish' }
+    meta: { titleKey: 'fish', metaKey: 'fish', canonicalPath: '/fish.html' }
   },
   {
     path: '/about.html',
     name: 'about',
     component: () => import('@/views/AboutView.vue'),
-    meta: { titleKey: 'about', metaKey: 'about' }
+    meta: { titleKey: 'about', metaKey: 'about', canonicalPath: '/about.html' }
   },
   {
     path: '/404.html',
     name: 'not-found',
     component: () => import('@/views/NotFoundView.vue'),
-    meta: { titleKey: 'notfound', metaKey: 'notfound' }
+    meta: { titleKey: 'notfound', metaKey: 'notfound', noindex: true }
   },
   {
     path: '/guide',
@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
     path: '/:pathMatch(.*)*',
     name: 'not-found-fallback',
     component: () => import('@/views/NotFoundView.vue'),
-    meta: { titleKey: 'notfound', metaKey: 'notfound' }
+    meta: { titleKey: 'notfound', metaKey: 'notfound', noindex: true }
   }
 ]
 

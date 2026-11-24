@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Browser, type Page } from '@playwright/test'
 
 const routes = ['/', '/guide.html', '/fish.html', '/about.html', '/404.html']
 
@@ -78,8 +78,89 @@ test('language toggle updates document metadata and persists after reload', asyn
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   await expect(page.locator('h1').first()).toContainText('See the eye')
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://fresheye.yance.me/')
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://fresheye.yance.me/')
   expect(await page.evaluate(() => localStorage.getItem('fresheye-language'))).toBe('en')
   expect(errors).toEqual([])
+})
+
+test('publishes page-specific metadata and useful content without JavaScript', async ({ browser }: { browser: Browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  await context.route(/^https:\/\/fonts\./, (route) => route.fulfill({ status: 200, contentType: 'text/css', body: '' }))
+  const page = await context.newPage()
+  const pages = [
+    { path: '/', canonical: 'https://fresheye.yance.me/', summary: 'home-summary', content: '上传鱼眼照片' },
+    { path: '/guide.html', canonical: 'https://fresheye.yance.me/guide.html', summary: 'guide-summary', content: '正对鱼眼' },
+    { path: '/fish.html', canonical: 'https://fresheye.yance.me/fish.html', summary: 'fish-summary', content: 'MFED' },
+    { path: '/about.html', canonical: 'https://fresheye.yance.me/about.html', summary: 'about-summary', content: '4°C' }
+  ]
+  const descriptions = new Set<string>()
+
+  for (const route of pages) {
+    const response = await page.goto(route.path, { waitUntil: 'domcontentloaded' })
+    expect(response?.status()).toBe(200)
+    await expect(page.locator(`noscript main[data-noscript="${route.summary}"]`)).toBeVisible()
+    await expect(page.locator(`noscript main[data-noscript="${route.summary}"]`)).toContainText(route.content)
+    await expect(page.locator(`noscript main[data-noscript="${route.summary}"] h1`)).toBeVisible()
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', route.canonical)
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', route.canonical)
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', 'https://fresheye.yance.me/assets/og-cover.png')
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute('content', 'https://fresheye.yance.me/assets/og-cover.png')
+
+    const description = await page.locator('meta[name="description"]').getAttribute('content')
+    expect(description?.trim().length).toBeGreaterThan(20)
+    expect(description).not.toMatch(/99%\+|99\.29%/)
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', /.+/)
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', /.+/)
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', description ?? '')
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute('content', description ?? '')
+    descriptions.add(description ?? '')
+  }
+
+  expect(descriptions.size).toBe(pages.length)
+
+  await page.goto('/404.html', { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(0)
+  await expect(page.locator('meta[property="og:url"]')).toHaveCount(0)
+
+  const robotsResponse = await page.request.get('/robots.txt')
+  expect(robotsResponse.status()).toBe(200)
+  const robots = await robotsResponse.text()
+  expect(robots).toContain('User-agent: *')
+  expect(robots).toContain('Sitemap: https://fresheye.yance.me/sitemap.xml')
+
+  const sitemapResponse = await page.request.get('/sitemap.xml')
+  expect(sitemapResponse.status()).toBe(200)
+  const sitemap = await sitemapResponse.text()
+  const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
+  expect(sitemapUrls).toEqual(pages.map((route) => route.canonical))
+  expect(sitemap).not.toContain('/404.html')
+
+  await context.close()
+})
+
+test('updates canonical and share URLs during in-app navigation', async ({ page }) => {
+  await page.goto('/about.html')
+  await page.locator('a[href="/guide.html"]').first().click()
+  await expect(page).toHaveURL(/\/guide\.html$/)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://fresheye.yance.me/guide.html')
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://fresheye.yance.me/guide.html')
+})
+
+test('loads the English language chunk only after the visitor switches languages', async ({ page }) => {
+  await page.goto('/')
+  await dismissGuide(page)
+  const scriptPaths = () => page.evaluate(() => performance.getEntriesByType('resource')
+    .map((entry) => new URL(entry.name).pathname)
+    .filter((path) => path.endsWith('.js')))
+
+  const initialScripts = await scriptPaths()
+  expect(initialScripts.some((path) => /\/en-[^/]+\.js$/.test(path))).toBe(false)
+
+  await page.locator('button.lang-switch:visible').first().click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  await expect.poll(async () => (await scriptPaths()).some((path) => /\/en-[^/]+\.js$/.test(path))).toBe(true)
 })
 
 test('public evidence identifies dataset scope and links primary sources', async ({ page }) => {

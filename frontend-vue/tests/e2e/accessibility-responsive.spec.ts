@@ -87,9 +87,15 @@ test('keeps reduced motion final states and landscape dialogs reachable', async 
   await expect.poll(() => page.locator('.reveal').first().evaluate((element) => getComputedStyle(element).opacity)).toBe('1')
   await expect(page.locator('.bubble')).toHaveCount(0)
 
+  const cameraChunks = () => page.evaluate(() => performance.getEntriesByType('resource')
+    .map((entry) => new URL(entry.name).pathname)
+    .filter((path) => path.endsWith('.js')))
+  expect((await cameraChunks()).some((path) => /\/CameraCaptureDialog-[^/]+\.js$/.test(path))).toBe(false)
+
   await page.locator('.upload-cta.alt').click()
   const dialog = page.locator('.app-dialog-surface')
   await expect(dialog).toBeVisible()
+  await expect.poll(async () => (await cameraChunks()).some((path) => /\/CameraCaptureDialog-[^/]+\.js$/.test(path))).toBe(true)
   await expect(page.locator('.camera-viewfinder video')).toHaveCSS('object-fit', 'contain')
   await expect(dialog).toHaveCSS('overflow', 'auto')
   await page.locator('.camera-dialog-head .icon-btn').click()
