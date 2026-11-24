@@ -89,7 +89,7 @@ function onOverlayKeydown(e: KeyboardEvent): void {
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
-  desktopQuery = window.matchMedia('(min-width: 769px)')
+  desktopQuery = window.matchMedia('(min-width: 901px)')
   addDesktopListener()
 })
 onBeforeUnmount(() => {
@@ -111,10 +111,13 @@ onBeforeUnmount(() => {
 
     <nav class="nav-links" :aria-label="t('nav.aria')">
       <router-link to="/" exact-active-class="is-current">{{ t('nav.home') }}</router-link>
-      <router-link to="/guide.html" active-class="is-current">{{ t('nav.guide') }}</router-link>
-      <router-link to="/fish.html" active-class="is-current">{{ t('nav.fish') }}</router-link>
-      <router-link to="/about.html" active-class="is-current">{{ t('nav.about') }}</router-link>
+      <router-link to="/guide.html" exact-active-class="is-current">{{ t('nav.guide') }}</router-link>
+      <router-link to="/fish.html" exact-active-class="is-current">{{ t('nav.fish') }}</router-link>
+      <router-link to="/about.html" exact-active-class="is-current">{{ t('nav.about') }}</router-link>
       <a href="https://github.com/yance7/FreshEye" target="_blank" rel="noopener noreferrer">{{ t('nav.source') }}</a>
+    </nav>
+
+    <div class="nav-tools">
       <button
         class="lang-switch"
         type="button"
@@ -127,9 +130,7 @@ onBeforeUnmount(() => {
         <span class="lang-divider" aria-hidden="true">/</span>
         <span class="lang-option" :class="{ active: locale === 'en' }">EN</span>
       </button>
-    </nav>
-
-    <button
+      <button
       ref="toggleBtn"
       class="nav-toggle"
       :class="{ 'is-open': menuOpen }"
@@ -142,7 +143,8 @@ onBeforeUnmount(() => {
       <span class="nav-toggle-bar"></span>
       <span class="nav-toggle-bar"></span>
       <span class="nav-toggle-bar"></span>
-    </button>
+      </button>
+    </div>
   </header>
 
   <!-- 移动端全屏导航遮罩 -->
@@ -157,15 +159,11 @@ onBeforeUnmount(() => {
   >
     <nav class="nav-overlay-links" :aria-label="t('nav.mobile_aria')">
       <router-link ref="overlayFirstLink" to="/" exact-active-class="is-current" @click="toggleMenu(false)">{{ t('nav.home') }}</router-link>
-      <router-link to="/guide.html" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.guide') }}</router-link>
-      <router-link to="/fish.html" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.fish') }}</router-link>
-      <router-link to="/about.html" active-class="is-current" @click="toggleMenu(false)">{{ t('nav.about') }}</router-link>
+      <router-link to="/guide.html" exact-active-class="is-current" @click="toggleMenu(false)">{{ t('nav.guide') }}</router-link>
+      <router-link to="/fish.html" exact-active-class="is-current" @click="toggleMenu(false)">{{ t('nav.fish') }}</router-link>
+      <router-link to="/about.html" exact-active-class="is-current" @click="toggleMenu(false)">{{ t('nav.about') }}</router-link>
       <a href="https://github.com/yance7/FreshEye" target="_blank" rel="noopener noreferrer" @click="toggleMenu(false)">{{ t('nav.source') }}</a>
-      <button class="lang-switch" type="button" :aria-label="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')" :aria-pressed="locale === 'en'" :title="locale === 'zh' ? t('nav.switch_to_en') : t('nav.switch_to_zh')" @click="toggleLocale">
-        <span class="lang-option" :class="{ active: locale === 'zh' }">中</span>
-        <span class="lang-divider" aria-hidden="true">/</span>
-        <span class="lang-option" :class="{ active: locale === 'en' }">EN</span>
-      </button>
+      <button class="nav-menu-close" type="button" @click="toggleMenu(false)">{{ t('nav.menu_close') }}</button>
     </nav>
   </div>
 </template>

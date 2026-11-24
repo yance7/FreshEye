@@ -261,7 +261,8 @@ test('motion policy and navigation focus respond to live device capabilities', (
   assert.match(app, /mutation\.addedNodes/);
   assert.match(app, /id="main-content" tabindex="-1"/);
   assert.match(navbar, /route\.fullPath/);
-  assert.match(navbar, /min-width: 769px/);
+  assert.match(navbar, /min-width: 901px/);
+  assert.match(global, /max-width: 900px/);
   assert.match(home, /shouldTrackMouse/);
   assert.match(background, /allowDecorativeMotion/);
   assert.match(global, /@media \(hover: hover\) and \(pointer: fine\)/);
