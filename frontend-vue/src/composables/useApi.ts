@@ -47,8 +47,32 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {}
 }
 
+export type ModelReadiness = 'ready' | 'unavailable' | 'unknown'
+export interface ServiceReadiness { online: boolean; v1: ModelReadiness; v2: ModelReadiness }
+
 /** 健康检查：探测 AI 服务是否在线 */
 export function useApi() {
+  async function checkModelReadiness(): Promise<ServiceReadiness> {
+    const unknown: ServiceReadiness = { online: false, v1: 'unknown', v2: 'unknown' }
+    const { controller, timer } = createTimeoutController(8000)
+    try {
+      const res = await fetch(`${API_BASE_URL}/health`, { method: 'GET', signal: controller.signal })
+      if (!res.ok) return unknown
+      const data = asRecord(await res.json())
+      const models = asRecord(data.models)
+      const modelStatus = (name: 'v1' | 'v2'): ModelReadiness => {
+        const status = asRecord(models[name]).status
+        if (status === 'ready' || status === 'unavailable') return status
+        const legacy = data[`${name}_loaded`]
+        return legacy === true ? 'ready' : legacy === false ? 'unavailable' : 'unknown'
+      }
+      return { online: true, v1: modelStatus('v1'), v2: modelStatus('v2') }
+    } catch {
+      return unknown
+    } finally {
+      window.clearTimeout(timer)
+    }
+  }
   /** 检查 API 健康状态，返回布尔值 */
   async function checkApiHealth(): Promise<boolean> {
     const { controller, timer } = createTimeoutController(8000)
@@ -119,5 +143,5 @@ export function useApi() {
     }
   }
 
-  return { checkApiHealth, callPredictApi }
+  return { checkApiHealth, checkModelReadiness, callPredictApi }
 }

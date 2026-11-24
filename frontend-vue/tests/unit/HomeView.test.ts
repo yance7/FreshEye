@@ -6,6 +6,7 @@ import type { GradCAMResult, PredictionResult } from '@/types'
 
 const apiMocks = vi.hoisted(() => ({
   checkApiHealth: vi.fn(),
+  checkModelReadiness: vi.fn(),
   callPredictApi: vi.fn()
 }))
 
@@ -97,6 +98,7 @@ beforeEach(() => {
   localStorage.clear()
   localStorage.setItem('fresheye-onboarded', '1')
   apiMocks.checkApiHealth.mockReset().mockResolvedValue(true)
+  apiMocks.checkModelReadiness.mockReset().mockResolvedValue({ online: true, v1: 'ready', v2: 'ready' })
   apiMocks.callPredictApi.mockReset()
 
   Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn((file: File) => `blob:${file.name}`) })
@@ -145,6 +147,50 @@ afterEach(() => {
 })
 
 describe('HomeView interaction lifecycle', () => {
+  it('prevents starting analysis of the old image while a replacement is processing', async () => {
+    const wrapper = mountHome()
+    await chooseFile(wrapper, testFile('first.jpg'))
+    let complete!: (value: ImageBitmap) => void
+    vi.mocked(createImageBitmap).mockReturnValueOnce(new Promise<ImageBitmap>((resolve) => { complete = resolve }))
+    const input = wrapper.find('input[type="file"]')
+    Object.defineProperty(input.element, 'files', { configurable: true, value: [testFile('replacement.jpg')] })
+    await input.trigger('change')
+    expect(wrapper.find('.preview-actions .btn:not(.alt)').attributes('disabled')).toBeDefined()
+    complete({ width: 100, height: 100, close: vi.fn() } as unknown as ImageBitmap)
+    await settle()
+  })
+
+  it('cancels an in-flight analysis while keeping the chosen image', async () => {
+    const pending = deferredPrediction()
+    apiMocks.callPredictApi.mockReturnValue(pending.promise)
+    const wrapper = mountHome()
+    await chooseFile(wrapper, testFile('fish.jpg'))
+    await clickAnalyze(wrapper)
+    await wrapper.get('[data-testid="cancel-analysis"]').trigger('click')
+    pending.resolve(prediction(0, 0.95))
+    await settle()
+    expect(wrapper.find('#preview-card').text()).toContain('fish.jpg')
+    expect(wrapper.find('#result-section').exists()).toBe(false)
+    expect(wrapper.findAll('.history-item')).toHaveLength(0)
+  })
+
+  it('does not keep an old result after switching models', async () => {
+    apiMocks.callPredictApi.mockResolvedValue(prediction(0, 0.95))
+    const wrapper = mountHome()
+    await chooseFile(wrapper, testFile('fish.jpg'))
+    await clickAnalyze(wrapper)
+    await settle()
+    expect(wrapper.find('#result-section').exists()).toBe(true)
+    await wrapper.get('#model-version-select').setValue('v1')
+    expect(wrapper.find('#result-section').exists()).toBe(false)
+    expect(wrapper.find('#preview-card').exists()).toBe(true)
+  })
+  it('shows the selected model availability near upload', async () => {
+    apiMocks.checkModelReadiness.mockResolvedValue({ online: true, v1: 'ready', v2: 'unavailable' })
+    const wrapper = mountHome()
+    await settle()
+    expect(wrapper.find('[data-testid="model-readiness"]').text()).toContain('不可用')
+  })
   it('uses the accessible guide dialog and restores the trigger focus on dismissal', async () => {
     const trigger = document.createElement('button')
     document.body.append(trigger)

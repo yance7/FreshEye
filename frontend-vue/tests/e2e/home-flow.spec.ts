@@ -66,6 +66,46 @@ async function analyze(page: Page): Promise<void> {
   ).toBe('1')
 }
 
+test('opens a pre-generated sample report without sending an inference request', async ({ page }) => {
+  let predictions = 0
+  await page.route('**/predict_with_gradcam**', (route) => { predictions++; return route.abort() })
+  await page.route('**/health*', (route) => route.fulfill({ status: 503 }))
+  await page.goto('/')
+  await dismissGuide(page)
+  await expect(page.getByRole('link', { name: '查看示例报告' })).toBeVisible({ timeout: 3000 })
+  const popupPromise = page.waitForEvent('popup')
+  await page.getByRole('link', { name: '查看示例报告' }).click()
+  const popup = await popupPromise
+  await expect(popup.locator('body')).toContainText('85f37e938b73ddc05ac2e3c441164b62783a3a8b')
+  await expect(popup.locator('body')).toContainText('2026-11-23')
+  expect(predictions).toBe(0)
+  await expect(page.locator('.history-item')).toHaveCount(0)
+})
+
+for (const viewport of [{ name: 'desktop', width: 1280, height: 800 }, { name: 'mobile', width: 390, height: 844 }]) {
+test(`keeps the photo after a 503 and retries only on user action (${viewport.name})`, async ({ page }) => {
+  await page.setViewportSize({ width: viewport.width, height: viewport.height })
+  await page.route('**/health*', (route) => route.fulfill({ status: 200, json: { v2_loaded: false } }))
+  let calls = 0
+  await page.route('**/predict_with_gradcam**', (route) => {
+    calls++
+    return calls === 1
+      ? route.fulfill({ status: 503, json: { detail: 'Unavailable' } })
+      : route.fulfill({ status: 200, json: responseFor({ freshness_level: 1, confidence_score: 0.9 }) })
+  })
+  await page.goto('/')
+  await dismissGuide(page)
+  await expect(page.getByTestId('model-readiness')).toContainText('不可用')
+  await prepareSample(page)
+  await page.locator('.preview-actions .btn').first().click()
+  await expect(page.locator('#preview-card .error-msg')).toContainText('暂时不可用')
+  expect(calls).toBe(1)
+  await page.locator('.preview-actions .btn').first().click()
+  await expect(page.locator('#result-section')).toBeVisible()
+  expect(calls).toBe(2)
+})
+}
+
 test('completes the mocked analysis workflow and protects interaction state', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))

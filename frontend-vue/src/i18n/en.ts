@@ -17,7 +17,7 @@ const en = {
     hero: {
       title: 'See the eye. Understand freshness.',
       subtitle: 'Use cornea clarity, pupil contours, and surface luster as visual cues for a freshness level, confidence score, and explainable heatmap. Results are for reference and do not replace statutory food inspection.',
-      start: 'Start assessment', view_sample: 'View a sample', quick_start: 'Quick start',
+      start: 'Start assessment', view_sample: 'Analyze a sample image', sample_report: 'View sample report', quick_start: 'Quick start',
       evidence_label: 'Validation & capability snapshot', evidence_mfed: 'V2 · MFED image-split test', evidence_classes: 'visual classes', evidence_explainable: 'model attention',
       evidence_mfed_value: '99.29%', evidence_classes_value: '3', evidence_explainable_value: 'Grad-CAM'
     },
@@ -35,6 +35,7 @@ const en = {
       analyze: 'Analyze',
       analyzing: 'Analyzing...',
       retry: 'Retry',
+      cancel: 'Cancel analysis',
       paste_desktop: 'Ctrl+V to paste',
       paste_mobile: 'Paste supported',
       clear: 'Clear'
@@ -151,8 +152,8 @@ const en = {
       retry: 'Retake photo', view_anyway: 'View result anyway',
       button: 'OK', close: 'Close confidence notice'
     },
-    scan: { connecting: 'Connecting to AI service', starting: 'Service ready · preparing analysis', analyzing: 'Analyzing fish-eye features', heatmap: 'Generating Grad-CAM heatmap', done: 'Analysis complete' },
-    status: { checking: 'Checking AI service', online: 'AI service online', offline: 'AI service temporarily offline' },
+    scan: { connecting: 'Connecting to AI service', starting: 'Service ready · preparing analysis', analyzing: 'Analyzing fish-eye features', heatmap: 'Generating Grad-CAM heatmap', done: 'Analysis complete', waiting: 'Waiting for the analysis response; waking the service may take longer.' },
+    status: { checking: 'Checking model status', online: 'AI service online', offline: 'AI service temporarily offline', waking: 'Service is unreachable and may be waking; you can still try.', model_ready: 'Selected model is ready.', model_unavailable: 'Selected model is unavailable; switch models or retry later.', model_unknown: 'Selected model status is unknown; you can still try.', refresh: 'Refresh status' },
     rel_time: { now: 'just now', min_ago: 'm ago', hr_ago: 'h ago', day_ago: 'd ago' },
     detail: {
       appearance_items: {
