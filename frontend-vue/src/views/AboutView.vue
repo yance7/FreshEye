@@ -102,7 +102,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
       <h2 class="section-title">{{ t('about.compare_title') }}</h2>
     </div>
     <p class="intro-sub">{{ t('about.compare_intro') }}</p>
-    <div class="table-wrap">
+    <div class="table-wrap" role="region" tabindex="0" :aria-label="t('about.compare_title')">
       <table class="compare-table">
         <thead>
           <tr>
@@ -294,7 +294,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
     </div>
     <div class="model-comparison-card glass-card">
       <div class="section-head"><h3 class="section-subtitle">{{ t('about.v2CompareTitle') }}</h3></div>
-      <div class="table-wrap">
+      <div class="table-wrap" role="region" tabindex="0" :aria-label="t('about.v2CompareTitle')">
         <table class="compare-table model-v2-table">
           <thead><tr><th>{{ t('about.v2_table_model') }}</th><th>{{ t('about.v2_table_accuracy') }}</th><th>F1</th><th>{{ t('about.v2_table_params') }}</th><th>FLOPs</th><th>{{ t('about.v2_table_size') }}</th></tr></thead>
           <tbody><tr v-for="row in v2CompareRows" :key="row.model" :class="{ 'compare-table-highlight': row.highlight }"><td>{{ row.model }}</td><td>{{ row.accuracy }}</td><td>{{ row.f1 }}</td><td>{{ row.params }}</td><td>{{ row.flops }}</td><td>{{ row.size }}</td></tr></tbody>
@@ -311,7 +311,7 @@ const v2CompareRows = computed<CompareDetailRow[]>(() => tm<CompareDetailRow[]>(
       <span v-for="(step, i) in tm<string[]>('about.workflow_steps')" :key="step" class="workflow-step"><b>{{ i + 1 }}</b>{{ step }}</span>
     </div>
     <h3 class="section-subtitle workflow-table-title">{{ t('about.workflow_table_title') }}</h3>
-    <div class="table-wrap">
+    <div class="table-wrap" role="region" tabindex="0" :aria-label="t('about.workflow_table_title')">
       <table class="compare-table workflow-table">
         <thead><tr><th>#</th><th>{{ t('about.workflow_table_node') }}</th><th>{{ t('about.workflow_table_type') }}</th><th>{{ t('about.workflow_table_duty') }}</th></tr></thead>
         <tbody>

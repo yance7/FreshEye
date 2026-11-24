@@ -42,7 +42,6 @@ const techStack = ['Python + FastAPI', 'PyTorch', 'EfficientNet-B0', 'Grad-CAM',
       <div class="competition-info">
         <span class="badge">{{ t('footer.competition1') }}</span>
         <span class="badge">{{ t('footer.competition2') }}</span>
-        <span class="badge">{{ t('footer.competition3') }}</span>
       </div>
       <div class="footer-copy">{{ t('footer.copy') }}</div>
     </div>
