@@ -16,7 +16,7 @@ const en = {
   home: {
     hero: {
       title: 'See the eye. Understand freshness.',
-      subtitle: 'Use cornea clarity, pupil contours, and surface luster as visual cues for a freshness level, confidence score, and explainable heatmap. Results are for reference and do not replace statutory food inspection.',
+      subtitle: 'Use cornea clarity, pupil contours, and surface luster as visual cues for a freshness level, model confidence, and a Grad-CAM heatmap. Results are for reference and do not replace statutory food inspection.',
       start: 'Start assessment', view_sample: 'Analyze a sample image', sample_report: 'View sample report', quick_start: 'Quick start',
       evidence_label: 'Validation & capability snapshot', evidence_mfed: 'V2 · MFED image-split test', evidence_classes: 'visual classes', evidence_explainable: 'model attention',
       evidence_mfed_value: '99.29%', evidence_classes_value: '3', evidence_explainable_value: 'Grad-CAM'
@@ -84,7 +84,7 @@ const en = {
       result_kicker: 'Visual freshness', result_action_label: 'What to do next',
       result_action: 'Combine this visual reference with the fish gills, odor, and flesh. Do not use it alone to decide food safety.',
       show_details: 'View visual evidence', show_advice: 'View actions', confidence_model_score: 'Model score',
-      warning_mid: 'Confidence is moderate. Retake the image in good light, or combine this result with the gills, odor, and flesh.',
+      warning_mid: 'Model confidence is moderate. Retake the photo in good light and consider the gills, odor, and flesh too.',
       warning_low: 'The model is uncertain about this image. Make sure the eye is clear, frontal, and well lit; low confidence does not mean it is not a fish eye.',
       close_warning: 'Dismiss warning'
     },
@@ -147,8 +147,8 @@ const en = {
       low: 'Low confidence, please retake'
     },
     errors: {
-      timeout: 'Request timeout, please retry',
-      network: 'Network error',
+      timeout: 'The request timed out. Try again.',
+      network: 'Network error. Check your connection and try again.',
       server: 'AI service unavailable',
       unavailable: 'Model service temporarily unavailable',
       rate_limit: 'Too many requests. Please try again later.',
@@ -161,7 +161,7 @@ const en = {
     lang_switch: '中',
     guide_modal: {
       title: 'Welcome to FreshEye',
-      text: 'Upload a fish eye photo, AI will analyze freshness and generate an explainable heatmap. Drag, paste or camera supported.',
+      text: 'Upload, paste, or take a fish-eye photo for a visual freshness reference and Grad-CAM heatmap.',
       button: 'Get Started',
       close: 'Close welcome guide'
     },
@@ -217,7 +217,7 @@ const en = {
   guide: {
     eyebrow: 'User Guide',
     title: 'FreshEye in 3 Steps',
-    subtitle: 'From photo to result — master fish-eye freshness detection in a minute.',
+    subtitle: 'Learn how to photograph a fish eye and interpret your visual freshness reference.',
     steps_title: '3-Step Workflow',
     photo_title: 'Photo Tutorial',
     photo_source: 'Example image: FreshEye repository; original acquisition source unverified',
@@ -251,7 +251,7 @@ const en = {
       { icon: '◉', title: 'Choose good light', text: 'Use daylight or white light and avoid yellow lighting that changes color perception.' },
       { icon: '⌁', title: 'Fill the frame', text: 'Make the eye at least 30% of the image so enough detail can be extracted.' },
       { icon: '◎', title: 'Avoid glare', text: 'Avoid direct light and shadows; adjust the angle to remove reflections.' },
-      { icon: '✦', title: 'Maintain history', text: 'Clear old records periodically to free localStorage and keep the app smooth.' }
+      { icon: '✦', title: 'Maintain history', text: 'Clear old records when you want to free space on this device.' }
     ],
     steps: [
       { num: '1', title: 'Upload Fish Eye Photo', text: 'Click to upload, drag-and-drop, or paste from clipboard. Mobile devices can use the camera directly. JPG/PNG/WebP, max 25MB.' },
