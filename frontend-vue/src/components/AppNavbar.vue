@@ -21,9 +21,10 @@ function focusTarget(target: FocusTarget | null): void {
   element?.focus()
 }
 
-/** 滚动监听：超过 8px 添加 is-scrolled */
+/** 两个阈值避免在导航边界来回滚动时反复切换。 */
 function onScroll(): void {
-  isScrolled.value = window.scrollY > 8
+  if (window.scrollY > 64) isScrolled.value = true
+  else if (window.scrollY <= 32) isScrolled.value = false
 }
 
 /** 打开/关闭移动端菜单 */
@@ -152,6 +153,7 @@ onBeforeUnmount(() => {
     v-if="menuOpen"
     id="navOverlay"
     class="nav-overlay"
+    :class="{ 'is-scrolled': isScrolled }"
     role="dialog"
     aria-modal="true"
     :aria-label="t('nav.mobile_aria')"
