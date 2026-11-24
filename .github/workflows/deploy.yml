@@ -19,7 +19,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    # Playwright 1.55's bundled dependency installer supports Ubuntu 24.04.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -43,6 +44,8 @@ jobs:
       - name: Build Vue frontend
         run: npm run build
         working-directory: frontend-vue
+      - name: Record deployed commit
+        run: printf '{"sha":"%s"}\n' "$GITHUB_SHA" > frontend-dist/version.json
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact

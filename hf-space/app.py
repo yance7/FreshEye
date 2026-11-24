@@ -28,7 +28,7 @@ from PIL import Image, UnidentifiedImageError
 # 避免出现"文档允许 4096x4096，实际却被炸弹阈值拦截"的矛盾。
 Image.MAX_IMAGE_PIXELS = 4096 * 4096
 import numpy as np
-from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Request
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel
@@ -70,6 +70,27 @@ def _resolve_model_path(env_var: str, candidates: list) -> str:
 
 V1_MODEL_PATH = _resolve_model_path("V1_MODEL_PATH", _v1_model_path_candidates)
 V2_MODEL_PATH = _resolve_model_path("V2_MODEL_PATH", _v2_model_path_candidates)
+_weight_revisions: Dict[str, Optional[str]] = {"v1": None, "v2": None}
+
+
+def _deployment_revision() -> str:
+    value = os.getenv("FRESHEYE_REVISION", "").strip()
+    return value if 0 < len(value) <= 80 and value.isascii() and all(c.isalnum() or c in "-_." for c in value) else "unknown"
+
+
+def _set_prediction_revision(response: Response, version: str) -> None:
+    response.headers["X-FreshEye-Revision"] = _deployment_revision()
+    fingerprint = _weight_revisions.get(version)
+    if fingerprint:
+        response.headers["X-FreshEye-Weights-SHA256"] = fingerprint
+
+
+def _weight_sha256(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _env_int(name: str, default: int) -> int:
@@ -263,6 +284,10 @@ class _TTLCache:
         with _cache_lock:
             return len(self._cache)
 
+    def clear(self) -> None:
+        with _cache_lock:
+            self._cache.clear()
+
 
 _prediction_cache = _TTLCache()
 _gradcam_cache = _TTLCache()
@@ -359,6 +384,9 @@ async def lifespan(app: FastAPI):
     global v1_model, v2_model, device
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    _prediction_cache.clear()
+    _gradcam_cache.clear()
+    _weight_revisions.update(v1=None, v2=None)
     logger.info(f"设备: {device}")
 
     v1_loaded = False
@@ -367,9 +395,10 @@ async def lifespan(app: FastAPI):
     try:
         logger.info(f"正在加载V1模型: {V1_MODEL_PATH}")
         v1_model = load_v1_model(device)
-        v1_loaded = True
         logger.info("FishFreshNetV1 模型加载完成，正在预热...")
         _warmup_model(v1_model, device)
+        _weight_revisions["v1"] = _weight_sha256(V1_MODEL_PATH)
+        v1_loaded = True
         logger.info("V1模型预热完成")
     except Exception as exc:
         logger.warning(f"V1模型加载失败（将继续尝试V2）: {exc}")
@@ -378,9 +407,10 @@ async def lifespan(app: FastAPI):
     try:
         logger.info(f"正在加载V2模型: {V2_MODEL_PATH}")
         v2_model = load_v2_model(device)
-        v2_loaded = True
         logger.info("FishFreshNetV2 模型加载完成，正在预热...")
         _warmup_model(v2_model, device)
+        _weight_revisions["v2"] = _weight_sha256(V2_MODEL_PATH)
+        v2_loaded = True
         logger.info("V2模型预热完成")
     except Exception as exc:
         logger.warning(f"V2模型加载失败: {exc}")
@@ -420,8 +450,31 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
+    expose_headers=["X-FreshEye-Cache", "X-FreshEye-Error", "X-FreshEye-Revision", "X-FreshEye-Weights-SHA256"],
     max_age=CORS_MAX_AGE,
 )
+
+
+@app.middleware("http")
+async def log_prediction_request(request: Request, call_next):
+    if request.url.path not in ("/predict", "/predict_with_gradcam"):
+        return await call_next(request)
+    started = time.monotonic()
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.info(json.dumps({"event": "prediction_request", "endpoint": request.url.path,
+                                "outcome": "server_error", "status_code": 500,
+                                "duration_ms": round((time.monotonic() - started) * 1000, 1)}))
+        raise
+    status = response.status_code
+    outcome = "success" if status < 400 else "client_error" if status < 500 else "server_error"
+    logger.info(json.dumps({"event": "prediction_request", "endpoint": request.url.path,
+                            "outcome": outcome, "status_code": status,
+                            "error_category": response.headers.get("X-FreshEye-Error"),
+                            "cache": response.headers.get("X-FreshEye-Cache"),
+                            "duration_ms": round((time.monotonic() - started) * 1000, 1)}))
+    return response
 
 
 class HealthCheckFilter(logging.Filter):
@@ -470,11 +523,11 @@ def get_model(model_version: str = "v2") -> Tuple[nn.Module, str]:
     if model_version == "v1":
         if v1_model is not None:
             return v1_model, "v1"
-        raise HTTPException(status_code=503, detail="FishFreshNetV1 当前不可用，请改用 V2 或稍后重试")
+        raise HTTPException(status_code=503, detail="FishFreshNetV1 当前不可用，请改用 V2 或稍后重试", headers={"X-FreshEye-Error": "model_unavailable"})
     else:
         if v2_model is not None:
             return v2_model, "v2"
-        raise HTTPException(status_code=503, detail="FishFreshNetV2 当前不可用，请改用 V1 或稍后重试")
+        raise HTTPException(status_code=503, detail="FishFreshNetV2 当前不可用，请改用 V1 或稍后重试", headers={"X-FreshEye-Error": "model_unavailable"})
 
 
 def overlay_heatmap(original_image: np.ndarray, heatmap: np.ndarray, alpha: float = 0.4) -> np.ndarray:
@@ -501,18 +554,36 @@ def _build_prediction_result(probs: torch.Tensor, predicted: torch.Tensor,
     )
 
 
+def _acquire_inference_lock() -> Tuple[float, float]:
+    started = time.monotonic()
+    acquired = _inference_lock.acquire(timeout=30)
+    entered = time.monotonic()
+    if not acquired:
+        logger.info(json.dumps({"event": "inference_lock", "outcome": "queue_busy",
+                                "queue_wait_ms": round((entered - started) * 1000, 1)}))
+        raise HTTPException(status_code=503, detail="模型推理队列繁忙，请稍后重试", headers={"X-FreshEye-Error": "queue_busy"})
+    return started, entered
+
+
+def _release_inference_lock(started: float, entered: float) -> None:
+    elapsed = time.monotonic()
+    _inference_lock.release()
+    logger.info(json.dumps({"event": "inference_lock", "outcome": "released",
+                            "queue_wait_ms": round((entered - started) * 1000, 1),
+                            "locked_work_ms": round((elapsed - entered) * 1000, 1)}))
+
+
 def predict_image_with_model(image: Image.Image, model: nn.Module,
                               model_version_str: str, current_device: str) -> PredictionResult:
     input_tensor = preprocess(image).unsqueeze(0).to(current_device)
-    if not _inference_lock.acquire(timeout=30):
-        raise HTTPException(status_code=503, detail="模型推理队列繁忙，请稍后重试")
+    lock_started, lock_entered = _acquire_inference_lock()
     try:
         with torch.no_grad():
             outputs = model(input_tensor)
             probs = F.softmax(outputs, dim=1)
             confidence, predicted = torch.max(probs, 1)
     finally:
-        _inference_lock.release()
+        _release_inference_lock(lock_started, lock_entered)
     return _build_prediction_result(probs, predicted, confidence, model_version_str)
 
 
@@ -614,8 +685,7 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
                                model_version_str: str, current_device: str) -> Tuple[PredictionResult, str]:
     # 整个 Grad-CAM 流程（hook 注册、前向、反向）必须在推理锁内执行，
     # 否则并发请求会触发彼此注册的模块级 hook，导致热力图数据串扰。
-    if not _inference_lock.acquire(timeout=30):
-        raise HTTPException(status_code=503, detail="模型推理队列繁忙，请稍后重试")
+    lock_started, lock_entered = _acquire_inference_lock()
     try:
         input_tensor = preprocess(image).unsqueeze(0).to(current_device)
         model.eval()
@@ -653,7 +723,7 @@ def _predict_and_gradcam_sync(image: Image.Image, model: nn.Module,
             logger.warning(f"Grad-CAM 生成失败，返回纯预测: {exc}")
             return prediction, ""
     finally:
-        _inference_lock.release()
+        _release_inference_lock(lock_started, lock_entered)
 
 
 def _predict_from_bytes(data: bytes, model: nn.Module, version_str: str,
@@ -682,9 +752,15 @@ async def root():
 
 @app.get("/health")
 async def health():
+    ready = {"v1": v1_model is not None, "v2": v2_model is not None}
     return {
         "status": "ok",
         "service": "FreshEye",
+        "readiness": "ready" if all(ready.values()) else "degraded" if any(ready.values()) else "unavailable",
+        "models": {name: {"status": "ready" if loaded else "unavailable",
+                          "weights_sha256": _weight_revisions[name] if loaded else None}
+                   for name, loaded in ready.items()},
+        "revision": _deployment_revision(),
         "v1_loaded": v1_model is not None,
         "v2_loaded": v2_model is not None,
         "device": device,
@@ -710,22 +786,25 @@ def _check_rate_limit(request: Request):
         xff_last = "none"
     client_id = f"{connect_ip}|{xff_last}"
     if not _rate_limiter.check(client_id):
-        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后重试（每分钟限 15 次）")
+        raise HTTPException(status_code=429, detail="请求过于频繁，请稍后重试（每分钟限 15 次）", headers={"X-FreshEye-Error": "rate_limited"})
 
 
 @app.post("/predict", response_model=PredictionResult)
 async def predict_freshness(
     request: Request,
+    response: Response,
     file: UploadFile = File(...),
     model_version: str = Query("v2", description="Model version: v1 or v2")
 ):
     _check_rate_limit(request)
     try:
         model, version_str = get_model(model_version)
+        _set_prediction_revision(response, version_str)
         data = await read_limited_upload(file)
         key = _cache_key(data, version_str)
         cached = _prediction_cache.get(key)
         if cached is not None:
+            response.headers["X-FreshEye-Cache"] = "hit"
             _log_inference("/predict", version_str, cached.freshness_level,
                            cached.confidence_score, 0.0, cache_hit=True)
             _metrics.record_request(cache_hit=True)
@@ -734,6 +813,7 @@ async def predict_freshness(
         result = await asyncio.to_thread(_predict_from_bytes, data, model, version_str, device)
         duration_ms = (time.monotonic() - t0) * 1000
         _prediction_cache.set(key, result)
+        response.headers["X-FreshEye-Cache"] = "miss"
         _log_inference("/predict", version_str, result.freshness_level,
                        result.confidence_score, duration_ms, cache_hit=False)
         _metrics.record_request(inference_ms=duration_ms)
@@ -748,16 +828,19 @@ async def predict_freshness(
 @app.post("/predict_with_gradcam", response_model=GradCAMResult)
 async def predict_with_gradcam(
     request: Request,
+    response: Response,
     file: UploadFile = File(...),
     model_version: str = Query("v2", description="Model version: v1 or v2")
 ):
     _check_rate_limit(request)
     try:
         model, version_str = get_model(model_version)
+        _set_prediction_revision(response, version_str)
         data = await read_limited_upload(file)
         key = _cache_key(data, version_str)
         cached = _gradcam_cache.get(key)
         if cached is not None:
+            response.headers["X-FreshEye-Cache"] = "hit"
             _log_inference("/predict_with_gradcam", version_str, cached.prediction.freshness_level,
                            cached.prediction.confidence_score, 0.0, cache_hit=True)
             _metrics.record_request(cache_hit=True)
@@ -769,6 +852,7 @@ async def predict_with_gradcam(
         duration_ms = (time.monotonic() - t0) * 1000
         result = GradCAMResult(heatmap_image=heatmap_b64, prediction=prediction)
         _gradcam_cache.set(key, result)
+        response.headers["X-FreshEye-Cache"] = "miss"
         _log_inference("/predict_with_gradcam", version_str, prediction.freshness_level,
                        prediction.confidence_score, duration_ms, cache_hit=False)
         _metrics.record_request(inference_ms=duration_ms)
