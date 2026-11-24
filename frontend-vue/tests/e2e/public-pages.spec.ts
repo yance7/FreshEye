@@ -1,5 +1,7 @@
 import { test, expect, type Browser, type Page } from '@playwright/test'
 
+test.use({ serviceWorkers: 'block' })
+
 const routes = ['/', '/guide.html', '/fish.html', '/about.html', '/404.html']
 
 function collectRuntimeErrors(page: Page): string[] {
@@ -199,7 +201,9 @@ test('a failed English download leaves the current language usable', async ({ pa
   await page.route(/\/en-[^/]+\.js$/, route => route.abort())
   await page.goto('/')
   await dismissGuide(page)
+  const failedChunk = page.waitForEvent('requestfailed', request => /\/en-[^/]+\.js$/.test(request.url()))
   await page.locator('button.lang-switch:visible').first().click()
+  await failedChunk
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')
   await expect(page.locator('nav.nav-links')).toContainText('首页')
   expect(await page.evaluate(() => localStorage.getItem('fresheye-language'))).toBe('zh')
