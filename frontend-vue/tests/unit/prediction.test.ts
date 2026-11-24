@@ -1,4 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import { confidenceLevel } from '@/utils/prediction'
+
+describe('confidence display bands', () => {
+  it('uses consistent boundaries for 60% and 80%', () => {
+    expect(confidenceLevel(0.45)).toBe('low')
+    expect(confidenceLevel(0.5999)).toBe('low')
+    expect(confidenceLevel(0.6)).toBe('mid')
+    expect(confidenceLevel(0.7999)).toBe('mid')
+    expect(confidenceLevel(0.8)).toBe('high')
+  })
+})
 import { clampProbability, normalizePrediction, normalizeProbabilities } from '@/utils/prediction'
 
 describe('prediction normalization', () => {

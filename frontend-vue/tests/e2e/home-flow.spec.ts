@@ -1,5 +1,6 @@
 import { test, expect, type Page, type Route } from '@playwright/test'
 import { resolve } from 'node:path'
+import { readFile } from 'node:fs/promises'
 
 type Fixture = {
   freshness_level: 0 | 1 | 2
@@ -83,7 +84,7 @@ test('completes the mocked analysis workflow and protects interaction state', as
   await expect.poll(() => models.length).toBe(1)
   expect(models[0]).toBe('v1')
 
-  await expect(page.locator('#result-section')).toContainText('不新鲜')
+  await expect(page.locator('.freshness-card')).toContainText('本次无法可靠分级')
   await expect(page.locator('[role="dialog"]')).toContainText('AI 对这张图片的判断不够确定')
   await page.getByTestId('low-confidence-view').click()
   await expect(page.locator('[role="dialog"]')).toHaveCount(0)
@@ -101,6 +102,29 @@ test('completes the mocked analysis workflow and protects interaction state', as
 
   const historyItem = page.locator('.history-item').first()
   await expect(historyItem).toBeVisible()
+  await expect(historyItem).toContainText('本次无法可靠分级')
+  await historyItem.click()
+  await expect(page.locator('.freshness-card')).toContainText('本次无法可靠分级')
+  const reportPopup = page.waitForEvent('popup')
+  await page.getByRole('button', { name: '导出 PDF 报告' }).click()
+  const report = await reportPopup
+  await expect(report.locator('.pdf-level-badge')).toContainText('本次无法可靠分级')
+  await expect(report.locator('.pdf-advice-grid')).not.toContainText('刺身')
+  await report.close()
+  await page.locator('button.lang-switch:visible').first().click()
+  await expect(page.locator('.freshness-card')).toContainText('This image cannot be reliably graded')
+  const englishPopup = page.waitForEvent('popup')
+  await page.getByRole('button', { name: 'Export PDF report' }).click()
+  const englishReport = await englishPopup
+  await expect(englishReport.locator('.pdf-level-badge')).toContainText('This image cannot be reliably graded')
+  const downloadPromise = englishReport.waitForEvent('download')
+  await englishReport.locator('#download-report').click()
+  const download = await downloadPromise
+  const downloadedHtml = await readFile(await download.path(), 'utf8')
+  expect(downloadedHtml).toContain('This image cannot be reliably graded')
+  expect(downloadedHtml).not.toMatch(/sashimi|deep.freeze|within 12 hours/i)
+  await englishReport.close()
+  await page.locator('button.lang-switch:visible').first().click()
   await historyItem.locator('.icon-btn').first().click()
   await expect(historyItem.locator('.icon-btn').first()).toHaveClass(/active/)
   await historyItem.locator('.icon-btn.del').click()
@@ -135,6 +159,7 @@ test('ignores a stale response after a replacement file starts a newer analysis'
 
   await page.locator('input[type="file"]').first().setInputFiles(samplePath)
   await expect(page.locator('#preview-card')).toBeVisible()
+  await expect(page.locator('#preview-card')).toContainText('fresh.webp')
   await page.locator('.preview-actions .btn').first().click()
   await expect.poll(() => pending.length).toBe(2)
 

@@ -1,5 +1,12 @@
 import type { FreshnessLabel, PredictionResult, ProbabilityMap } from '@/types'
 
+// Temporary display rules, not calibrated food-safety or reliability thresholds.
+export function confidenceLevel(score: number): 'high' | 'mid' | 'low' {
+  if (score >= 0.8) return 'high'
+  if (score >= 0.6) return 'mid'
+  return 'low'
+}
+
 function readNumber(value: unknown): number {
   return typeof value === 'number'
     ? value

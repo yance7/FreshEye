@@ -23,10 +23,12 @@ describe('bilingual message packs', () => {
   })
 
   it('keep the user-facing workflow copy localized', () => {
-    expect(en.home.model.v2).toContain('High-accuracy model (recommended)')
+    expect(en.home.model.v2).toBe('FishFreshNetV2')
+    expect(en.home.model.note).toContain('81.78%/81.18%')
     expect(en.home.camera.capture).toBe('Capture')
     expect(en.home.low_conf_modal.view_anyway).toBe('View result anyway')
-    expect(zh.home.model.v2).toContain('高精度版')
+    expect(zh.home.model.v2).toBe('FishFreshNetV2')
+    expect(zh.home.model.note).toContain('81.78%/81.18%')
     expect(zh.home.camera.capture).toBe('拍摄')
     expect(zh.home.low_conf_modal.view_anyway).toBe('仍要查看结果')
   })

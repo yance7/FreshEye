@@ -18,7 +18,7 @@ const en = {
       title: 'See the eye. Understand freshness.',
       subtitle: 'Use cornea clarity, pupil contours, and surface luster as visual cues for a freshness level, confidence score, and explainable heatmap. Results are for reference and do not replace statutory food inspection.',
       start: 'Start assessment', view_sample: 'View a sample', quick_start: 'Quick start',
-      evidence_label: 'Validation & capability snapshot', evidence_mfed: 'MFED test', evidence_classes: 'visual classes', evidence_explainable: 'explainable',
+      evidence_label: 'Validation & capability snapshot', evidence_mfed: 'V2 · MFED image-split test', evidence_classes: 'visual classes', evidence_explainable: 'model attention',
       evidence_mfed_value: '99.29%', evidence_classes_value: '3', evidence_explainable_value: 'Grad-CAM'
     },
     upload: {
@@ -44,10 +44,13 @@ const en = {
       fallback_help: 'You can also choose an image from this device.', fallback: 'Choose image',
       flip: 'Flip camera', capture: 'Capture', close: 'Close viewfinder', not_ready: 'Camera is not ready', capture_failed: 'Capture failed. Please retry', guide: 'Place the fish eye inside the circle; keep it front-facing, sharp, and well lit.'
     },
-    model: { v2: 'High-accuracy model (recommended)', v1: 'Classic model', label: 'Model version', advanced: 'Advanced settings', advanced_hint: 'High-accuracy model is the default', note: 'V2 is the recommended default; V1 is retained for comparison and reproducibility.' },
+    model: { v2: 'FishFreshNetV2', v1: 'FishFreshNetV1', label: 'Model version', advanced: 'Advanced settings', advanced_hint: 'V2 is the default', note: 'Original results: V1/V2 scored 98.88%/99.29% on MFED and 81.78%/81.18% on FFE. MFED used image-level splits; independence by fish remains unverified.' },
     result: {
       tabs: { overview: 'Overview', vision: 'AI Vision', detail: 'Detail Report', advice: 'Advice' },
       confidence: 'Confidence',
+      unreliable: 'This image cannot be reliably graded',
+      score_rule: 'Display bands are temporarily set below 60%, 60% to below 80%, and 80% or above; they are not calibrated reliability or safety thresholds.',
+      generic_safety: 'A photo and model score cannot determine food safety. Consult your local food-safety authority for handling guidance.',
       model: 'Model',
       duration: 'Duration',
       time: 'Time',
@@ -58,8 +61,8 @@ const en = {
       distribution: 'Probability',
       original: 'Original',
       heatmap: 'Heatmap',
-      appearance: 'Eye Appearance',
-      trend: 'Freshness Trend',
+      appearance: 'Class reference template',
+      trend: 'Reference sample comparison',
       standard: 'Standard Reference',
       storage: 'Storage',
       consumption: 'Consumption',
@@ -69,9 +72,9 @@ const en = {
       analyzing: 'Analyzing',
       report_title: 'Analysis Report',
       compare_title: 'Original vs Grad-CAM Heatmap',
-      compare_hint: 'Drag to compare. Red regions are key features AI focused on.',
-      compare_desc: 'Highlighted areas are the model’s visual evidence; deeper color indicates greater contribution to the freshness assessment.',
-      vision_explain: 'The model mainly attends to the pupil and corneal edge. Their clarity and luster are visual references for freshness.',
+      compare_hint: 'Drag to compare. The heatmap shows model attention for this prediction.',
+      compare_desc: 'Highlighted regions show model attention for this prediction, not evidence of food safety.',
+      vision_explain: 'Grad-CAM shows regions the model attends to for this prediction; it does not establish their actual features.',
       compare_aria: 'Drag to compare the original image and heatmap',
       no_heatmap: 'No heatmap available',
       result_kicker: 'Visual freshness', result_action_label: 'What to do next',
@@ -83,51 +86,28 @@ const en = {
     },
     prediction: {
       high: {
-        appearance: 'The fish eye is clear and bright, with a transparent cornea, distinct pupil, and natural surface gloss.',
-        action: 'Confirm with gills, smell, and texture, then handle promptly; actual storage time depends on storage conditions.',
-        trend: 'The visual features are close to a highly fresh sample. Actual storage time depends strongly on temperature, species, and handling; this result is not a shelf-life or food-safety certificate.',
-        knowledge: 'Reference features: transparent cornea, clear pupil, and natural surface gloss. This sample is close to a highly fresh reference.'
+        appearance: 'Reference template: clear cornea, distinct pupil and glossy surface.',
+        action: 'The model output is a visual reference and cannot determine food safety.',
+        trend: 'The model class is compared with highly fresh reference samples; it does not predict change or storage time.',
+        knowledge: 'The appearance is a class reference template, not an examination of each part of this image.'
       },
       mid: {
-        appearance: 'The fish eye is mostly clear; the cornea is slightly cloudy, the pupil remains recognizable, and surface gloss is reduced.',
-        action: 'Confirm with gills, smell, and texture and handle promptly; this result is not a shelf-life or food-safety guarantee.',
-        trend: 'The visual features are within a moderate freshness range. Handle promptly; actual storage time depends strongly on temperature, species, and handling.',
-        knowledge: 'Reference features: slightly cloudy cornea while the pupil remains recognizable. This sample matches a moderate-freshness reference.'
+        appearance: 'Reference template: slightly cloudy cornea, recognizable pupil and reduced gloss.',
+        action: 'The model output is a visual reference and cannot determine food safety.',
+        trend: 'The model class is compared with fresh reference samples; it does not predict change or storage time.',
+        knowledge: 'The appearance is a class reference template, not an examination of each part of this image.'
       },
       low: {
-        appearance: 'The fish eye is cloudy, the cornea is opaque, the pupil is blurred, and surface gloss is clearly reduced.',
-        action: 'The visual features suggest the sample is not fresh. Do not judge food safety from this result alone; avoid eating if there is an off smell or abnormal tissue.',
-        trend: 'The visual features indicate clear signs of low freshness. Avoid eating based on this result; it cannot replace testing for microbes, toxins, or contaminants.',
-        knowledge: 'Reference features: cloudy cornea, blurred pupil, and reduced surface gloss. This sample matches a low-freshness reference.'
+        appearance: 'Reference template: cloudy cornea, blurred pupil and reduced gloss.',
+        action: 'The model output is a visual reference and cannot determine food safety.',
+        trend: 'The model class is compared with not-fresh reference samples; it does not predict change or storage time.',
+        knowledge: 'The appearance is a class reference template, not an examination of each part of this image.'
       },
       unknown: {
-        appearance: 'No fish-eye appearance description is available.',
-        action: 'Retake a clear close-up of the fish eye. If uncertainty remains, combine the result with gills, smell, and texture.',
-        trend: 'A visual freshness trend is not available. Retake a clear fish-eye close-up.',
-        knowledge: 'No reference-feature comparison is available.'
-      }
-    },
-    recommendation: {
-      base: {
-        storage: ['Refrigerate at 0–4°C', 'Avoid repeated thawing', 'Actual storage time depends on species and handling'],
-        consumption: ['Eat promptly for the best texture', 'Steaming or sashimi is preferred only when appropriate', 'Use lemon to reduce odor and add freshness'],
-        handling: ['Handle promptly after removing from the refrigerator', 'Use a sharp knife to remove scales', 'Keep the eye intact while removing the organs'],
-        safety: ['Clear eyes indicate visual appearance only', 'Check whether the gills are bright red', 'Confirm there is no off smell before eating'],
-        best: ['Process within two hours of purchase when possible', 'Wash hands before and after handling', 'Use a dedicated cutting board to avoid cross-contamination']
-      },
-      mid: {
-        storage: ['Refrigerate at 0–4°C', 'Freeze for longer storage', 'Aim to eat within 12 hours'],
-        consumption: ['Handle promptly and cook thoroughly', 'Braising or frying is recommended', 'Serving decisions depend on storage conditions'],
-        handling: ['Rinse under cold water after thawing', 'Remove the gills and organs', 'Cut into pieces for more even cooking'],
-        safety: ['Average visual features cannot prove safety alone', 'Watch for off smells', 'Allow an appropriate cooking time'],
-        best: ['Handle promptly rather than storing for long', 'Wrap before freezing', 'Do not refreeze after thawing']
-      },
-      low: {
-        storage: ['Continued storage is not recommended', 'If storage is unavoidable, deep-freeze', 'Process promptly or discard'],
-        consumption: ['Do not decide to eat from this result alone', 'Avoid eating if there is an off smell or abnormal tissue', 'Consult a qualified inspector when needed'],
-        handling: ['Wear gloves while handling', 'Keep the fish away from other ingredients', 'Disinfect tools thoroughly'],
-        safety: ['Cloudy fish eye; treat with caution', 'Avoid eating if there is an off smell or abnormal tissue', 'This result does not replace food-safety testing'],
-        best: ['Check freshness carefully when buying', 'Choose a reputable seller', 'Keep the purchase record for traceability']
+        appearance: 'No reliable class reference template is available.',
+        action: 'Retake a clear, well-lit image facing the fish eye.',
+        trend: 'This image cannot be reliably graded or compared to a class reference.',
+        knowledge: 'This image cannot be reliably graded.'
       }
     },
     history: {
@@ -142,7 +122,7 @@ const en = {
       empty: 'No history'
     },
     confidence_warn: {
-      high: 'Result is reliable',
+      high: 'Higher model score; for reference only',
       mid: 'For reference only, consider re-shooting',
       low: 'Low confidence, please retake'
     },
@@ -186,29 +166,12 @@ const en = {
       appearance_low: 'Cornea severely cloudy/white, pupil blurred, tissue soft and sunken, possible blood streaks.',
       trend_current: 'Current',
       trend_confidence: 'Confidence',
-      shelf_high: '3-5 day shelf life',
-      shelf_mid: 'Consume in 1-2 days',
-      shelf_low: 'Process immediately',
-      trend_stable: 'Stable',
-      trend_declining: 'Declining',
       trend_note: 'Actual storage time depends on storage conditions; this result is not a shelf-life or food-safety certificate.',
-      trend_desc: 'Based on eye features, freshness declines over time. Storage temperature and handling determine remaining shelf window.',
       standard_high: 'High: Clear & bright',
       standard_mid: 'Fresh: Slightly cloudy',
       standard_low: 'Not fresh: Cloudy & white',
-      standard_ref: 'Per seafood sensory standard',
+      standard_ref: 'Class reference template, not a standards-compliance decision',
       standard_desc: 'Grading per seafood sensory freshness standard, combined with AI model trained on FishFreshNet dataset.'
-    },
-    advice: {
-      storage_high: 'Refrigerate 0-4°C, wrap, keep 3-5 days.',
-      storage_mid: 'Refrigerate 0-4°C, consume within 1-2 days.',
-      storage_low: 'Do not store, process or discard immediately.',
-      consumption_bad: 'Not edible, may cause food poisoning.',
-      consumption_ok: 'Cook thoroughly above 70°C, avoid raw.',
-      processing: 'Wash hands & tools, remove gills & guts, rinse under running water. Keep raw and cooked separate.',
-      safety_bad: 'May contain histamine & pathogens, high risk, discard.',
-      safety_ok: 'Stop eating if off-odor/slime/color change. Allergy-prone use caution.',
-      best: 'Process soon after purchase; shoot frontally, clearly, well-lit to improve AI accuracy.'
     },
     pdf: {
       title: 'FreshEye Report',
@@ -217,7 +180,7 @@ const en = {
       duration: 'Duration',
       model: 'Model',
       evidence: 'Visual Evidence',
-      trend: 'Visual Trend',
+      trend: 'Reference sample comparison',
       advice: 'Recommended Actions',
       probability_note: 'Probabilities show the model’s relative judgment for this image; they are not food-safety probabilities.',
       limitation: 'Scope & Limitations',

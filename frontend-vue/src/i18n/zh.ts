@@ -18,7 +18,7 @@ const zh = {
       title: '看一眼鱼眼，判断新鲜度',
       subtitle: '从鱼眼清澈度、瞳孔轮廓与光泽等视觉特征出发，给出新鲜度等级、置信度和可解释热力图。结果仅供参考，不能替代法定食品检验。',
       start: '开始检测', view_sample: '看一个示例', quick_start: '快速开始',
-      evidence_label: '项目验证与能力摘要', evidence_mfed: 'MFED 测试', evidence_classes: '级视觉分类', evidence_explainable: '可解释',
+      evidence_label: '项目验证与能力摘要', evidence_mfed: 'V2 · MFED 图像切分测试', evidence_classes: '级视觉分类', evidence_explainable: '模型关注',
       evidence_mfed_value: '99.29%', evidence_classes_value: '3', evidence_explainable_value: 'Grad-CAM'
     },
     upload: {
@@ -44,10 +44,13 @@ const zh = {
       fallback_help: '也可以使用设备文件选择器上传照片。', fallback: '选择图片',
       flip: '切换镜头', capture: '拍摄', close: '关闭取景器', not_ready: '相机尚未准备好', capture_failed: '拍摄失败，请重试', guide: '请将鱼眼置于圆形取景框内，保持正面、清晰、光线充足。'
     },
-    model: { v2: '高精度版（推荐）', v1: '经典版', label: '模型版本', advanced: '高级设置', advanced_hint: '默认使用高精度版', note: 'V2 为当前默认推荐版本；V1 仅用于对比与复现实验。' },
+    model: { v2: 'FishFreshNetV2', v1: 'FishFreshNetV1', label: '模型版本', advanced: '高级设置', advanced_hint: '默认使用 V2', note: '原评测：V1/V2 在 MFED 为 98.88%/99.29%，在 FFE 为 81.78%/81.18%；MFED 使用图像级切分，个体独立性尚待核验。' },
     result: {
       tabs: { overview: '概览', vision: 'AI视觉分析', detail: '详细报告', advice: '处理建议' },
       confidence: '置信度',
+      unreliable: '本次无法可靠分级',
+      score_rule: '界面暂按低于 60%、60% 至低于 80%、80% 及以上分段提示；这不是经校准的可靠性或安全阈值。',
+      generic_safety: '照片和模型分数不能判断食用安全，请参照当地食品安全部门的处理指引。',
       model: '模型',
       duration: '分析耗时',
       time: '分析时间',
@@ -58,8 +61,8 @@ const zh = {
       distribution: '概率分布',
       original: '原图',
       heatmap: '热力图',
-      appearance: '鱼眼外观评估',
-      trend: '新鲜度趋势预测',
+      appearance: '等级参考模板',
+      trend: '参考样本对照',
       standard: '标准特征对照',
       storage: '储存建议',
       consumption: '食用建议',
@@ -69,9 +72,9 @@ const zh = {
       analyzing: '分析中',
       report_title: '分析报告',
       compare_title: '原图 vs Grad-CAM 热力图',
-      compare_hint: '拖动滑块对比原图与热力图，红色区域为 AI 关注的关键特征。',
-      compare_desc: '高亮区域 = 模型判断的关键依据，颜色越深表示该区域对新鲜度判断贡献越大。',
-      vision_explain: '模型主要关注鱼眼瞳孔与角膜边缘区域，这些区域的清澈度与光泽度是新鲜度的视觉参考。',
+      compare_hint: '拖动滑块对比原图与热力图。热力图显示模型对本次预测的关注区域。',
+      compare_desc: '高亮区域表示模型对本次预测的关注，并非食品安全证据。',
+      vision_explain: 'Grad-CAM 展示模型对本次预测的关注区域，不能证明关注区域的实际特征。',
       compare_aria: '拖动对比原图与热力图',
       no_heatmap: '暂无热力图数据',
       result_kicker: '视觉新鲜度', result_action_label: '现在可以做什么',
@@ -83,51 +86,28 @@ const zh = {
     },
     prediction: {
       high: {
-        appearance: '鱼眼清澈明亮，角膜透明，瞳孔清晰，表面有自然光泽。',
-        action: '建议结合鱼鳃、气味与肉质确认，并尽快处理；实际可保存时间取决于储存条件。',
-        trend: '视觉特征接近高度新鲜样本。实际可保存时间高度依赖储存温度、鱼种与处理方式，本结果不作为保质期或食品安全证明。',
-        knowledge: '视觉特征对照：角膜透明、瞳孔清晰、表面有自然光泽。当前样本接近高度新鲜样本。'
+        appearance: '参考模板：角膜清澈，瞳孔清晰，表面有光泽。',
+        action: '模型输出仅为视觉参考，不能判断食用安全。',
+        trend: '模型分类与高度新鲜参考样本对照；不预测变化或保存时间。',
+        knowledge: '上述外观是等级参考模板，并非对本图各部位的逐项检测。'
       },
       mid: {
-        appearance: '鱼眼基本清澈，角膜略有浑浊，瞳孔仍可辨认，表面光泽减弱。',
-        action: '结合鱼鳃、气味与肉质确认后尽快处理；本结果不构成保质期或食品安全保证。',
-        trend: '视觉特征处于中等新鲜度范围。建议尽快处理；实际可保存时间高度依赖储存温度、鱼种与处理方式。',
-        knowledge: '视觉特征对照：角膜略浑浊、瞳孔尚可辨认。当前样本与中等新鲜度特征匹配。'
+        appearance: '参考模板：角膜略浑浊，瞳孔仍可辨认，光泽减弱。',
+        action: '模型输出仅为视觉参考，不能判断食用安全。',
+        trend: '模型分类与新鲜参考样本对照；不预测变化或保存时间。',
+        knowledge: '上述外观是等级参考模板，并非对本图各部位的逐项检测。'
       },
       low: {
-        appearance: '鱼眼浑浊，角膜不透明，瞳孔模糊，表面光泽明显减弱。',
-        action: '视觉特征显示明显不新鲜，不要仅凭本结果判断食用安全；如有异味或组织异常，避免食用。',
-        trend: '视觉特征显示明显不新鲜，建议避免食用；本结果仍不能替代对微生物、毒素、污染物等项目的检验。',
-        knowledge: '视觉特征对照：角膜浑浊、瞳孔模糊、表面失去光泽。当前样本与不新鲜特征匹配。'
+        appearance: '参考模板：角膜浑浊，瞳孔模糊，光泽减弱。',
+        action: '模型输出仅为视觉参考，不能判断食用安全。',
+        trend: '模型分类与不新鲜参考样本对照；不预测变化或保存时间。',
+        knowledge: '上述外观是等级参考模板，并非对本图各部位的逐项检测。'
       },
       unknown: {
-        appearance: '暂无鱼眼外观描述。',
-        action: '先重新拍摄清晰鱼眼特写；如果仍不确定，请结合鱼鳃、气味与肉质判断。',
-        trend: '暂无法形成视觉新鲜度趋势，请重新拍摄清晰鱼眼特写。',
-        knowledge: '暂无标准特征对照数据。'
-      }
-    },
-    recommendation: {
-      base: {
-        storage: ['0–4°C 冷藏保存', '避免反复解冻', '实际可保存时间取决于鱼种与处理方式'],
-        consumption: ['尽快食用获得最佳口感', '清蒸或刺身为优选', '搭配柠檬汁去腥提鲜'],
-        handling: ['从冰箱取出后直接处理', '用利刀去除鱼鳞', '清理内脏时保持鱼眼完整'],
-        safety: ['鱼眼清澈，仅代表视觉特征较好', '注意检查鳃部是否鲜红', '食用前确认无异味'],
-        best: ['购买后 2 小时内处理最佳', '处理前后勤洗手', '使用专用砧板避免交叉污染']
-      },
-      mid: {
-        storage: ['0–4°C 冷藏', '如需长期保存请冷冻', '建议 12 小时内食用'],
-        consumption: ['建议尽快处理并充分加热', '推荐红烧或煎炸', '实际食用安排取决于储存条件'],
-        handling: ['解冻后在冷水中冲洗', '去除鱼鳃和内脏', '切块烹饪更易入味'],
-        safety: ['鱼眼视觉特征一般，不能单独证明安全', '注意观察是否有异味', '烹饪时间适当延长'],
-        best: ['尽快处理不宜久放', '冷冻保存前用保鲜膜包裹', '解冻后不要再次冷冻']
-      },
-      low: {
-        storage: ['不建议继续储存', '如必须保存请深度冷冻', '尽快处理或丢弃'],
-        consumption: ['不建议仅凭本结果决定食用', '如有异味或组织异常应避免食用', '必要时咨询专业检验人员'],
-        handling: ['佩戴手套处理', '避免接触其他食材', '处理工具需彻底消毒'],
-        safety: ['鱼眼浑浊，请谨慎对待', '如有异味或异常组织状态应避免食用', '本结果不替代食品安全检测'],
-        best: ['购买时注意辨别新鲜度', '选择信誉良好的商家', '保留购买凭证以便追溯']
+        appearance: '本次无可靠的等级参考模板。',
+        action: '请重新拍摄正对鱼眼、清晰且光线充足的照片。',
+        trend: '本次无法可靠分级，无法进行等级参考样本对照。',
+        knowledge: '本次无法可靠分级。'
       }
     },
     history: {
@@ -142,7 +122,7 @@ const zh = {
       empty: '暂无历史记录'
     },
     confidence_warn: {
-      high: '分析结果可信',
+      high: '模型分数较高，结果仅供参考',
       mid: '结果仅供参考，建议重新拍摄',
       low: '置信度过低，请重新拍摄清晰照片'
     },
@@ -186,29 +166,12 @@ const zh = {
       appearance_low: '角膜严重浑浊发白，瞳孔模糊不可辨，组织松软塌陷，可能出现血丝。',
       trend_current: '当前等级',
       trend_confidence: '置信度',
-      shelf_high: '3-5 天保鲜期',
-      shelf_mid: '1-2 天内食用',
-      shelf_low: '建议立即处理',
-      trend_stable: '新鲜度稳定',
-      trend_declining: '新鲜度下降中',
       trend_note: '实际可保存时间取决于储存条件；本结果不作为保质期或食品安全证明。',
-      trend_desc: '基于鱼眼特征综合判断，新鲜度随时间推移持续下降。结合储存温度与处理方式，可估算剩余保鲜窗口。',
       standard_high: '高度新鲜：清澈明亮',
       standard_mid: '新鲜：轻微浑浊',
       standard_low: '不新鲜：浑浊发白',
-      standard_ref: '参照水产品鲜度感官标准',
+      standard_ref: '等级参考模板，不代表标准合格判定',
       standard_desc: '本判定参照水产品鲜度感官评价标准，结合 AI 模型在 FishFreshNet 数据集上的训练经验，给出综合分级。'
-    },
-    advice: {
-      storage_high: '0-4°C 冰箱冷藏，覆盖保鲜膜，避免与其他食材串味。可保鲜 3-5 天。',
-      storage_mid: '0-4°C 冷藏，1-2 天内食用完毕，避免延长储存。',
-      storage_low: '不建议储存，应立即处理或丢弃，避免污染其他食材。',
-      consumption_bad: '不建议食用，可能引发肠胃不适或食物中毒。',
-      consumption_ok: '充分加热至 70°C 以上，避免生食。',
-      processing: '处理前清洗双手与器具，去除鱼鳃与内脏，流水冲洗。生熟分开避免交叉污染。',
-      safety_bad: '不新鲜水产品可能含组胺与致病菌，食用风险高，建议丢弃。',
-      safety_ok: '如有异味、黏液或变色应停止食用。过敏人群慎食。',
-      best: '购买后尽快处理；拍摄时正面、清晰、光线充足，可提高 AI 判断准确率。'
     },
     pdf: {
       title: '鲜眸检测报告',
@@ -217,7 +180,7 @@ const zh = {
       duration: '耗时',
       model: '模型',
       evidence: 'AI 依据',
-      trend: '视觉趋势',
+      trend: '参考样本对照',
       advice: '处理建议',
       probability_note: '概率表示模型对这张图像的相对判断，不等同于食品安全概率。',
       limitation: '能力边界',
@@ -313,7 +276,7 @@ const zh = {
     ],
     timeline: [
       { icon: '0', color: 'green', title: '初始阶段 · 刚捕捞/死亡', text: '角膜完全透明，瞳孔深黑，晶体清晰。鱼眼饱满凸出，各项指标处于最佳水平。' },
-      { icon: '1', color: 'green', title: '早期阶段', text: '角膜开始轻微变化，瞳孔仍清晰，晶体透明，仍符合国标新鲜要求。' },
+      { icon: '1', color: 'green', title: '早期阶段', text: '角膜开始轻微变化，瞳孔仍清晰，晶体透明，可能仍可见清晰的瞳孔。' },
       { icon: '2', color: 'green', title: '高度新鲜阶段', text: '角膜轻微浑浊，瞳孔略浅，晶体开始变化。视觉特征仍接近“高度新鲜”等级，需结合鱼鳃、气味、肉质与储存条件继续判断。' },
       { icon: '3', color: 'gold', title: '新鲜阶段', text: '角膜明显浑浊，瞳孔颜色变浅，晶体泛白。进入“新鲜”等级，建议尽快处理。' },
       { icon: '4', color: 'gold', title: '新鲜临界阶段', text: '角膜浑浊加重，瞳孔模糊，晶体白色加深。视觉特征更接近不新鲜样本，需结合其他感官指标判断。' },
