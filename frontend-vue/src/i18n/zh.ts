@@ -475,7 +475,7 @@ const zh = {
     ],
     solutions: [
       '鱼眼照片一键上传，零成本非破坏式检测',
-      'FishFreshNetV1（EfficientNet-B0 + CBAM）准确率 99%+',
+      '历史页面列示 FishFreshNetV1 的 MFED 结果为 98.88%，与发布权重的对应关系尚未核实',
       '历史页面列示 FishFreshNetV2 的 MFED 结果为 99.29%',
       'Grad-CAM 显示模型对当前预测的关注区域，报告提供视觉参考',
       '置信度驱动自适应分支，低置信度主动提示重拍'
