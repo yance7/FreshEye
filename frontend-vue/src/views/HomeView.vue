@@ -1324,7 +1324,6 @@ function closeLowConfidenceModal(): void {
         </div>
         <p class="compare-hint">{{ t('home.result.compare_hint') }}</p>
         <p class="vision-explain">{{ t('home.result.compare_desc') }}</p>
-        <p class="vision-explain muted">{{ t('home.result.vision_explain') }}</p>
       </div>
       <div v-else class="empty-state glass-card">
         {{ lastHeatmap ? t('home.result.no_original') : t('home.result.no_heatmap') }}
