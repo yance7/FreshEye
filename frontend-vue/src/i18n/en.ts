@@ -475,7 +475,7 @@ const en = {
     ],
     solutions: [
       'One-click photo upload — zero-cost, non-destructive detection',
-      'FishFreshNetV1 (EfficientNet-B0 + CBAM) achieves 99%+ accuracy',
+      'The historical site lists 98.88% MFED for FishFreshNetV1; its relationship to released weights is unverified',
       'The historical site lists 99.29% MFED for FishFreshNetV2',
       'Grad-CAM shows model attention for the current prediction; the report provides visual reference',
       'Confidence-driven adaptive branching — low confidence prompts retake'

@@ -165,10 +165,16 @@ test('loads the English language chunk only after the visitor switches languages
 
 test('public evidence identifies dataset scope and links primary sources', async ({ page }) => {
   await page.goto('/about.html')
+  await expect(page.locator('.pain-card.solution')).not.toContainText('99%+')
+  await expect(page.locator('.pain-card.solution')).toContainText('98.88%')
+  await expect(page.locator('.pain-card.solution')).toContainText('MFED')
   await expect(page.locator('#evidence-card')).toContainText('4°C')
   await expect(page.locator('#evidence-card')).toContainText('数据集内')
   await expect(page.locator('#references a[href="https://data.mendeley.com/datasets/67nmx3mhwh/2"]')).toBeVisible()
   await page.locator('button.lang-switch:visible').first().click()
+  await expect(page.locator('.pain-card.solution')).not.toContainText('99%+')
+  await expect(page.locator('.pain-card.solution')).toContainText('98.88%')
+  await expect(page.locator('.pain-card.solution')).toContainText('MFED')
   await expect(page.locator('#evidence-card')).toContainText('in-dataset')
   await page.goto('/fish.html')
   await expect(page.locator('main')).toContainText('for education only')
