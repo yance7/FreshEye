@@ -3,10 +3,10 @@
 import { computed } from 'vue'
 import { useI18n } from '@/i18n'
 
-const { t, tm, locale } = useI18n()
+const { t, tm } = useI18n()
 
 interface Level { icon: string; title: string; text: string; color: string }
-interface Species { name: string; tag: string; tag_en: string; desc: string; angle: string; cook: string }
+interface Species { name: string }
 interface InfoCard { icon: string; title: string; text?: string; items?: string[] }
 interface TimelineItem { icon: string; title: string; text: string; color: string }
 
@@ -14,7 +14,6 @@ const levels = computed<Level[]>(() => tm<Level[]>('fish.levels'))
 const species = computed<Species[]>(() => tm<Species[]>('fish.species'))
 const timeline = computed<TimelineItem[]>(() => tm<TimelineItem[]>('fish.timeline'))
 const standards = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.standards'))
-const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips'))
 </script>
 
 <template>
@@ -51,17 +50,10 @@ const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips')
       <h2 class="section-title">{{ t('fish.species_title') }}</h2>
     </div>
     <p class="intro-sub">{{ t('fish.species_intro') }}</p>
+    <p class="intro-sub"><a href="https://data.mendeley.com/datasets/67nmx3mhwh/2" target="_blank" rel="noopener noreferrer">MFED</a> · <a href="https://data.mendeley.com/datasets/xzyx7pbr3w/1" target="_blank" rel="noopener noreferrer">FFE</a></p>
     <div class="species-grid">
       <div v-for="s in species" :key="s.name" class="species-card">
-        <h3 class="species-name">
-          {{ s.name }}
-          <span class="tag-pill" :class="s.tag_en === 'seawater' ? 'tag-sea' : ''">{{ s.tag }}</span>
-        </h3>
-        <p class="species-desc">{{ s.desc }}</p>
-        <p class="species-meta">
-          <span>{{ t('fish.best_angle') }}: {{ s.angle }}</span>
-          <span>{{ t('fish.recommended_cook') }}: {{ s.cook }}</span>
-        </p>
+        <h3 class="species-name">{{ s.name }}</h3>
       </div>
     </div>
   </section>
@@ -89,28 +81,12 @@ const buyingTips = computed<InfoCard[]>(() => tm<InfoCard[]>('fish.buying_tips')
       <h2 class="section-title">{{ t('fish.standard_title') }}</h2>
     </div>
     <p class="intro-sub">{{ t('fish.standard_intro') }}</p>
+    <p class="intro-sub"><a href="https://www.nhc.gov.cn/sps/c100087/201812/f2e3729a15464641a78a29fbbb7206d9.shtml" target="_blank" rel="noopener noreferrer">GB 2733-2015 · 国家卫生健康委员会 / National Health Commission</a></p>
     <div class="info-grid">
       <div v-for="card in standards" :key="card.title" class="info-card">
         <div class="info-card-icon" aria-hidden="true">{{ card.icon }}</div>
         <h3>{{ card.title }}</h3>
         <p>{{ card.text }}</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- 选购建议 -->
-  <section class="reveal">
-    <div class="section-head">
-      <h2 class="section-title">{{ t('fish.buying_title') }}</h2>
-    </div>
-    <p class="intro-sub">{{ t('fish.buying_intro') }}</p>
-    <div class="buying-grid">
-      <div v-for="card in buyingTips" :key="card.title" class="buying-card">
-        <h3>{{ card.icon }} {{ card.title }}</h3>
-        <p v-if="card.text">{{ card.text }}</p>
-        <ul v-if="card.items?.length">
-          <li v-for="item in card.items" :key="item">{{ item }}</li>
-        </ul>
       </div>
     </div>
   </section>

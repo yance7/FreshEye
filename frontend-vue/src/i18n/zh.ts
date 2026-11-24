@@ -220,6 +220,7 @@ const zh = {
     subtitle: '从拍照到看懂结果，一分钟掌握鱼眼新鲜度智能评估。',
     steps_title: '三步使用流程',
     photo_title: '拍照教程',
+    photo_source: '示例图：FreshEye 仓库；原始采集来源尚未核实',
     faq_title: '常见问题 FAQ',
     tips_title: '最佳实践 Tips',
     kicker_pass: '正确',
@@ -267,17 +268,17 @@ const zh = {
   fish: {
     eyebrow: '鱼种百科',
     title: '常见水产品鱼眼图鉴',
-    subtitle: '不同鱼种的眼部特征各异，了解它们有助于更准确地判断新鲜度。',
+    subtitle: '了解研究数据与视觉参考的适用范围。',
     levels_title: '鱼眼新鲜度三级分类标准',
-    levels_intro: '参考 GB 2733-2015 中动物性水产品感官要求，并结合项目鱼眼视觉特征与实验数据建立三级视觉新鲜度分类。本页内容仅用于理解视觉特征，不替代完整食品安全检验。',
+    levels_intro: '以下是 MFED 研究中的等级视觉参考模板，不是对某张照片的逐项检测，也不构成国标合格或食用安全判定。',
     species_title: '常见鱼种图鉴',
-    species_intro: '常见淡水鱼与海水鱼的鱼眼特征、拍摄角度与烹饪建议速查。',
+    species_intro: '以下常见名称仅供科普，并非所有鱼种均在模型评测中覆盖。MFED 包含稻花鱼与鲫鱼；FFE 覆盖其他物种，具体见数据集。',
     best_angle: '最佳拍摄角度',
     recommended_cook: '推荐烹饪',
-    timeline_title: '鱼眼新鲜度变化参考时序',
-    timeline_intro: '常温储存条件下鱼眼外观的典型变化过程（仅供参考，实际新鲜度判定以 GB 2733-2015 国家标准为准）。',
+    timeline_title: 'MFED 样本标签条件',
+    timeline_intro: '以下是 MFED 研究中两种淡水鱼在 4°C 下采集的标签条件，不是其他鱼种的时间预测或安全结论。',
     standard_title: 'GB 2733-2015 国标解读',
-    standard_intro: '鲜眸（FreshEye）三级分类体系所参照的国家标准依据。',
+    standard_intro: '了解相关国家标准的范围；单张照片无法证明符合标准。',
     buying_title: '选购建议',
     buying_intro: '日常挑鱼时除了用鲜眸拍照检测，也可结合以下感官经验快速判断。',
     levels: [
@@ -286,22 +287,19 @@ const zh = {
       { icon: '◌', title: '不新鲜', text: '角膜严重浑浊，瞳孔变形或消失，晶体混浊发白。视觉特征显示明显不新鲜，建议不要仅凭本结果判断食用安全。', color: 'low' }
     ],
     species: [
-      { name: '鲫鱼', tag: '淡水', tag_en: 'freshwater', desc: '鱼眼大而凸出，角膜透明度高，新鲜度变化明显。', angle: '正侧面', cook: '清蒸、炖汤' },
-      { name: '稻花鱼', tag: '淡水', tag_en: 'freshwater', desc: '鱼眼中等大小，瞳孔黑色深沉，浑浊变化较慢。', angle: '正侧面', cook: '红烧、干炸' },
-      { name: '草鱼', tag: '淡水', tag_en: 'freshwater', desc: '鱼眼较大，角膜厚实，新鲜时眼球饱满凸出。', angle: '45度侧面', cook: '水煮、酸菜鱼' },
-      { name: '鲤鱼', tag: '淡水', tag_en: 'freshwater', desc: '鱼眼圆形凸出，瞳孔清晰，浑浊时颜色变浅。', angle: '正侧面', cook: '红烧、糖醋' },
-      { name: '鲈鱼', tag: '海水', tag_en: 'seawater', desc: '鱼眼明亮有神，角膜清澈，新鲜度保持较好。', angle: '正侧面', cook: '清蒸' },
-      { name: '带鱼', tag: '海水', tag_en: 'seawater', desc: '鱼眼较小但凸出，新鲜时角膜透明带银光。', angle: '正面', cook: '煎炸、红烧' },
-      { name: '黄花鱼', tag: '海水', tag_en: 'seawater', desc: '鱼眼大而圆，新鲜时角膜金黄透亮。', angle: '正侧面', cook: '清蒸、红烧' },
-      { name: '鳕鱼', tag: '海水', tag_en: 'seawater', desc: '鱼眼中等偏大，新鲜时晶体透明呈球状。', angle: '正侧面', cook: '香煎、烤制' }
+      { name: '鲫鱼' },
+      { name: '稻花鱼' },
+      { name: '草鱼' },
+      { name: '鲤鱼' },
+      { name: '鲈鱼' },
+      { name: '带鱼' },
+      { name: '黄花鱼' },
+      { name: '鳕鱼' },
     ],
     timeline: [
-      { icon: '0', color: 'green', title: '初始阶段 · 刚捕捞/死亡', text: '角膜完全透明，瞳孔深黑，晶体清晰。鱼眼饱满凸出，各项指标处于最佳水平。' },
-      { icon: '1', color: 'green', title: '早期阶段', text: '角膜开始轻微变化，瞳孔仍清晰，晶体透明，可能仍可见清晰的瞳孔。' },
-      { icon: '2', color: 'green', title: '高度新鲜阶段', text: '角膜轻微浑浊，瞳孔略浅，晶体开始变化。视觉特征仍接近“高度新鲜”等级，需结合鱼鳃、气味、肉质与储存条件继续判断。' },
-      { icon: '3', color: 'gold', title: '新鲜阶段', text: '角膜明显浑浊，瞳孔颜色变浅，晶体泛白。进入“新鲜”等级，建议尽快处理。' },
-      { icon: '4', color: 'gold', title: '新鲜临界阶段', text: '角膜浑浊加重，瞳孔模糊，晶体白色加深。视觉特征更接近不新鲜样本，需结合其他感官指标判断。' },
-      { icon: '!', color: 'red', title: '不新鲜阶段 · 视觉特征明显异常', text: '角膜严重浑浊，瞳孔变形或消失，晶体完全不透明。建议结合异味、组织状态与来源信息判断，必要时避免食用。' }
+      { icon: '1', color: 'green', title: '高度新鲜参考样本', text: 'MFED 标签条件：4°C 下储存不超过 2 天。' },
+      { icon: '2', color: 'gold', title: '新鲜参考样本', text: 'MFED 标签条件：4°C 下储存超过 2 天且不超过 4 天。' },
+      { icon: '3', color: 'red', title: '不新鲜参考样本', text: 'MFED 标签条件：4°C 下储存超过 4 天。各标签也结合采集时的视觉指标。' }
     ],
     standards: [
       { icon: '▦', title: '标准名称', text: 'GB 2733-2015《食品安全国家标准 鲜、冻动物性水产品》。标准包含感官、理化、污染物等多类要求；FreshEye 只参考其中与视觉相关的感官维度。' },
@@ -309,14 +307,7 @@ const zh = {
       { icon: '◉', title: '感官指标', text: '标准的感官要求涉及状态、色泽、组织和气味等多个维度。鲜眸聚焦其中的鱼眼视觉特征，不能检测病原菌、组胺、毒素、污染物或药物残留。' },
       { icon: '⌁', title: '训练数据', text: 'MFED 约 4800 张照片，覆盖 2 种淡水鱼与 4 种受控环境；三级标签结合储存时间、鱼眼视觉特征与项目实验数据建立。' }
     ],
-    buying_tips: [
-      { icon: '◉', title: '看鱼眼', items: ['优先选择鱼眼饱满凸出、角膜透明的鱼', '避免鱼眼平坦下陷、角膜浑浊的鱼'] },
-      { icon: '◈', title: '看鱼鳃', items: ['注意鱼鳃颜色，鲜红色为佳', '暗红 / 灰白色为劣质品，避免购买'] },
-      { icon: '⌁', title: '摸鱼肉', items: ['按压鱼肉测试弹性，迅速回弹为新鲜', '按痕难恢复或松软无弹性则不新鲜'] },
-      { icon: '◌', title: '闻气味', items: ['新鲜鱼带有海水 / 淡水自然气味', '出现腥臭味、酸败味则已变质'] },
-      { icon: '✦', title: '看体表', items: ['鱼鳞完整有光泽、黏液透明为新鲜', '鱼鳞脱落、体表暗淡发干则不新鲜'] },
-      { icon: '◎', title: '善用鲜眸（FreshEye）', items: ['对准鱼眼正侧面拍摄，避免反光', '结合 AI 检测结果与感官经验综合判断'] }
-    ]
+
   },
   about: {
     eyebrow: '关于鲜眸',
@@ -346,14 +337,14 @@ const zh = {
     capability_items: ['✓ 真实 CNN 推理', '✓ Grad-CAM', '✓ 手机相机', '✓ PWA', '✓ 数据集公开'],
     evidence_stats: [
       { value: '约 4,800', label: 'MFED 样本' },
-      { value: '2', label: '种已验证淡水鱼' },
+      { value: '2', label: 'MFED 淡水鱼种' },
       { value: '4', label: '种受控环境' },
       { value: '4.095M', label: 'V2 参数量' },
       { value: '0.414G', label: 'V2 FLOPs' },
       { value: '99.29%', label: 'MFED 测试集', accent: true },
       { value: '81.18%', label: 'FFE 公开数据集', accent: true }
     ],
-    evidence_note: '99.29% 与 81.18% 是对应数据集上的验证结果，不代表现实环境中的食品安全准确率；其他鱼种、模糊反光图片与非视觉安全风险仍需额外判断。',
+    evidence_note: 'MFED 为稻花鱼和鲫鱼在 4°C、四种光照与背景条件下采集的图像；训练入口使用图像级切分，同一鱼个体可能跨集合。V2 的 FFE 81.18% 是研究仓库描述的 FFE 数据集内评测，不是跨数据集泛化。FreshEye 的 V1 MFED 98.88% 与 V1 研究仓库现报 99.23% 不同，公开权重与这些数字的对应关系尚未核实。其他鱼种、模糊、反光和非视觉风险均有局限；这些数字不能判断食用安全。',
     why_eye_title: '为什么选择鱼眼作为入口？',
     why_eye_intro: '鱼眼是本项目的视觉切入点，不等于对完整食品安全状态的判断。',
     why_eye: [
@@ -370,7 +361,7 @@ const zh = {
       { icon: '⌖', title: '食品安全边界', text: '本工具是 AI 辅助评估，不适合作为法定食品检测报告、质量合格证明或食用安全保证。' },
       { icon: '▦', title: '混淆矩阵', text: '当前仓库只公开汇总准确率，未公开逐样本预测记录，因此不从汇总指标推导混淆矩阵。' }
     ],
-    model_card_disclaimer: '参考 GB 2733-2015 中动物性水产品感官要求，并结合鱼眼视觉特征与项目实验数据建立三级视觉新鲜度分类；这不是对完整国标食品安全项目的替代。',
+    model_card_disclaimer: '三级视觉分类不是 GB 2733-2015 的合格判定，也不能替代完整食品安全检验。',
     v1Intro: 'FishFreshNetV1 是一个轻量级且可解释的深度学习框架，专为鱼眼新鲜度分类任务设计。模型仅 4.22M 参数、0.41G FLOPs，在 MFED 测试集达到 98.88% 准确率。',
     v1_feature_scaling_title: '复合缩放方法',
     v1FeatureScaling: 'EfficientNet 通过统一的复合系数 φ 同时缩放网络深度、宽度和输入分辨率，三者协同优化而非单一维度扩展，在保持高精度的同时减少参数量。',
@@ -399,7 +390,7 @@ const zh = {
     v2_eca_interaction_title: '局部跨通道交互',
     v2EcaFeature2: '与 CBAM 的共享 MLP 不同，ECA 通过一维卷积实现局部邻域通道交互，更高效地捕获通道依赖关系。',
     v2CraTitle: 'Light CRA 环形区域注意力',
-    v2CraIntro: 'Light CRA 是本项目引入的鱼眼专用区域注意力模块，利用鱼眼近似圆形的几何先验，将特征图划分为 N=3 个同心环（瞳孔、角膜、眼眶）并分别施加注意力。通过掩码分区与共享深度卷积，将区域模块参数量压缩至约 0.083M；MFED 准确率由 98.88% 提升至 99.29%。',
+    v2CraIntro: 'Light CRA 使用同心环位置先验与共享卷积处理特征；这些环是图像位置分区，不保证与具体鱼眼部位一一对应。',
     v2_cra_semantics_title: '三环语义结构',
     v2CraFeature1: 'N=3 对应鱼眼的三段语义结构：内环为瞳孔，中环为角膜，外环为眼眶；各环学习不同半径区域的新鲜度特征。',
     v2_cra_lightweight_title: '轻量化设计',
@@ -407,13 +398,13 @@ const zh = {
     v2_cra_ablation_title: '环形数量消融验证',
     v2CraFeature3: '项目实验将 N=3 作为当前实现的区域划分方案；N=1 缺少区域先验，过多分环则可能造成语义碎片化。',
     v2CompareTitle: 'V1 vs V2 性能对比',
-    v2CompareText: '在 MFED 测试集上，V2 相对 V1 的准确率提升 0.41 个百分点（98.88% → 99.29%）；参数量从 4.216M 降至 4.095M，模型大小从 16.08MB 降至 15.62MB。FFE 公开数据集结果见上方验证范围。',
+    v2CompareText: '页面历史列示 MFED V1/V2 准确率为 98.88%/99.29%。实验切分和权重谱系尚未对齐，不能据此归因或比较模型的实际提升。',
     v2_table_model: '模型',
     v2_table_accuracy: '准确率 (%)',
     v2_table_params: '参数 (M)',
     v2_table_size: '模型大小 (MB)',
     v2_compare_rows: [
-      { model: 'FishFreshNetV1（基线）', accuracy: '98.88', f1: '98.88', params: '4.216', flops: '0.414', size: '16.08', highlight: false },
+      { model: 'FishFreshNetV1（基线）', accuracy: '98.88', f1: '—', params: '4.216', flops: '0.414', size: '16.08', highlight: false },
       { model: 'FishFreshNetV2（本作品）', accuracy: '99.29', f1: '99.29', params: '4.095', flops: '0.414', size: '15.62', highlight: true }
     ],
     v1_detail_title: 'FishFreshNetV1 结构详解',
@@ -426,7 +417,7 @@ const zh = {
     v2_details: [
       { icon: '⌁', title: 'ECA 通道注意力', text: '用轻量一维卷积替代共享 MLP，降低参数开销并保留局部通道交互。' },
       { icon: '◉', title: 'Light CRA', text: '利用鱼眼圆形几何先验划分瞳孔、角膜、眼眶三环，强化区域特征表达。' },
-      { icon: '✦', title: '验证表现', text: 'MFED 准确率从 V1 的 98.88% 提升至 99.29%，同时维持轻量化部署。' }
+      { icon: '✦', title: '历史评测', text: '页面列示 MFED V1/V2 为 98.88%/99.29%；是否使用可比切分和对应发布权重尚待核实。' }
     ],
     workflow_table_title: '流程节点说明',
     workflow_table_node: '节点', workflow_table_type: '类型', workflow_table_duty: '职责',
@@ -485,12 +476,12 @@ const zh = {
     solutions: [
       '鱼眼照片一键上传，零成本非破坏式检测',
       'FishFreshNetV1（EfficientNet-B0 + CBAM）准确率 99%+',
-      'FishFreshNetV2（ECA + Light CRA）提升至 99.29%',
-      'Grad-CAM 热力图解释"为什么"，结构化报告给出"怎么办"',
+      '历史页面列示 FishFreshNetV2 的 MFED 结果为 99.29%',
+      'Grad-CAM 显示模型对当前预测的关注区域，报告提供视觉参考',
       '置信度驱动自适应分支，低置信度主动提示重拍'
     ],
-    compare_intro: '在 MFED（自建数据集）与 FFE（公开数据集）上的全面性能对比',
-    compare_footer: 'V2 相对 V1 提升 0.41 个百分点（98.88% → 99.29%），以 VGG16 约 3% 的参数量实现更高准确率。',
+    compare_intro: '历史项目汇总数字；V2 的 FFE 数字来自独立的数据集内实验，V1 实验和发布权重的对应关系尚未核实。',
+    compare_footer: '这些是历史汇总数字，不是使用同一鱼个体独立测试集的受控比较；权重与评测记录的对应关系仍需核实。',
     table_headers: { model: '模型', params: '参数/M', flops: 'FLOPs/G', mfed: 'MFED 准确率', ffe: 'FFE 准确率' },
     compare_rows: [
       { model: 'VGG16', params: '134.27', flops: '15.47', mfed: '98.08%', ffe: '77.40%', highlight: false },
@@ -525,7 +516,7 @@ const zh = {
     v2_cards: [
       { icon: '⌁', title: 'ECA 通道注意力', text: '用轻量一维卷积替代共享 MLP，降低参数开销并保留局部通道交互。' },
       { icon: '◉', title: 'Light CRA', text: '利用鱼眼圆形几何先验划分瞳孔、角膜、眼眶三环，强化区域特征。' },
-      { icon: '✦', title: '精度提升', text: 'MFED 准确率从 V1 的 98.88% 提升至 99.29%，同时维持轻量化部署。' }
+      { icon: '✦', title: '历史评测', text: '页面列示 MFED V1/V2 为 98.88%/99.29%；实验是否可比仍待核实。' }
     ],
     workflow_title: '检测流程',
     workflow_intro: '前端图像校验与压缩 → FastAPI 后端 PyTorch 推理 → Grad-CAM 可视化 → 置信度自适应提示。',
@@ -563,6 +554,9 @@ const zh = {
     refGb: '国家卫生和计划生育委员会（2015）：GB 2733-2015《食品安全国家标准 鲜、冻动物性水产品》。',
     references_title: '参考文献',
     references: [
+      { citation: 'Yan, C. (2026). Multistage Fish Eyes Dataset (MFED), Version 2. Mendeley Data. DOI: 10.17632/67nmx3mhwh.2.', url: 'https://data.mendeley.com/datasets/67nmx3mhwh/2' },
+      { citation: 'FishFreshNetV1 research repository: reported metrics and protocol.', url: 'https://github.com/yance7/FishFreshNetV1' },
+      { citation: 'FishFreshNetV2 research repository: separate FFE in-dataset protocol.', url: 'https://github.com/yance7/FishFreshNetV2' },
       { citation: 'Prasetyo, E., Purbaningtyas, R., Adityo, R. D., Suciati, N., & Fatichah, C. (2022). Combining MobileNetV1 and Depthwise Separable Convolution Bottleneck with Expansion for Classifying the Freshness of Fish Eyes. Information Processing in Agriculture, 9(4), 485–496.', url: 'https://doi.org/10.1016/j.inpa.2022.01.002', note: 'FFE 公开数据集相关论文；数据集另见 Mendeley Data。' },
       { citation: 'Prasetyo, E., Adityo, R. D., Suciati, N., & Fatichah, C. (2022). The Freshness of the Fish Eyes Dataset (FFE), Version 1.', url: 'https://data.mendeley.com/datasets/xzyx7pbr3w/1', note: 'Mendeley Data，DOI: 10.17632/xzyx7pbr3w.1。' },
       { citation: 'Yildiz, M. B., Yasin, E. T., & Koklu, M. (2024). Fisheye freshness detection using common deep learning algorithms and machine learning methods with a developed mobile application. European Food Research and Technology, 250(7), 1919–1932.', url: 'https://doi.org/10.1007/s00217-024-04493-0' },
@@ -574,7 +568,7 @@ const zh = {
       { citation: 'Selvaraju, R. R., et al. (2017). Grad-CAM: Visual Explanations from Deep Networks via Gradient-Based Localization. ICCV, 618–626.', url: 'https://openaccess.thecvf.com/content_iccv_2017/html/Selvaraju_Grad-CAM_Visual_Explanations_ICCV_2017_paper.html' },
       { citation: 'Wang, Q., et al. (2020). ECA-Net: Efficient Channel Attention for Deep Convolutional Neural Networks. CVPR, 11534–11542.', url: 'https://openaccess.thecvf.com/content_CVPR_2020/html/Wang_ECA-Net_Efficient_Channel_Attention_for_Deep_Convolutional_Neural_Networks_CVPR_2020_paper.html' },
       { citation: 'Lalabadi, H. M., Sadeghi, M., & Mireei, S. A. (2020). Fish freshness categorization from eyes and gills color features using multi-class artificial neural network and support vector machines. Aquacultural Engineering, 90, 102076.', url: 'https://doi.org/10.1016/j.aquaeng.2020.102076' },
-      { citation: '国家卫生和计划生育委员会 (2015). GB 2733-2015《食品安全国家标准 鲜、冻动物性水产品》. 中国标准出版社。', url: 'https://openstd.samr.gov.cn/' },
+      { citation: '国家卫生和计划生育委员会 (2015). GB 2733-2015《食品安全国家标准 鲜、冻动物性水产品》. 中国标准出版社。', url: 'https://www.nhc.gov.cn/sps/c100087/201812/f2e3729a15464641a78a29fbbb7206d9.shtml' },
       { citation: 'Madhubhashini, M. N., Liyanage, C. P., Alahakoon, A. U., et al. (2024). Current applications and future trends of artificial senses in fish freshness determination: A review. Journal of Food Science, 89(1), 33–50.', url: 'https://doi.org/10.1111/1750-3841.16865' }
     ]
   },

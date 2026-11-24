@@ -70,6 +70,7 @@ function toggleFaq(idx: number): void {
         <span class="viewfinder-guide-hint">{{ t('guide.photo_hint') }}</span>
       </div>
       <p class="viewfinder-guide-note">{{ t('guide.photo_text') }}</p>
+      <p class="viewfinder-guide-note"><a href="https://github.com/yance7/FreshEye/blob/c5d901979731603f18fca83c526bd1272ab90bd6/frontend-vue/public/assets/samples/highly-fresh.webp" target="_blank" rel="noopener noreferrer">{{ t('guide.photo_source') }}</a></p>
     </div>
     <div class="photo-check-grid">
       <article class="photo-check-card is-correct">

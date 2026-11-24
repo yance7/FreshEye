@@ -25,11 +25,15 @@
 
 </div>
 
+> **评测口径**：MFED 的稻花鱼和鲫鱼在 4°C、四种光照与背景条件下采集；当前训练代码按图像切分，同一鱼个体可能跨集合。页面中 V1/V2 的 MFED 98.88%/99.29% 和 FFE 81.78%/81.18% 是历史项目数字；V2 研究仓库将 FFE 描述为单独的数据集内评测，并非跨数据集测试。V1 研究仓库目前报告 MFED 99.23%，与此处 98.88% 不同；这些数字与发布权重的对应关系尚未核实。它们不代表食品安全准确率。
+
+> **Evaluation scope:** MFED contains rice flower fish and crucian carp collected at 4°C under four lighting/background conditions. The current training code splits images, so a fish may cross partitions. FreshEye historically lists V1/V2 MFED 98.88%/99.29% and FFE 81.78%/81.18%; the V2 research repository describes FFE as a separate in-dataset evaluation, not a cross-dataset test. The V1 research repository currently reports 99.23% on MFED, differing from the 98.88% here. The relationship between these figures and released weights is unverified; none is a food-safety accuracy. See [MFED](https://data.mendeley.com/datasets/67nmx3mhwh/2), [FFE](https://data.mendeley.com/datasets/xzyx7pbr3w/1), [V1 research](https://github.com/yance7/FishFreshNetV1), and [V2 research](https://github.com/yance7/FishFreshNetV2).
+
 ## 中文摘要
 
-FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系统：上传一张鱼眼照片，获得三级视觉分类、置信度、Grad-CAM 判断依据、处理建议与可追溯报告；FishFreshNetV2 在 MFED 测试集达到 99.29%，在 FFE 公开数据集上为 81.18%。
+FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系统：上传一张鱼眼照片，获得三级视觉分类、置信度、本次预测的 Grad-CAM 关注区域与报告；FishFreshNetV2 在 MFED 测试集达到 99.29%，在 FFE 公开数据集上为 81.18%。
 
-**核心链路**：上传 → AI 分析 → Grad-CAM → 结果与建议。报告仅描述视觉特征，不替代法定食品检测、质量合格证明或食用安全判断。
+**核心链路**：上传 → AI 分析 → Grad-CAM → 视觉参考报告。报告仅描述视觉特征，不替代法定食品检测、质量合格证明或食用安全判断。
 
 **[在线体验](https://fresheye.yance.me/)** · **[技术细节](https://fresheye.yance.me/about.html)** · **[公开数据集](https://data.mendeley.com/datasets/67nmx3mhwh/2)**
 
@@ -58,7 +62,7 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 
 ## English
 
-鲜眸 (FreshEye) is an AI-powered aquatic product freshness assessment system. Using fish-eye images as the core input, it combines the **FishFreshNetV1/V2** lightweight CNN models, **Grad-CAM** explainability analysis, and **confidence-adaptive interaction** to output freshness grade, confidence, visual evidence, structured reports, and handling recommendations.
+鲜眸 (FreshEye) is an AI-powered aquatic product freshness assessment system. Using fish-eye images as the core input, it combines the **FishFreshNetV1/V2** lightweight CNN models, **Grad-CAM** explainability analysis, and **confidence-adaptive interaction** to provide a visual class, model score, model-attention map, and structured report.
 
 <a id="key-features"></a>
 
@@ -70,7 +74,7 @@ FreshEye 是一个基于鱼眼照片的水产品视觉新鲜度辅助评估系�
 - 🔥 **Grad-CAM explainability** — heatmaps reveal the regions the model focuses on.
 - 🚦 **Confidence-adaptive interaction** — green/yellow/red dashboard with retake prompts for low-confidence results.
 - 📊 **Structured analysis** — rule-based eye appearance / clarity / color / texture / quality descriptions.
-- 📋 **Five-category recommendations** — storage / consumption / handling / safety / best practices.
+- 📋 **Safety boundary** — visual output does not determine food safety or storage time.
 - 📄 **PDF report export** — original image, heatmap, probability distribution, and detailed analysis.
 - 🌐 **Bilingual UI** — Chinese by default, English toggle in the header, persisted with `fresheye-language` (with legacy-key compatibility); pages, dynamic results, history, errors, and PDF copy share the same locale contract.
 - 📱 **PWA support** — offline caching with Service Worker, plus an in-app camera viewfinder with a circular fish-eye guide frame on mobile.
@@ -115,7 +119,7 @@ image_upload (click / drag / paste / camera)
   -> gradcam_visualization (gradient-weighted class activation mapping)
   -> probability_output (three-class probability distribution)
   -> structured_analysis (rule-based eye appearance / clarity / color / texture / quality)
-  -> recommendation_generation (five-category rule templates)
+  -> safety_boundary (no photo-based food-safety decision)
   -> result_visualization (dashboard / probability bar / heatmap slider / 4-tab report)
   -> export_and_history (PDF export + localStorage history)
   -> END
@@ -192,7 +196,7 @@ MIT License — see [LICENSE](LICENSE).
 
 ## 中文说明
 
-鲜眸（FreshEye）是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出新鲜度等级、置信度、视觉依据、结构化报告和处理建议。
+鲜眸（FreshEye）是一个基于 AI 的水产品新鲜度智能评估系统。系统以鱼眼图像为核心输入，结合 **FishFreshNetV1/V2** 轻量化 CNN 模型、**Grad-CAM** 可解释性分析和**置信度自适应交互**，输出视觉等级、模型分数、当前预测的模型关注区域与结构化报告。
 
 <a id="核心能力"></a>
 
