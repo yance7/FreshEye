@@ -2,11 +2,12 @@
 // localStorage 持久化，最多 50 条，缩略图自动压缩。
 import { ref } from 'vue'
 import { FAVORITES_KEY, HISTORY_KEY, LEGACY_FAVORITES_KEYS, LEGACY_HISTORY_KEYS, MAX_HISTORY } from '@/config'
-import type { HistoryRecord, PredictionResult } from '@/types'
+import type { HistoryRecord, PredictionResult, RequestProvenance } from '@/types'
 import { normalizePrediction } from '@/utils/prediction'
 
 /** 全局共享的历史记录列表 */
 const history = ref<HistoryRecord[]>([])
+const storageError = ref(false)
 
 /** 从 localStorage 读取历史记录 */
 function loadHistory(): { records: unknown[]; legacy: boolean } {
@@ -20,6 +21,7 @@ function loadHistory(): { records: unknown[]; legacy: boolean } {
       }
     } catch {
       // 当前键损坏时继续读取兼容键，避免旧记录被遮蔽。
+      storageError.value = true
     }
   }
   return { records: [], legacy: false }
@@ -35,17 +37,31 @@ function loadFavoriteIds(): Set<string> {
       if (Array.isArray(parsed)) parsed.forEach((id) => ids.add(String(id)))
     } catch {
       // 某个兼容键损坏时继续读取其他收藏键。
+      storageError.value = true
     }
   }
   return ids
 }
 
 /** 写入 localStorage */
-function saveHistory(list: HistoryRecord[]): void {
+function saveHistory(list: HistoryRecord[]): boolean {
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(list))
+    storageError.value = false
+    return true
   } catch {
-    /* 存储满或不可用时忽略 */
+    storageError.value = true
+    return false
+  }
+}
+
+function removeLegacyCopies(): boolean {
+  try {
+    for (const key of [...LEGACY_HISTORY_KEYS, FAVORITES_KEY, ...LEGACY_FAVORITES_KEYS]) localStorage.removeItem(key)
+    return true
+  } catch {
+    storageError.value = true
+    return false
   }
 }
 
@@ -66,19 +82,30 @@ function normalizeRecord(raw: unknown, favoriteIds: Set<string>, legacy: boolean
         description: nestedPrediction.description ?? source.description,
         model_version: nestedPrediction.model_version ?? nestedPrediction.modelVersion ?? source.modelVersion,
         timestamp: nestedPrediction.timestamp ?? source.timestamp
-      }, 'v2')
+      }, 'v2', '')
     : undefined
+  const recordedModel = nestedPrediction.model_version ?? nestedPrediction.modelVersion ?? source.modelVersion
+  if (prediction && (typeof recordedModel !== 'string' || !recordedModel.trim())) prediction.model_version = ''
   const data = source.data ?? source.thumbnail
-  if (typeof data !== 'string' || !data) return null
+  if ((!data || typeof data !== 'string') && !prediction) return null
+  const rawProvenance = source.provenance && typeof source.provenance === 'object' ? source.provenance as Record<string, unknown> : null
+  const provenance: RequestProvenance | undefined = rawProvenance ? {
+    requestedAt: typeof rawProvenance.requestedAt === 'string' ? rawProvenance.requestedAt : '',
+    resultCreatedAt: typeof rawProvenance.resultCreatedAt === 'string' ? rawProvenance.resultCreatedAt : '',
+    cacheStatus: rawProvenance.cacheStatus === 'hit' || rawProvenance.cacheStatus === 'miss' ? rawProvenance.cacheStatus : 'unknown',
+    serviceRevision: typeof rawProvenance.serviceRevision === 'string' ? rawProvenance.serviceRevision : '',
+    weightsSha256: typeof rawProvenance.weightsSha256 === 'string' ? rawProvenance.weightsSha256 : ''
+  } : undefined
   const id = String(source.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
   return {
     id,
-    data,
+    data: typeof data === 'string' ? data : '',
     duration: Number(source.duration ?? source.processingTime ?? 0) || 0,
-    timestamp: String(source.timestamp ?? prediction?.timestamp ?? new Date().toISOString()),
+    timestamp: String(source.timestamp ?? prediction?.timestamp ?? ''),
     favorite: Boolean(source.favorite) || ((legacy || source.favorite == null) && favoriteIds.has(id)),
     prediction,
-    heatmap: String(source.heatmap ?? source.heatmapThumbnail ?? '')
+    heatmap: String(source.heatmap ?? source.heatmapThumbnail ?? ''),
+    provenance
   }
 }
 
@@ -113,13 +140,14 @@ function compressThumbnail(dataUrl: string, maxSize = 160): Promise<string> {
 
 /** 初始化：从 localStorage 载入到响应式列表 */
 function initHistory(): void {
+  storageError.value = false
   const { records, legacy } = loadHistory()
   const favoriteIds = loadFavoriteIds()
   history.value = records
     .map((record) => normalizeRecord(record, favoriteIds, legacy))
     .filter((record): record is HistoryRecord => record !== null)
     .slice(0, MAX_HISTORY)
-  if (legacy) saveHistory(history.value)
+  if (legacy && saveHistory(history.value)) removeLegacyCopies()
 }
 
 /**
@@ -134,7 +162,8 @@ async function addHistoryRecord(
   duration: number,
   prediction?: PredictionResult,
   heatmap?: string,
-  shouldSave: () => boolean = () => true
+  shouldSave: () => boolean = () => true,
+  provenance?: RequestProvenance
 ): Promise<HistoryRecord | null> {
   const [thumb, heatThumb] = await Promise.all([
     compressThumbnail(data),
@@ -148,7 +177,8 @@ async function addHistoryRecord(
     timestamp: new Date().toISOString(),
     favorite: false,
     prediction,
-    heatmap: heatThumb
+    heatmap: heatThumb,
+    provenance
   }
   history.value.unshift(record)
   if (history.value.length > MAX_HISTORY) {
@@ -159,29 +189,32 @@ async function addHistoryRecord(
 }
 
 /** 删除指定历史记录 */
-function deleteHistory(id: string): void {
+function deleteHistory(id: string): boolean {
   history.value = history.value.filter((r) => r.id !== id)
-  saveHistory(history.value)
+  return saveHistory(history.value)
 }
 
 /** 清空全部历史记录 */
-function clearAllHistory(): void {
+function clearAllHistory(): boolean {
   history.value = []
-  saveHistory(history.value)
+  if (!saveHistory(history.value)) return false
+  return removeLegacyCopies()
 }
 
 /** 切换收藏状态 */
-function toggleFavorite(id: string): void {
+function toggleFavorite(id: string): boolean {
   const target = history.value.find((r) => r.id === id)
   if (target) {
     target.favorite = !target.favorite
-    saveHistory(history.value)
+    return saveHistory(history.value)
   }
+  return false
 }
 
 export function useHistory() {
   return {
     history,
+    storageError,
     initHistory,
     saveHistory,
     addHistoryRecord,
