@@ -1676,10 +1676,8 @@ function closeLowConfidenceModal(): void {
   position: absolute; left: 6px; right: 6px; bottom: 6px;
   font-size: 10.5px; color: var(--foam); text-align: center;
   padding: 3px 6px; border-radius: 999px;
-  background: rgba(4, 22, 43, 0.72);
+  background: rgba(4, 22, 43, 0.92);
   border: 1px solid rgba(39, 208, 196, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 
 /* ============ 预览卡片 ============ */
