@@ -110,6 +110,7 @@ export function useApi() {
 
       // 后端 FastAPI 按原版契约从 query 参数读取模型版本，不能只放在 multipart 表单里。
       const query = new URLSearchParams({ model_version: modelVersion })
+      const requestedAt = new Date().toISOString()
       const res = await fetch(`${API_BASE_URL}/predict_with_gradcam?${query.toString()}`, {
         method: 'POST',
         body: formData,
@@ -121,7 +122,7 @@ export function useApi() {
       // 适配后端返回结构：prediction 字段 + heatmap_image 字段
       const scores = { ...raw, ...asRecord(raw.prediction) }
       if (!hasPredictionScores(scores)) throw new ApiError('server', '识别结果缺少有效的置信度或分类概率')
-      const prediction = normalizePrediction(scores, modelVersion)
+      const prediction = normalizePrediction(scores, modelVersion, '')
 
       const candidate = raw.heatmap_image ?? raw.heatmap
       let heatmap = typeof candidate === 'string' ? candidate.trim() : ''
@@ -130,7 +131,16 @@ export function useApi() {
         heatmap = `data:image/jpeg;base64,${heatmap}`
       }
 
-      return { prediction, heatmap_image: heatmap }
+      const cache = res.headers?.get('X-FreshEye-Cache')
+      const hash = res.headers?.get('X-FreshEye-Weights-SHA256') || ''
+      const revision = res.headers?.get('X-FreshEye-Revision') || ''
+      return { prediction, heatmap_image: heatmap, provenance: {
+        requestedAt,
+        resultCreatedAt: typeof scores.timestamp === 'string' ? scores.timestamp : '',
+        cacheStatus: cache === 'hit' || cache === 'miss' ? cache : 'unknown',
+        serviceRevision: revision === 'unknown' ? '' : revision,
+        weightsSha256: /^[a-f0-9]{64}$/i.test(hash) ? hash : ''
+      } }
     } catch (err) {
       if (err instanceof ApiError) throw err
       if (err instanceof DOMException && err.name === 'AbortError') {
