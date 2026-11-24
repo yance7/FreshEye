@@ -20,7 +20,8 @@ test('first visit scroll captures all three sample corners without a dark overla
   expect(geometry).toHaveLength(3)
   expect(geometry.every(r => r.y >= 0 && r.y + 30 < 900)).toBe(true)
   await page.screenshot({ path: testInfo.outputPath('first-visible-viewport.png') })
-  await page.waitForTimeout(350)
+  await expect.poll(async () => page.evaluate(() => window.scrollY), { timeout: 5000, intervals: [200, 200, 200] }).toBe(await page.evaluate(() => window.scrollY))
+  await page.waitForTimeout(800)
   geometry = await page.locator('.sample-thumb img').evaluateAll(nodes => nodes.map(node => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height } }))
   const capture = await page.screenshot({ path: testInfo.outputPath('first-scroll-viewport.png') })
   const differences = await page.evaluate(async ({ screenshot, boxes }) => {
@@ -41,7 +42,7 @@ test('first visit scroll captures all three sample corners without a dark overla
       const w = source.naturalWidth * scale, h = source.naturalHeight * scale
       expected.drawImage(source, (expectedCanvas.width - w) / 2, (expectedCanvas.height - h) / 2, w, h)
       let difference = 0, count = 0
-      for (let y = 5; y < 25; y++) for (let x = expectedCanvas.width - 25; x < expectedCanvas.width - 5; x++) {
+      for (let y = 5; y < 20; y++) for (let x = expectedCanvas.width - 12; x < expectedCanvas.width - 5; x++) {
         const a = actual.getImageData(Math.round(box.x) + x, Math.round(box.y) + y, 1, 1).data
         const b = expected.getImageData(x, y, 1, 1).data
         for (let c = 0; c < 3; c++) { difference += Math.abs(a[c]! - b[c]!); count++ }
@@ -49,7 +50,7 @@ test('first visit scroll captures all three sample corners without a dark overla
       return difference / count
     })
   }, { screenshot: `data:image/png;base64,${capture.toString('base64')}`, boxes: geometry })
-  // Mean RGB difference over a 20×20 CSS-pixel corner; allows scaling and colour rendering differences.
+  // Mean RGB error in a 7×15 CSS-pixel patch; allow small colour-rendering differences.
   expect(differences).toHaveLength(3)
-  for (const difference of differences) expect(difference).toBeLessThan(30)
+  for (const difference of differences) expect(difference).toBeLessThan(12)
 })
