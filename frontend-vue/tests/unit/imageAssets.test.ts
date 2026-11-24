@@ -1,7 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
-import { prepareImageAssets } from '@/utils/imageAssets'
+import { assessImageQuality, prepareImageAssets } from '@/utils/imageAssets'
 
 describe('image asset preparation', () => {
+  it('warns on very low resolution or extreme brightness without rejecting the image', () => {
+    const pixels = (value: number) => new Uint8ClampedArray([value, value, value, 255])
+    expect(assessImageQuality(100, 500, pixels(100))).toEqual(['low_resolution'])
+    expect(assessImageQuality(500, 500, pixels(5))).toEqual(['dark'])
+    expect(assessImageQuality(500, 500, pixels(250))).toEqual(['bright'])
+    expect(assessImageQuality(500, 500, pixels(100))).toEqual([])
+  })
   it('decodes once and returns preview, upload, and thumbnail blobs', async () => {
     const bitmap = { width: 2000, height: 1000, close: vi.fn() }
     vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue(bitmap))
@@ -20,7 +27,7 @@ describe('image asset preparation', () => {
     expect(result.upload).toBeInstanceOf(Blob)
     expect(result.thumbnail).toBeInstanceOf(Blob)
     expect(createImageBitmap).toHaveBeenCalledOnce()
-    expect(drawImage).toHaveBeenCalledTimes(3)
+    expect(drawImage).toHaveBeenCalledTimes(4)
     expect(bitmap.close).toHaveBeenCalledOnce()
     vi.unstubAllGlobals()
   })

@@ -90,6 +90,7 @@ test('keeps reduced motion final states and landscape dialogs reachable', async 
   await page.locator('.upload-cta.alt').click()
   const dialog = page.locator('.app-dialog-surface')
   await expect(dialog).toBeVisible()
+  await expect(page.locator('.camera-viewfinder video')).toHaveCSS('object-fit', 'contain')
   await expect(dialog).toHaveCSS('overflow', 'auto')
   await page.locator('.camera-dialog-head .icon-btn').click()
   await expect(dialog).toHaveCount(0)

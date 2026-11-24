@@ -239,7 +239,7 @@ onBeforeUnmount(invalidateAndStop)
 }
 
 .camera-viewfinder::before { content: ""; position: absolute; inset: 0; z-index: 0; background: #020a16; }
-.camera-viewfinder video { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; background: #020a16; }
+.camera-viewfinder video { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; background: #020a16; }
 .camera-guide { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none; }
 .camera-guide-ring { width: min(66%, 360px); aspect-ratio: 1; border: 1px solid rgba(141, 243, 230, 0.78); border-radius: 50%; box-shadow: 0 0 0 999px rgba(2, 10, 22, 0.09), 0 0 24px rgba(39, 208, 196, 0.28), inset 0 0 18px rgba(39, 208, 196, 0.08); }
 .camera-guide-crosshair { position: absolute; width: 18px; height: 18px; border: 1px solid rgba(238, 252, 255, 0.35); border-radius: 50%; }

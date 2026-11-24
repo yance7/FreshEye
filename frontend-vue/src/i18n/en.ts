@@ -25,7 +25,7 @@ const en = {
       title: 'Upload Fish-Eye Image',
       section_hint: 'Click · drag · paste supported',
       hint: 'Click, drag or paste image',
-      formats: 'JPG / PNG / WebP',
+      formats: 'JPG / PNG / WebP; convert HEIC to JPEG or use the camera',
       camera: 'Camera',
       samples: 'Sample Images',
       choose_photo: 'Choose photo',
@@ -45,7 +45,7 @@ const en = {
     camera: {
       title: 'Camera viewfinder', starting: 'Opening camera…', error: 'Camera access failed. Check browser permissions.',
       fallback_help: 'You can also choose an image from this device.', fallback: 'Choose image',
-      flip: 'Flip camera', capture: 'Capture', close: 'Close viewfinder', not_ready: 'Camera is not ready', capture_failed: 'Capture failed. Please retry', guide: 'Place the fish eye inside the circle; keep it front-facing, sharp, and well lit.'
+      flip: 'Flip camera', capture: 'Capture', close: 'Close viewfinder', not_ready: 'Camera is not ready', capture_failed: 'Capture failed. Please retry', guide: 'Point the lens directly at the fish eye; keep it sharp and well lit. The circle is a guide; the full frame is saved.'
     },
     model: { v2: 'FishFreshNetV2', v1: 'FishFreshNetV1', label: 'Model version', advanced: 'Advanced settings', advanced_hint: 'V2 is the default', note: 'Original results: V1/V2 scored 98.88%/99.29% on MFED and 81.78%/81.18% on FFE. MFED used image-level splits; independence by fish remains unverified.' },
     result: {
@@ -88,6 +88,7 @@ const en = {
       warning_low: 'The model is uncertain about this image. Make sure the eye is clear, frontal, and well lit; low confidence does not mean it is not a fish eye.',
       close_warning: 'Dismiss warning'
     },
+    quality: { intro: 'Capture hints (advisory only; analysis remains available):', low_resolution: 'The image resolution is low; move closer and retake it.', dark: 'The overall image may be too dark; add even lighting.', bright: 'The overall image may be too bright; adjust lighting and avoid glare.' },
     prediction: {
       high: {
         appearance: 'Reference template: clear cornea, distinct pupil and glossy surface.',
@@ -153,7 +154,8 @@ const en = {
       rate_limit: 'Too many requests. Please try again later.',
       format: 'Unsupported format',
       size: 'Image too large',
-      preprocess: 'Could not read or process the image. Please retry.'
+      preprocess: 'Could not read or process the image. Please retry.',
+      heic: 'HEIC/HEIF files are not supported. Convert to JPEG or use the in-app camera.'
     },
     export: 'Export PDF report',
     lang_switch: '中',
@@ -222,9 +224,9 @@ const en = {
     tips_title: 'Best Practices',
     kicker_pass: 'Correct',
     kicker_check: 'Needs attention',
-    photo_intro: 'A good photo is essential for accurate detection. Compare the correct and incorrect examples below and follow the correct setup.',
+    photo_intro: 'Use the example image and the written checklist below; point the lens directly at the fish eye.',
     photo_hint: 'Center the fish eye in the circle',
-    photo_text: 'Shoot the fish eye frontally with adequate lighting, moderate distance (10–30cm), and clear focus. Dry the eye surface before shooting to avoid glare. Avoid side angles, dim environments, extreme distances, blur, and glare obstruction.',
+    photo_text: 'Point the lens directly at the fish eye, keeping the whole eye sharp and evenly lit. Adjust the light or position to reduce glare. JPG, PNG and WebP are supported; convert HEIC/HEIF to JPEG or use the in-app camera.',
     correct_title: 'Correct Example',
     correct_intro: 'The eye is centered, sharp, and evenly lit, so the cornea and pupil provide usable visual features.',
     incorrect_title: 'Incorrect Example',
@@ -234,7 +236,7 @@ const en = {
       { title: 'Enough light', text: 'Use daylight or white light evenly across the eye' },
       { title: 'Moderate distance', text: '10–30cm, with the eye covering at least 30% of the image' },
       { title: 'Sharp focus', text: 'Tap to focus and keep pupil/cornea details visible' },
-      { title: 'Dry surface', text: 'Dry the eye before shooting to prevent reflections' }
+      { title: 'Reduce glare', text: 'Adjust the light or position so reflections do not obscure the eye' }
     ],
     incorrect_checks: [
       { title: 'Side angle', text: 'The eye is distorted and key features are missing' },
@@ -244,7 +246,7 @@ const en = {
       { title: 'Glare obstruction', text: 'Direct light or droplets cover the cornea' }
     ],
     tips: [
-      { icon: '◌', title: 'Dry the surface', text: 'Gently dry the eye before shooting so droplets do not hide cornea features.' },
+      { icon: '◌', title: 'Reduce glare', text: 'Adjust the light or position so reflections do not obscure the eye.' },
       { icon: '◉', title: 'Choose good light', text: 'Use daylight or white light and avoid yellow lighting that changes color perception.' },
       { icon: '⌁', title: 'Fill the frame', text: 'Make the eye at least 30% of the image so enough detail can be extracted.' },
       { icon: '◎', title: 'Avoid glare', text: 'Avoid direct light and shadows; adjust the angle to remove reflections.' },
