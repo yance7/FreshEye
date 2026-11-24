@@ -29,7 +29,9 @@ const en = {
       camera: 'Camera',
       samples: 'Sample Images',
       choose_photo: 'Choose photo',
-      privacy: 'The photo is sent only to FreshEye AI for immediate analysis; history stays on this device.',
+      privacy: 'The photo is sent to the FreshEye inference service on Hugging Face; history stays on this device.',
+      privacy_details_title: 'How images, caches, and device history are handled',
+      privacy_details: 'This page uses browser Canvas to encode the photo as JPEG (maximum side 1280 pixels, quality 0.9) before sending it to the FreshEye Space for analysis. Service code in this repository does not write uploaded originals to application files; its logs record model version, class, confidence, duration, and cache status, not image bytes. Predictions and Grad-CAM results are cached in process memory (up to 128 entries of each type, nominally 30 minutes with lazy expiry). It has not been verified whether the running hosted revision matches this repository or what platform-side log and retention rules apply. The browser keeps up to 50 history records: original thumbnails have a maximum side of 160 pixels, and heatmaps are normally resized to a maximum side of 320 pixels, but may remain at their supplied size if compression fails. History remains until you clear it or clear site data.',
       onboarding: 'Click or drag a fish-eye image here',
       preview_alt: 'Fish-eye image preview',
       analyze: 'Analyze',
@@ -78,6 +80,7 @@ const en = {
       vision_explain: 'Grad-CAM shows regions the model attends to for this prediction; it does not establish their actual features.',
       compare_aria: 'Drag to compare the original image and heatmap',
       no_heatmap: 'No heatmap available',
+      no_original: 'This history record has no image available for heatmap comparison.',
       result_kicker: 'Visual freshness', result_action_label: 'What to do next',
       result_action: 'Combine this visual reference with the fish gills, odor, and flesh. Do not use it alone to decide food safety.',
       show_details: 'View visual evidence', show_advice: 'View actions', confidence_model_score: 'Model score',
@@ -120,7 +123,22 @@ const en = {
       filter_low: 'Not Fresh',
       filter_fav: 'Favorites',
       clear: 'Clear All',
-      empty: 'No history'
+      empty: 'No history',
+      storage_failed: 'Could not save this history change to browser storage. Unsaved changes may be lost or older records may return after reload. Check available storage and try again.'
+    },
+    provenance: {
+      details_title: 'Request and model provenance',
+      unknown: 'Unknown',
+      current_image: 'Current input image',
+      history_image: 'History thumbnail',
+      request_time: 'Request time (UTC)',
+      result_time: 'Result creation time',
+      timezone_unknown: 'timezone unknown',
+      cache: 'Cache status',
+      cache_hit: 'hit',
+      cache_miss: 'miss',
+      service_revision: 'Declared service revision',
+      weights_revision: 'Weight SHA-256'
     },
     confidence_warn: {
       high: 'Higher model score; for reference only',
@@ -177,7 +195,7 @@ const en = {
     pdf: {
       title: 'FreshEye Report',
       h1: 'FreshEye · Fish Eye Freshness Report',
-      time: 'Time',
+      time: 'Request time (UTC)',
       duration: 'Duration',
       model: 'Model',
       evidence: 'Visual Evidence',

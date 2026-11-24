@@ -8,7 +8,7 @@ import { useToast } from '@/composables/useToast'
 import { useHistory } from '@/composables/useHistory'
 import { useApi, ApiError, type ServiceReadiness } from '@/composables/useApi'
 import { GUIDE_KEY, LEGACY_GUIDE_KEY, LEGACY_MODEL_KEY, MODEL_KEY } from '@/config'
-import type { PredictionResult, FreshnessLabel, HistoryRecord } from '@/types'
+import type { PredictionResult, FreshnessLabel, HistoryRecord, RequestProvenance } from '@/types'
 import { buildReportHtml } from '@/utils/pdfReport'
 import { blobToDataUrl, prepareImageAssets } from '@/utils/imageAssets'
 import { confidenceLevel } from '@/utils/prediction'
@@ -19,7 +19,7 @@ import AccessibleDialog from '@/components/AccessibleDialog.vue'
 const { t, tm, locale } = useI18n()
 const baseUrl = import.meta.env.BASE_URL
 const { toast } = useToast()
-const { history, initHistory, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
+const { history, storageError, initHistory, addHistoryRecord, deleteHistory, clearAllHistory, toggleFavorite } = useHistory()
 const { checkModelReadiness, callPredictApi } = useApi()
 const { canHover, coarsePointer, allowDecorativeMotion } = useMotionPreference()
 const shouldTrackMouse = computed(() => canHover.value && !coarsePointer.value && allowDecorativeMotion.value)
@@ -38,6 +38,8 @@ watch(modelVersion, (v, previous) => {
     lastHeatmap.value = ''
     lastOriginalImage.value = ''
     lastOriginalBlob.value = null
+    lastProvenance.value = undefined
+    lastImageOrigin.value = 'current'
     errorMsg.value = ''
   }
 })
@@ -68,6 +70,8 @@ const lastOriginalImage = ref<string>('') // 对比滑块用的原图 data URL
 const lastOriginalBlob = ref<Blob | null>(null)
 const lastDuration = ref<number>(0)
 const lastTimestamp = ref<string>('')
+const lastProvenance = ref<RequestProvenance | undefined>()
+const lastImageOrigin = ref<'current' | 'history'>('current')
 const apiHealthy = ref<boolean | null>(null)
 const serviceReadiness = ref<ServiceReadiness | null>(null)
 const showLowConfidenceModal = ref(false)
@@ -182,7 +186,7 @@ function modelDisplayName(value: string): string {
   const normalized = value.trim().toLowerCase()
   if (normalized.includes('v1')) return t('home.model.v1')
   if (normalized.includes('v2')) return t('home.model.v2')
-  return value.trim() || t('home.model.v2')
+  return value.trim() || t('home.provenance.unknown')
 }
 
 function formatFileSize(bytes: number): string {
@@ -212,6 +216,8 @@ function resetPreparedFile(message = ''): void {
   lastOriginalBlob.value = null
   lastDuration.value = 0
   lastTimestamp.value = ''
+  lastProvenance.value = undefined
+  lastImageOrigin.value = 'current'
   activeTab.value = 0
   errorMsg.value = message
 }
@@ -262,6 +268,8 @@ async function handleFile(file: File): Promise<boolean> {
     lastOriginalBlob.value = null
     lastDuration.value = 0
     lastTimestamp.value = ''
+    lastProvenance.value = undefined
+    lastImageOrigin.value = 'current'
     activeTab.value = 0
   } catch {
     if (generation === fileGeneration) {
@@ -394,7 +402,7 @@ async function analyze(): Promise<void> {
   showLowWarning.value = true
   const start = performance.now()
   try {
-    const { prediction, heatmap_image } = await callPredictApi(sourceUploadFile, sourceModel, controller.signal)
+    const { prediction, heatmap_image, provenance } = await callPredictApi(sourceUploadFile, sourceModel, controller.signal)
     if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value || sourceUploadFile !== uploadFile.value) return
     const duration = Math.round(performance.now() - start)
     lastResult.value = prediction
@@ -402,16 +410,21 @@ async function analyze(): Promise<void> {
     lastOriginalImage.value = sourcePreviewUrl
     lastOriginalBlob.value = sourcePreviewBlob
     lastDuration.value = duration
-    lastTimestamp.value = prediction.timestamp
+    lastProvenance.value = provenance
+    lastImageOrigin.value = 'current'
+    lastTimestamp.value = provenance?.requestedAt || ''
     activeTab.value = 0
     const lvl = confidenceLevel(prediction.confidence_score)
     if (lvl === 'low') showLowConfidenceModal.value = true
     await addHistoryRecord(sourceThumbnailDataUrl, duration, prediction, heatmap_image,
-      () => request === analysisGeneration && !controller.signal.aborted && sourceFile === selectedFile.value)
+      () => request === analysisGeneration && !controller.signal.aborted && sourceFile === selectedFile.value,
+      provenance)
     if (request !== analysisGeneration || controller.signal.aborted || sourceFile !== selectedFile.value) return
-    toast.success(lvl === 'low'
-      ? t('home.confidence_warn.low')
-      : lvl === 'mid' ? t('home.confidence_warn.mid') : t('home.confidence_warn.high'))
+    toast[storageError.value ? 'error' : 'success'](storageError.value
+      ? t('home.history.storage_failed')
+      : lvl === 'low'
+        ? t('home.confidence_warn.low')
+        : lvl === 'mid' ? t('home.confidence_warn.mid') : t('home.confidence_warn.high'))
   } catch (err) {
     if (request !== analysisGeneration || controller.signal.aborted) return
     if (err instanceof ApiError) {
@@ -466,7 +479,9 @@ function loadHistoryRecord(rec: HistoryRecord): void {
     lastOriginalImage.value = rec.data
     lastOriginalBlob.value = null
     lastDuration.value = rec.duration
-    lastTimestamp.value = rec.timestamp
+    lastProvenance.value = rec.provenance
+    lastImageOrigin.value = 'history'
+    lastTimestamp.value = rec.provenance?.requestedAt || ''
     activeTab.value = 0
     previewUrl.value = rec.data
     errorMsg.value = ''
@@ -479,19 +494,19 @@ function loadHistoryRecord(rec: HistoryRecord): void {
 
 function onDeleteHistory(id: string, e: Event): void {
   e.stopPropagation()
-  deleteHistory(id)
-  toast.info(t('home.history.clear'))
+  if (deleteHistory(id)) toast.info(t('home.history.clear'))
+  else toast.error(t('home.history.storage_failed'))
 }
 
 function onClearAll(): void {
   if (history.value.length === 0) return
-  clearAllHistory()
-  toast.info(t('home.history.clear'))
+  if (clearAllHistory()) toast.info(t('home.history.clear'))
+  else toast.error(t('home.history.storage_failed'))
 }
 
 function onToggleFavorite(id: string, e: Event): void {
   e.stopPropagation()
-  toggleFavorite(id)
+  if (!toggleFavorite(id)) toast.error(t('home.history.storage_failed'))
 }
 
 // ============ Tab 键盘导航 ============
@@ -632,7 +647,7 @@ async function refreshReadiness(): Promise<void> {
 function relativeTime(iso: string): string {
   void historyRefreshKey.value // 依赖刷新触发
   const then = new Date(iso).getTime()
-  if (!then) return ''
+  if (!Number.isFinite(then)) return t('home.provenance.unknown')
   const diff = Date.now() - then
   const sec = Math.floor(diff / 1000)
   const min = Math.floor(sec / 60)
@@ -644,6 +659,21 @@ function relativeTime(iso: string): string {
   if (day < 30) return `${day}${t('home.rel_time.day_ago')}`
   return new Date(iso).toLocaleDateString(locale.value === 'zh' ? 'zh-CN' : 'en-US')
 }
+
+const resultCreatedAtDisplay = computed(() => {
+  const value = lastProvenance.value?.resultCreatedAt || ''
+  if (!value) return t('home.provenance.unknown')
+  return /(?:Z|[+-]\d{2}:\d{2})$/i.test(value)
+    ? value
+    : `${value} (${t('home.provenance.timezone_unknown')})`
+})
+
+const cacheStatusDisplay = computed(() => {
+  const status = lastProvenance.value?.cacheStatus
+  if (status === 'hit') return t('home.provenance.cache_hit')
+  if (status === 'miss') return t('home.provenance.cache_miss')
+  return t('home.provenance.unknown')
+})
 
 // ============ 置信度仪表盘 ============
 const gaugeRadius = 52
@@ -753,9 +783,11 @@ async function exportPDF(): Promise<void> {
     locale: locale.value,
     prediction: current,
     durationMs: lastDuration.value,
-    timestamp: current.timestamp || lastTimestamp.value || new Date().toISOString(),
+    timestamp: lastProvenance.value?.requestedAt || '',
     modelVersion: current.model_version,
     modelDisplayName: modelDisplayName(current.model_version),
+    imageOrigin: lastImageOrigin.value,
+    provenance: lastProvenance.value,
     originalImage,
     heatmapImage: lastHeatmap.value,
     localizedDescription: detailSections.value[1]?.desc,
@@ -782,6 +814,17 @@ async function exportPDF(): Promise<void> {
       download: t('home.pdf.download'),
       close: t('home.pdf.close'),
       noImage: t('home.pdf.no_image'),
+      unknown: t('home.provenance.unknown'),
+      currentImage: t('home.provenance.current_image'),
+      historyImage: t('home.provenance.history_image'),
+      requestTime: t('home.provenance.request_time'),
+      resultTime: t('home.provenance.result_time'),
+      timezoneUnknown: t('home.provenance.timezone_unknown'),
+      cache: t('home.provenance.cache'),
+      cacheHit: t('home.provenance.cache_hit'),
+      cacheMiss: t('home.provenance.cache_miss'),
+      serviceRevision: t('home.provenance.service_revision'),
+      weightsRevision: t('home.provenance.weights_revision'),
       probabilityNote: `${t('home.pdf.probability_note')} ${t('home.result.score_rule')}`,
       lowConfidence: t('home.result.unreliable'),
       probabilityLabels: [t('home.result.high'), t('home.result.mid'), t('home.result.low')]
@@ -1056,6 +1099,11 @@ function closeLowConfidenceModal(): void {
       </div>
     </div>
 
+    <details class="privacy-details">
+      <summary>{{ t('home.upload.privacy_details_title') }}</summary>
+      <p>{{ t('home.upload.privacy_details') }}</p>
+    </details>
+
     <p v-if="errorMsg && !previewUrl" class="error-msg upload-error">{{ errorMsg }}</p>
 
     <!-- 示例图片 -->
@@ -1143,8 +1191,12 @@ function closeLowConfidenceModal(): void {
     </div>
 
     <div class="result-primary-card glass-card">
-      <figure class="result-photo">
+      <figure v-if="lastOriginalImage || previewUrl" class="result-photo">
         <img :src="lastOriginalImage || previewUrl" :alt="t('home.upload.preview_alt')" />
+        <figcaption>{{ t(lastImageOrigin === 'history' ? 'home.provenance.history_image' : 'home.provenance.current_image') }}</figcaption>
+      </figure>
+      <figure v-else class="result-photo result-photo-empty">
+        <figcaption>{{ t('home.pdf.no_image') }}</figcaption>
       </figure>
       <div class="result-primary-copy">
         <span class="result-kicker">{{ t('home.result.result_kicker') }}</span>
@@ -1212,13 +1264,22 @@ function closeLowConfidenceModal(): void {
       <div class="result-meta">
         <span><em>{{ t('home.result.model') }}</em>{{ modelDisplayName(lastResult.model_version) }}</span>
         <span><em>{{ t('home.result.duration') }}</em>{{ lastDuration }}ms</span>
-        <span><em>{{ t('home.result.time') }}</em>{{ new Date(lastTimestamp).toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US') }}</span>
+        <span><em>{{ t('home.provenance.request_time') }}</em>{{ lastTimestamp || t('home.provenance.unknown') }}</span>
       </div>
+      <details class="result-provenance">
+        <summary>{{ t('home.provenance.details_title') }}</summary>
+        <dl>
+          <div><dt>{{ t('home.provenance.result_time') }}</dt><dd>{{ resultCreatedAtDisplay }}</dd></div>
+          <div><dt>{{ t('home.provenance.cache') }}</dt><dd>{{ cacheStatusDisplay }}</dd></div>
+          <div><dt>{{ t('home.provenance.service_revision') }}</dt><dd>{{ lastProvenance?.serviceRevision || t('home.provenance.unknown') }}</dd></div>
+          <div><dt>{{ t('home.provenance.weights_revision') }}</dt><dd>{{ lastProvenance?.weightsSha256 || t('home.provenance.unknown') }}</dd></div>
+        </dl>
+      </details>
     </div>
 
     <!-- Tab 2: AI 视觉分析 -->
     <div v-show="activeTab === 1" role="tabpanel" aria-labelledby="tab-1" class="tab-panel">
-      <div v-if="lastHeatmap" class="compare-wrap glass-card">
+      <div v-if="lastHeatmap && (lastOriginalImage || previewUrl)" class="compare-wrap glass-card">
         <h3 class="block-title">{{ t('home.result.compare_title') }}</h3>
         <div
           ref="compareWrap"
@@ -1256,7 +1317,7 @@ function closeLowConfidenceModal(): void {
         <p class="vision-explain muted">{{ t('home.result.vision_explain') }}</p>
       </div>
       <div v-else class="empty-state glass-card">
-        {{ t('home.result.no_heatmap') }}
+        {{ lastHeatmap ? t('home.result.no_original') : t('home.result.no_heatmap') }}
       </div>
     </div>
 
@@ -1362,6 +1423,7 @@ function closeLowConfidenceModal(): void {
         <span class="select-field__chevron" aria-hidden="true">⌄</span>
       </div>
     </div>
+    <p v-if="storageError" class="storage-warning" role="alert">{{ t('home.history.storage_failed') }}</p>
     <div v-if="filteredHistory.length === 0" class="glass-card empty-state">
       {{ t('home.history.empty') }}
     </div>
@@ -1375,7 +1437,8 @@ function closeLowConfidenceModal(): void {
         @click="loadHistoryRecord(rec)"
         @keydown.enter.prevent="loadHistoryRecord(rec)"
       >
-        <img :src="rec.data" class="history-thumb" alt="" loading="lazy" />
+        <img v-if="rec.data" :src="rec.data" class="history-thumb" alt="" loading="lazy" />
+        <span v-else class="history-thumb history-thumb-empty" aria-hidden="true">—</span>
         <div class="history-info">
           <span class="history-level" :style="{ color: rec.prediction && confidenceLevel(rec.prediction.confidence_score) === 'low' ? 'var(--muted)' : freshnessMeta(rec.prediction?.freshness_level).color }">
             {{ rec.prediction && confidenceLevel(rec.prediction.confidence_score) === 'low' ? t('home.result.unreliable') : freshnessMeta(rec.prediction?.freshness_level).label }}
@@ -1568,6 +1631,9 @@ function closeLowConfidenceModal(): void {
 .upload-text { font-size: 17px; font-weight: 600; color: var(--foam); margin: 0 0 var(--space-2); }
 .upload-meta { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.7; }
 .privacy-note { margin: 12px auto 0; max-width: 560px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
+.privacy-details { max-width: 720px; margin: 12px auto var(--space-4); padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); color: var(--muted); font-size: 12px; line-height: 1.65; }
+.privacy-details summary, .result-provenance summary { color: var(--aqua); cursor: pointer; font-weight: 650; }
+.privacy-details p { margin: 9px 0 0; }
 .upload-cta-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: var(--space-4); }
 .upload-cta {
   padding: 10px 22px; min-height: 44px; border-radius: var(--radius-md);
@@ -1736,11 +1802,14 @@ function closeLowConfidenceModal(): void {
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(189, 246, 239, 0.08);
 }
 .result-photo {
-  margin: 0; aspect-ratio: 1; overflow: hidden;
+  position: relative; margin: 0; aspect-ratio: 1; overflow: hidden;
   border-radius: var(--radius-lg); background: var(--ink);
   border: 1px solid var(--border);
 }
 .result-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.result-photo figcaption { position: absolute; right: 8px; bottom: 8px; left: 8px; padding: 4px 8px; border-radius: 6px; background: rgba(0, 8, 20, .78); color: var(--foam); font-size: 11px; text-align: center; }
+.result-photo-empty { display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.result-photo-empty figcaption { position: static; background: transparent; }
 .result-primary-copy { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .result-kicker, .result-action-label { display: block; color: var(--aqua); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .freshness-card { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: rgba(0, 8, 20, 0.2); }
@@ -1813,6 +1882,12 @@ function closeLowConfidenceModal(): void {
 }
 .result-meta span { display: inline-flex; align-items: baseline; gap: 6px; }
 .result-meta em { font-style: normal; opacity: .75; }
+.result-meta span { overflow-wrap: anywhere; }
+.result-provenance { margin: -8px 0 var(--space-4); color: var(--muted); font-size: 12px; }
+.result-provenance dl { display: grid; gap: 5px; margin: 8px 0 0; }
+.result-provenance dl > div { display: grid; grid-template-columns: minmax(140px, auto) minmax(0, 1fr); gap: 8px; }
+.result-provenance dt { color: var(--muted); }
+.result-provenance dd { margin: 0; color: var(--foam); overflow-wrap: anywhere; }
 
 /* ============ 对比滑块 ============ */
 .compare-wrap { padding: var(--space-4); }
@@ -1901,6 +1976,8 @@ function closeLowConfidenceModal(): void {
 .history-level { font-size: 14px; font-weight: 700; }
 .history-conf { font-size: 12px; color: var(--muted); }
 .history-time { font-size: 11.5px; color: var(--muted); }
+.history-thumb-empty { display: inline-grid; place-items: center; color: var(--muted); background: var(--card-hover); }
+.storage-warning { margin: 0 0 var(--space-4); padding: 12px 14px; border: 1px solid rgba(226, 112, 89, .55); border-radius: var(--radius-md); color: var(--foam); background: rgba(133, 43, 39, .22); font-size: 13px; line-height: 1.6; }
 .history-actions { display: flex; gap: 4px; flex-shrink: 0; }
 .icon-btn {
   width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center;

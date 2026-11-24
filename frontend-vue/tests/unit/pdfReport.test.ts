@@ -25,6 +25,17 @@ const labels: ReportLabels = {
   noImage: 'No image',
   probabilityNote: 'Probabilities are visual model estimates.',
   lowConfidence: 'This image cannot be reliably graded.',
+  unknown: 'Unknown',
+  currentImage: 'Current input image',
+  historyImage: 'History thumbnail',
+  requestTime: 'Request time',
+  resultTime: 'Result created',
+  timezoneUnknown: 'timezone unknown',
+  cache: 'Cache',
+  cacheHit: 'hit',
+  cacheMiss: 'miss',
+  serviceRevision: 'Service revision',
+  weightsRevision: 'Weight SHA-256',
   probabilityLabels: ['Highly Fresh', 'Fresh', 'Not Fresh']
 }
 
@@ -59,6 +70,19 @@ function reportInput(locale: 'zh' | 'en', level: FreshnessLabel): PdfReportInput
 }
 
 describe('deterministic PDF report builder', () => {
+  it('identifies historical thumbnails and preserves distinct request and cached-result times', () => {
+    const input = reportInput('en', 1)
+    input.timestamp = '2026-11-23T10:00:00.000Z'
+    input.imageOrigin = 'history'
+    input.provenance = { requestedAt: input.timestamp, resultCreatedAt: '2026-11-23T09:55:00', cacheStatus: 'hit', serviceRevision: 'abc123', weightsSha256: 'a'.repeat(64) }
+    const html = buildReportHtml(input).html
+    expect(html).toContain('History thumbnail')
+    expect(html).toContain('2026-11-23T10:00:00.000Z')
+    expect(html).toContain('2026-11-23T09:55:00 (timezone unknown)')
+    expect(html).toContain('abc123')
+    expect(html).toContain('a'.repeat(64))
+    expect(html).toContain('Cache: hit')
+  })
   it('retains a low-score warning and suppresses grade-specific content in exports', () => {
     for (const locale of ['zh', 'en'] as const) {
       for (const level of [0, 1, 2] as const) {
