@@ -2065,12 +2065,14 @@ function closeLowConfidenceModal(): void {
   .prob-row { grid-template-columns: 72px 1fr 48px; }
 }
 @media (max-width: 640px) {
+  .hero-action-primary { flex-basis: 100%; }
+  .hero-action-secondary { flex: 1 1 calc(50% - 10px); }
   .advanced-settings > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
   .advanced-settings-hint { margin-left: auto; text-align: right; }
   .hero-evidence-item { font-size: 11px; }
   .preview-info { gap: 8px 12px; font-size: 11px; }
   .preview-info span { min-width: 0; max-width: 100%; }
-  .preview-info strong { max-width: 12em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .preview-info strong { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
   .result-toolbar { width: 100%; justify-content: space-between; }
   .result-primary-card { grid-template-columns: 1fr; padding: 18px 16px; gap: 16px; }
   .result-photo { width: 100%; max-width: 220px; margin-inline: auto; }
