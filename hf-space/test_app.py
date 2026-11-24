@@ -4,6 +4,9 @@
 或无 pytest 时：python test_app.py
 """
 import io
+import hashlib
+import json
+import logging
 import os
 import sys
 
@@ -16,6 +19,13 @@ import pytest
 
 # 延迟导入 app（触发 lifespan 中的模型加载）
 from app import app
+
+
+@pytest.fixture(autouse=True)
+def fresh_rate_limiter(monkeypatch):
+    """Each test starts a fresh window; the rate-limit test still exercises the real limiter."""
+    import app as service
+    monkeypatch.setattr(service, '_rate_limiter', service._RateLimiter())
 
 
 @pytest.fixture(scope="module")
@@ -49,6 +59,109 @@ def test_health(c):
     assert "device" in data
 
 
+def test_health_reports_per_model_readiness_and_revision(c, monkeypatch):
+    import app as service
+    monkeypatch.setattr(service, 'v2_model', None)
+    resp = c.get('/health')
+    data = resp.json()
+    assert resp.status_code == 200
+    assert data['status'] == 'ok'  # Process liveness remains backward compatible.
+    assert data['readiness'] == 'degraded'
+    assert data['models']['v1']['status'] == 'ready'
+    with open(service.V1_MODEL_PATH, 'rb') as weights:
+        assert data['models']['v1']['weights_sha256'] == hashlib.sha256(weights.read()).hexdigest()
+    assert data['models']['v2']['status'] == 'unavailable'
+    assert data['revision']
+    result = c.post('/predict?model_version=v2', files={'file': ('test.jpg', _make_test_image(), 'image/jpeg')})
+    assert result.status_code == 503
+    assert result.headers['x-fresheye-error'] == 'model_unavailable'
+
+
+def test_cache_hit_is_visible_without_changing_prediction_contract(c):
+    def request():
+        return c.post('/predict?model_version=v2', files={'file': ('cache.png', _make_test_image(format='PNG', color=(17, 29, 43)), 'image/png')})
+    first = request()
+    second = request()
+    assert first.status_code == second.status_code == 200
+    assert first.headers['x-fresheye-cache'] == 'miss'
+    assert second.headers['x-fresheye-cache'] == 'hit'
+    assert first.json() == second.json()
+
+
+def test_prediction_reports_running_revision_and_weight_fingerprint(c, monkeypatch):
+    import app as service
+    monkeypatch.setenv('FRESHEYE_REVISION', 'test-revision')
+    result = c.post('/predict_with_gradcam?model_version=v2', files={'file': ('revision.png', _make_test_image(format='PNG', color=(41, 53, 67)), 'image/png')})
+    assert result.status_code == 200
+    assert result.headers['x-fresheye-revision'] == 'test-revision'
+    assert result.headers['x-fresheye-weights-sha256'] == service._weight_revisions['v2']
+    assert 'X-FreshEye-Weights-SHA256' in c.get('/health', headers={'Origin': 'https://fresheye.yance.me'}).headers['access-control-expose-headers']
+
+
+def test_model_reload_does_not_reuse_previous_cache(c, monkeypatch):
+    import app as service
+    monkeypatch.setattr(service, 'v1_model', service.v1_model)
+    monkeypatch.setattr(service, 'v2_model', service.v2_model)
+    monkeypatch.setattr(service, '_weight_revisions', service._weight_revisions.copy())
+    monkeypatch.setattr(service, 'load_v1_model', lambda _: object())
+    monkeypatch.setattr(service, 'load_v2_model', lambda _: object())
+    monkeypatch.setattr(service, '_warmup_model', lambda *_: None)
+    monkeypatch.setattr(service, '_weight_sha256', lambda _: 'a' * 64)
+    service._prediction_cache.set('old', 'old-result')
+    service._gradcam_cache.set('old', 'old-result')
+    with TestClient(app):
+        assert service._prediction_cache.get('old') is None
+        assert service._gradcam_cache.get('old') is None
+
+
+def test_prediction_request_log_records_failure_without_image_data(c, caplog):
+    with caplog.at_level(logging.INFO, logger='app'):
+        response = c.post('/predict?model_version=v3', files={'file': ('private.jpg', _make_test_image(), 'image/jpeg')})
+    assert response.status_code == 422
+    events = [json.loads(record.message) for record in caplog.records if record.message.startswith('{')]
+    event = next(item for item in events if item.get('event') == 'prediction_request')
+    assert event['status_code'] == 422
+    assert event['outcome'] == 'client_error'
+    assert event['duration_ms'] >= 0
+    assert 'private.jpg' not in json.dumps(event)
+
+
+def test_inference_log_separates_lock_wait_and_locked_work(c, caplog):
+    with caplog.at_level(logging.INFO, logger='app'):
+        response = c.post('/predict?model_version=v1', files={'file': ('image.png', _make_test_image(format='PNG', color=(25, 47, 63)), 'image/png')})
+    assert response.status_code == 200
+    events = [json.loads(record.message) for record in caplog.records if record.message.startswith('{')]
+    event = next(item for item in events if item.get('event') == 'inference_lock')
+    assert event['queue_wait_ms'] >= 0
+    assert event['locked_work_ms'] >= 0
+
+
+def test_busy_queue_returns_machine_readable_error(c, monkeypatch):
+    import app as service
+    class BusyLock:
+        def acquire(self, timeout):
+            return False
+    monkeypatch.setattr(service, '_inference_lock', BusyLock())
+    response = c.post('/predict?model_version=v1', files={'file': ('image.png', _make_test_image(format='PNG', color=(7, 11, 13)), 'image/png')})
+    assert response.status_code == 503
+    assert response.headers['x-fresheye-error'] == 'queue_busy'
+
+
+def test_startup_fails_if_both_models_fail_warmup(c, monkeypatch):
+    import app as service
+    monkeypatch.setattr(service, 'v1_model', service.v1_model)
+    monkeypatch.setattr(service, 'v2_model', service.v2_model)
+    monkeypatch.setattr(service, '_weight_revisions', service._weight_revisions.copy())
+    monkeypatch.setattr(service, 'load_v1_model', lambda _: object())
+    monkeypatch.setattr(service, 'load_v2_model', lambda _: object())
+    def fail_warmup(*_):
+        raise RuntimeError('warmup failed')
+    monkeypatch.setattr(service, '_warmup_model', fail_warmup)
+    with pytest.raises(RuntimeError, match='均加载失败'):
+        with TestClient(app):
+            pass
+
+
 def test_root(c):
     """根路径应返回服务状态"""
     resp = c.get("/")
@@ -65,6 +178,7 @@ def test_cors_allows_live_frontend():
         resp = client.get("/health", headers={"Origin": "https://fresheye.yance.me"})
         assert resp.status_code == 200
         assert resp.headers.get("access-control-allow-origin") == "https://fresheye.yance.me"
+        assert 'X-FreshEye-Cache' in resp.headers.get('access-control-expose-headers', '')
     finally:
         client.close()
 
@@ -217,6 +331,7 @@ def test_cache_hit(c):
         files={"file": ("test.jpg", buf2, "image/jpeg")},
     )
     assert resp2.status_code == 200
+    assert resp2.headers['x-fresheye-cache'] == 'hit'
     after = _health_metrics(c)
     # 结果一致
     assert resp1.json()["prediction"]["freshness_label"] == resp2.json()["prediction"]["freshness_label"]

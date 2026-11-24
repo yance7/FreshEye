@@ -30,6 +30,15 @@ export interface GradCAMResult {
   heatmap_image: string
   /** 内嵌的预测结果 */
   prediction: PredictionResult
+  provenance?: RequestProvenance
+}
+
+export interface RequestProvenance {
+  requestedAt: string
+  resultCreatedAt: string
+  cacheStatus: 'hit' | 'miss' | 'unknown'
+  serviceRevision: string
+  weightsSha256: string
 }
 
 /** 历史记录单条 */
@@ -48,6 +57,7 @@ export interface HistoryRecord {
   prediction?: PredictionResult
   /** 关联的热力图 */
   heatmap?: string
+  provenance?: RequestProvenance
 }
 
 /** Toast 通知类型 */
