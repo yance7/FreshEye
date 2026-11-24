@@ -340,18 +340,25 @@ test('browser acceptance is wired into local verification and deployment', () =>
   const packageJson = JSON.parse(file('package.json'));
   const config = file('playwright.config.ts');
   const vitest = file('vitest.config.ts');
+  const productionServer = file('tests/fixtures/production-server.mjs');
   const workflow = readFileSync(join(repo, '.github/workflows/deploy.yml'), 'utf8');
   for (const spec of [
     'tests/e2e/public-pages.spec.ts',
     'tests/e2e/home-flow.spec.ts',
     'tests/e2e/accessibility-responsive.spec.ts',
-    'tests/e2e/report.spec.ts'
+    'tests/e2e/report.spec.ts',
+    'tests/e2e/pwa-404.spec.ts',
+    'tests/fixtures/production-server.mjs',
+    'tests/fixtures/previous-sw.js'
   ]) file(spec);
 
-  assert.equal(packageJson.scripts['test:e2e'], 'playwright test');
+  assert.equal(packageJson.scripts['test:e2e'], 'npm run build:only && playwright test');
   assert.match(packageJson.scripts.verify, /npm run test:e2e/);
   assert.match(config, /testDir: ['"]\.\/tests\/e2e['"]/);
   assert.match(config, /reuseExistingServer: false/);
+  assert.match(config, /production-server\.mjs/);
+  assert.match(productionServer, /fresheye-previous-worker=1/);
+  assert.match(productionServer, /fresheye-offline-test=1/);
   assert.match(vitest, /tests\/e2e\/\*\*/);
   assert.match(workflow, /Install Playwright Chromium/);
   assert.match(workflow, /playwright install --with-deps chromium/);

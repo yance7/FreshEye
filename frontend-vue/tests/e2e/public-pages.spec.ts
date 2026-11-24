@@ -40,8 +40,16 @@ test('all public routes render canonical content without horizontal overflow', a
   const errors = collectRuntimeErrors(page)
 
   for (const route of routes) {
-    await page.goto(route)
-    await expect(page.locator('main#main-content')).toBeVisible()
+    const response = await page.goto(route)
+    if (route === '/404.html') {
+      expect(response?.status()).toBe(200)
+      await expect(page.locator('main > .code')).toHaveText('404')
+      await expect(page.locator('a[href="/"]')).toContainText('Back to home')
+      await expect(page.locator('#app')).toHaveCount(0)
+      await expect(page.locator('script')).toHaveCount(0)
+    } else {
+      await expect(page.locator('main#main-content')).toBeVisible()
+    }
     await expect(page.locator('h1').first()).toBeVisible()
     await expect(page).toHaveTitle(/FreshEye|鲜眸|页面不存在|Page Not Found/)
     expect(page.url()).not.toContain('#')
