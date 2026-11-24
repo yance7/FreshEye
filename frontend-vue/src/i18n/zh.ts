@@ -590,7 +590,6 @@ const zh = {
     nav_source: '开源代码 ↗',
     competition1: 'TRAE AI 创造力大赛',
     competition2: '社会服务赛道',
-    competition3: '参赛者 · 祈雨柒',
     copy: '鲜眸 · FreshEye © 2026 · 一拍知鲜，吃得放心'
   },
   common: { back_top: '回到顶部', skip: '跳到主内容', language_changed: '已切换为中文' }

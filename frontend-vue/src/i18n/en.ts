@@ -590,7 +590,6 @@ const en = {
     nav_source: 'Source Code ↗',
     competition1: 'TRAE AI Creativity Contest',
     competition2: 'Social Service Track',
-    competition3: 'Contestant · Qiyuqi',
     copy: 'FreshEye © 2026 · Snap to know, eat with confidence'
   },
   common: { back_top: 'Back to top', skip: 'Skip to main content', language_changed: 'Language switched to English' }
