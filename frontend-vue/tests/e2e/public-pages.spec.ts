@@ -1,5 +1,7 @@
 import { test, expect, type Browser, type Page } from '@playwright/test'
 
+test.use({ serviceWorkers: 'block' })
+
 const routes = ['/', '/guide.html', '/fish.html', '/about.html', '/404.html']
 
 function collectRuntimeErrors(page: Page): string[] {
@@ -179,4 +181,45 @@ test('public evidence identifies dataset scope and links primary sources', async
   await page.goto('/fish.html')
   await expect(page.locator('main')).toContainText('for education only')
   await expect(page.locator('main a[href="https://data.mendeley.com/datasets/67nmx3mhwh/2"]')).toBeVisible()
+})
+
+test('English remains selected across public pages and updates page metadata', async ({ page }) => {
+  await page.goto('/')
+  await dismissGuide(page)
+  await page.locator('button.lang-switch:visible').first().click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  for (const [path, title] of [['/guide.html', /User Guide/], ['/fish.html', /Species Guide/], ['/about.html', /About FreshEye/]] as const) {
+    await page.goto(path)
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+    await expect(page).toHaveTitle(title)
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /[A-Za-z]{5}/)
+    await expect(page.locator('body')).not.toContainText('nav.home')
+  }
+})
+
+test('a failed English download leaves the current language usable', async ({ page }) => {
+  await page.route(/\/en-[^/]+\.js$/, route => route.abort())
+  await page.goto('/')
+  await dismissGuide(page)
+  const failedChunk = page.waitForEvent('requestfailed', request => /\/en-[^/]+\.js$/.test(request.url()))
+  await page.locator('button.lang-switch:visible').first().click()
+  await failedChunk
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')
+  await expect(page.locator('nav.nav-links')).toContainText('首页')
+  expect(await page.evaluate(() => localStorage.getItem('fresheye-language'))).toBe('zh')
+})
+
+test('the last rapid language selection wins while English is loading', async ({ page }) => {
+  await page.route(/\/en-[^/]+\.js$/, async route => {
+    await new Promise(resolve => setTimeout(resolve, 600))
+    await route.continue()
+  })
+  await page.goto('/')
+  await dismissGuide(page)
+  const toggle = page.locator('button.lang-switch:visible').first()
+  await toggle.click()
+  await toggle.click()
+  await page.waitForTimeout(900)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')
+  expect(await page.evaluate(() => localStorage.getItem('fresheye-language'))).toBe('zh')
 })
